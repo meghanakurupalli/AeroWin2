@@ -1,0 +1,15 @@
+﻿<Window x:Class="play_audio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:play_audio"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button Content="Go!!" Name="playaudio" HorizontalAlignment="Left" Margin="50,50,0,0" VerticalAlignment="Top" Width="75" Click="playaudio_Click"/>
+        <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="160" 
+                Margin="29,107,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                Width="730" Background="Aquamarine" />
+    </Grid>
+</Window>
