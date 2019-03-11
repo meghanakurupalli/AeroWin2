@@ -18,8 +18,10 @@ using System.Windows.Shapes;
 using LiveCharts;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Forms;
 
-namespace audiotrail
+
+namespace AudioUse
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -33,11 +35,10 @@ namespace audiotrail
             InitializeComponent();
 
             StartRecording(5);
-            start_button.IsEnabled = false;
+            btnDownloadFile.IsEnabled = false;
         }
         WaveIn wi;
-        static WaveFileWriter wfw;
-        static WaveFileWriter wfw2;
+        static WaveFileWriter wfw;        
         Polyline pl;
       
 
@@ -57,7 +58,7 @@ namespace audiotrail
 
         public float[] getCoefficients()
         {
-            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\aerowinrt\audio_use\coefficients.txt");            
+            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");            
 
             string[] coefficients = new string[10];
             float[] coefficients1 = new float[10];
@@ -123,7 +124,7 @@ namespace audiotrail
             wfw = null;
 
             
-            start_button.IsEnabled = true;
+            btnDownloadFile.IsEnabled = true;
         }
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
@@ -215,17 +216,16 @@ namespace audiotrail
             //Debug.Print("Points added : " + p);
             double k = p.Y;
             double h = p.X;
-            File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
+            //File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
             return p;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void DownloadFile_Click(object sender, RoutedEventArgs e)
         {
-            start_button.IsEnabled = false;
-            waveCanvas.Children.Clear();
-            WaveFileReader wfr;
-            wfr = new WaveFileReader("record3.wav");
-            Debug.Print("wfr.length : "+ wfr.Length);
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Wave File|*.wav";
+            saveFileDialog.Title = "Download the file";
+            saveFileDialog.ShowDialog();        
 
         }
     }

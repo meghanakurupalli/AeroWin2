@@ -1,4 +1,4 @@
-﻿<Window x:Class="audiotrail.MainWindow"
+﻿<Window x:Class="AudioUse.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -11,7 +11,7 @@
         <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="160" 
                 Margin="30,10,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Visible"
                 Width="730" Background="Aquamarine" />
-        <Button Name="start_button" Content="Start" HorizontalAlignment="Left" Margin="30,197,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,197,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>        
         <!--<lvc:CartesianChart Series="{Binding PolylineCollection}" Margin="10,209,68,10" />-->
 
 
