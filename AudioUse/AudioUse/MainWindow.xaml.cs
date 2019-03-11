@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +27,7 @@ namespace audiotrail
     public partial class MainWindow : Window
     {
         public ChartValues<Polyline> PolylineCollection;
+        string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
         public MainWindow()
         {
             InitializeComponent();
@@ -55,8 +57,7 @@ namespace audiotrail
 
         public float[] getCoefficients()
         {
-            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\aerowinrt\audio_use\coefficients.txt");
-
+            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\aerowinrt\audio_use\coefficients.txt");            
 
             string[] coefficients = new string[10];
             float[] coefficients1 = new float[10];
@@ -82,7 +83,7 @@ namespace audiotrail
             wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
 
-            wfw = new WaveFileWriter(@"D:\GIT\aerowinrt\audio_use\record4.wav", wi.WaveFormat);
+            wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
             
 
             canH = waveCanvas.Height;
