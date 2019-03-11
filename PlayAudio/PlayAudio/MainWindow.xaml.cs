@@ -115,10 +115,10 @@ namespace play_audio
 
             for (int i = 0; i < allBytes.Length - 1; i += 100)
             {
-                //shts[3] = allBytes[i];
-                //shts[2] = allBytes[i + 1];
-                //shts[1] = allBytes[i + 2];
-                //shts[0] = allBytes[i + 3];
+                shts[3] = allBytes[i];
+                shts[2] = allBytes[i + 1];
+                shts[1] = allBytes[i + 2];
+                shts[0] = allBytes[i + 3];
 
                 displaysht.Enqueue(BitConverter.ToInt32(shts, 0));
 
