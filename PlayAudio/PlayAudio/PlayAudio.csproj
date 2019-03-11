@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{9165B479-4894-494E-BC1E-E1946E0852B5}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>play_audio</RootNamespace>
-    <AssemblyName>play_audio</AssemblyName>
+    <RootNamespace>PlayAudio</RootNamespace>
+    <AssemblyName>PlayAudio</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
