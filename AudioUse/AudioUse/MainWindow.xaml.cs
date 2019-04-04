@@ -30,11 +30,12 @@ namespace AudioUse
     {
         public ChartValues<Polyline> PolylineCollection;
         string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
+        double time = 0;
         public MainWindow()
         {
             InitializeComponent();
-
-            StartRecording(5);
+            time = 5.0;
+            StartRecording(time);
             btnDownloadFile.IsEnabled = false;
         }
         WaveIn wi;
@@ -46,12 +47,12 @@ namespace AudioUse
         double canW = 0;
         double plH = 0;
         double plW = 0;
-        int time = 0;
+        
         double seconds = 0;
 
 
         Queue<Point> displaypts;
-        Queue<float> displaysht;
+        Queue<float> displaypoint;
 
         long count = 0;
         int numtodisplay = 2205; //No of samples displayed in a second
@@ -77,7 +78,7 @@ namespace AudioUse
         }
         
 
-        void StartRecording(int time)
+        void StartRecording(double time)
         {
             wi = new WaveIn();
             wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
@@ -85,7 +86,6 @@ namespace AudioUse
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
 
             wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
-            
 
             canH = waveCanvas.Height;
             canW = waveCanvas.Width;
@@ -101,7 +101,7 @@ namespace AudioUse
             plW = pl.MaxWidth;
 
             displaypts = new Queue<Point>();
-            displaysht = new Queue<float>();
+            displaypoint = new Queue<float>();
 
             wi.StartRecording();
 
@@ -111,20 +111,15 @@ namespace AudioUse
 
         void wi_RecordingStopped(object sender, StoppedEventArgs e)
         {
-            string idk;
  
             wi.Dispose();
             wi = null;
-            idk = wfw.Filename;
-            Debug.Print("idk : " + idk);
-            //WaveFileWriter wfw2 = new WaveFileWriter(@"record3", wi.WaveFormat);
-            //wfw.CopyTo(wfw2);
             wfw.Close();
             wfw.Dispose();
             wfw = null;
 
             
-            btnDownloadFile.IsEnabled = true;
+           // btnDownloadFile.IsEnabled = true;
         }
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
@@ -133,45 +128,48 @@ namespace AudioUse
             float[] a = new float[5];
             float[] b = new float[5];
             seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
-            
+
+
             wfw.Write(e.Buffer, 0, e.BytesRecorded);
-            
-            Debug.Print("Writing to file : " + e.BytesRecorded);
+
+            //Debug.Print("Writing to file : " + e.BytesRecorded);
             //wfw.Flush();
-            
-            if (seconds > time)
+
+            Debug.Print("Seconds : " + seconds);
+            if (seconds-time > 0)
             {
+                Debug.Print("inside if : " + time + ", Seconds : "+seconds);
                 wi.StopRecording();
                 // May try flushing here
                 wfw.Flush();
                 Debug.Print("stop recording");
             }
-            double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
+            //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
 
-            byte[] shts = new byte[4];
+            byte[] points = new byte[4];
 
 
             for (int i = 0; i < e.BytesRecorded - 1; i += 100)
             {
-                shts[0] = e.Buffer[i];
-                shts[1] = e.Buffer[i + 1];
-                shts[2] = e.Buffer[i + 2];
-                shts[3] = e.Buffer[i + 3];
+                points[0] = e.Buffer[i];
+                points[1] = e.Buffer[i + 1];
+                points[2] = e.Buffer[i + 2];
+                points[3] = e.Buffer[i + 3];
                 if (count < numtodisplay)
                 {
-                    displaysht.Enqueue(BitConverter.ToInt32(shts, 0));
+                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
                     ++count;
                 }
                 else
                 {
-                    displaysht.Dequeue();
-                    displaysht.Enqueue(BitConverter.ToInt32(shts, 0));
+                    displaypoint.Dequeue();
+                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
                 }
             }
             this.waveCanvas.Children.Clear();
             pl.Points.Clear();
-            float[] shts2 = displaysht.ToArray();
-            float[] shts3 = displaysht.ToArray();
+            float[] points2 = displaypoint.ToArray();
+            float[] points3 = displaypoint.ToArray();
             
             coefficients = getCoefficients();
             for(int i = 0; i < 5; i++)
@@ -185,19 +183,19 @@ namespace AudioUse
                
             }
             
-            for (Int32 x = 4; x < shts2.Length; x++)
+            for (Int32 x = 4; x < points2.Length; x++)
             {
                 //coefficients from file generated by MATLAB
-                shts3[x] = ((b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * shts2[x - 1]) + (a[2] * shts2[x - 2]) + (a[3] * shts2[x - 3]) + (a[4] * shts2[x - 4]));
+                points3[x] = ((b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * points2[x - 1]) + (a[2] * points2[x - 2]) + (a[3] * points2[x - 3]) + (a[4] * points2[x - 4]));
                
             }
 
             
 
 
-            for (Int32 x = 0; x < shts3.Length; ++x)
+            for (Int32 x = 0; x < points3.Length; ++x)
             {
-                pl.Points.Add(Normalize(x, shts3[x]));
+                pl.Points.Add(Normalize(x, points3[x]));
                 
             }
 
@@ -206,14 +204,15 @@ namespace AudioUse
 
         Point Normalize(Int32 x, float y)
         {
-            
+
             Point p = new Point
             {
-                
+
                 X = 1.99 * x / 1800 * plW,
                 Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
+              
             };
-            //Debug.Print("Points added : " + p);
+            Debug.Print("X : " + p.X);
             double k = p.Y;
             double h = p.X;
             //File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");

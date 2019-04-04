@@ -6,10 +6,42 @@
         xmlns:local="clr-namespace:play_audio"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <Storyboard x:Key="sbMoveLine">
+            <DoubleAnimation Storyboard.TargetName="anotherLine" Storyboard.TargetProperty="(Canvas.Left)" To="300" Duration="0:0:5" />
+            <!--<DoubleAnimation Storyboard.TargetName="MyImg" Storyboard.TargetProperty="(Canvas.Left)" To="850" Duration="0:0:0.7" AutoReverse="True" />-->
+        </Storyboard>
+    </Window.Resources>
     <Grid>
-        <Button Content="Go!!" Name="playaudio" HorizontalAlignment="Left" Margin="50,50,0,0" VerticalAlignment="Top" Width="75" Click="playaudio_Click"/>
-        <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="160" 
-                Margin="29,107,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                Width="730" Background="Aquamarine" />
+        <Button Content="Go!!" Name="playaudio" HorizontalAlignment="Left" Margin="50,50,0,0" VerticalAlignment="Top" Width="75" Click="playaudio_Click">
+            
+        </Button>
+        
+        <Canvas Name="waveCanvas" HorizontalAlignment="Left" Height="160" 
+                Margin="29,107,0,0" VerticalAlignment="Top" 
+                Width="730" Background="Aquamarine" >
+
+            <Line x:Name="anotherLine" Stroke="Black" Height="160" Canvas.Left="10"/>
+            <!--<Line.Triggers>
+                    <EventTrigger RoutedEvent="Window.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetName="anotherLine"
+                                    Storyboard.TargetProperty="(Canvas.Left)"
+                                    From="10"
+                                    To="300"
+                                    Duration="0:0:5"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Line.Triggers>-->
+
+
+
+        </Canvas>
+       
     </Grid>
+    
+    
 </Window>
