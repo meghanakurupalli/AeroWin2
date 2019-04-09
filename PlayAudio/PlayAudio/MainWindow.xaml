@@ -21,7 +21,7 @@
                 Margin="29,107,0,0" VerticalAlignment="Top" 
                 Width="730" Background="Aquamarine" >
 
-            <Line x:Name="anotherLine" Stroke="Black" Height="160" Canvas.Left="10"/>
+            <Line x:Name="anotherLine" Stroke="Black" Height="160" X1="0" X2="0" Y1="0" Y2="160"/>
             <!--<Line.Triggers>
                     <EventTrigger RoutedEvent="Window.Loaded">
                         <BeginStoryboard>

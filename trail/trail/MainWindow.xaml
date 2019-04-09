@@ -8,8 +8,9 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
 
-        <Canvas Name="myCanvas">
-            <Line Stroke="Black" X1="20" Y1="10" X2="20" Y2="110" Name="theLine" />
+        <Canvas Name="myCanvas"  Background="Aquamarine" Margin="30,34,115,262" Height="160">
+            
+            <Line Stroke="Black" Height="160" X1="10" X2="10" Y1="0" Y2="160" Name="theLine" />
         </Canvas>
         <Button Canvas.Left="248" Canvas.Top="222" Content="Button" Height="23" Name="button1" Width="75" Click="button1_Click" />
     </Grid>

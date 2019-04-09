@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Windows;
 using NAudio.Wave;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 using System.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace play_audio
 {
@@ -25,8 +27,20 @@ namespace play_audio
 
            // StartRecording(5);
             playaudio.IsEnabled = true;
+            
+            
         }
-        
+
+       
+
+        //public static void ThreadToRunTheCursor()
+        //{
+        //    Dispatcher.Invoke(() =>
+        //    {
+        //        // Set property or change UI compomponents.              
+        //    });
+        //}
+
         WaveFileReader wfr;
         WaveOut wo;
 
@@ -59,8 +73,9 @@ namespace play_audio
             {
                 coefficients1[i] = float.Parse(coefficients[i]);
             }
-
+            
             return (coefficients1);
+
         }
 
 
@@ -73,6 +88,7 @@ namespace play_audio
             float[] a = new float[5];
             float[] b = new float[5];
             Queue<float> displaypoint = new Queue<float>();
+           
 
             canH = waveCanvas.Height;
             canW = waveCanvas.Width;
@@ -89,34 +105,36 @@ namespace play_audio
             line = new Line();
             line.Stroke = Brushes.Black;
 
-            line.X1 = 20;
-            line.X2 = 20;
+            line.X1 = 300;
+            line.X2 = 300;
             line.Y1 = 0;
             line.Y2 = canH;
+            line.Visibility = Visibility.Visible;
             line.Name = "theLine";
 
-            line.StrokeThickness = 1;
-            
+            line.StrokeThickness = 2;
+           // waveCanvas.Children.Add(line);
+            //Debug.Print("Line added to wave canvas");
+            anotherLine.X1 = 20;
+            anotherLine.X2 = 20;
+            anotherLine.Y1 = 0;
+            anotherLine.Y2 = canH;
+            anotherLine.Visibility = Visibility.Visible;
 
             var wout = new WaveOut();
            
             wfr = new WaveFileReader(generatedWaveFilesPath + @"\record4.wav");
-            SoundPlayer s = new SoundPlayer(generatedWaveFilesPath + @"\record4.wav");
-            s.Play();
-            Debug.Print("wfr format : " + wfr.WaveFormat.SampleRate);
-            //for (int i = 0; i < wfr.SampleCount; i++)
-            //{
-            //    if (i % 100 == 0)
-            //    {
-            //        displaypoint.Enqueue(wfr.ReadNextSampleFrame()[0]);
-            //    }
-            //    else
-            //    {
-            //        var dummy = wfr.ReadNextSampleFrame()[0];
-            //    }
-            //}
 
-            //Debug.Print($"Max: {displaypoint.Max()}");
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(1);
+            timer.Tick += Timer_Tick;
+
+            SoundPlayer s = new SoundPlayer(generatedWaveFilesPath + @"\record4.wav");
+            
+
+
+            Debug.Print("wfr format : " + wfr.WaveFormat.SampleRate);
+            
            
 
             byte[] allBytes = File.ReadAllBytes(generatedWaveFilesPath + @"\record4.wav");
@@ -140,8 +158,7 @@ namespace play_audio
             }
 
 
-            this.waveCanvas.Children.Clear();
-            pl.Points.Clear();
+            
             float[] points2 = displaypoint.ToArray();
             float[] points3 = displaypoint.ToArray();
 
@@ -169,26 +186,23 @@ namespace play_audio
 
             for (Int32 x = 0; x < points3.Length; ++x)
             {
-                //pl.Points.Add(new Point(x, points3[x] / 0.01514753));
-                //Point p = new Point { X = 1.99 * x * plW / 1800 , Y = plH / 2.0 - points3[x]*plH*10 };
-                //pl.Points.Add(p);
+                
                 pl.Points.Add(Normalize(x, points3[x]));
-                //Point p1 = new Point();
-                //p1.X = x;
-                //p1.Y = points3[x];
-                //pl.Points.Add(p1);
-                //Debug.Print("X: " + x);
+               
 
             }
-            
+
             this.waveCanvas.Children.Add(pl);
-           
-            int samples_in_5_seconds = 100;//20000
-            line.X1 = 0;
-            line.Y1 = 0;
-            line.X2 = 0;
-            line.Y2 = canH;
-            line.Visibility = System.Windows.Visibility.Visible;
+
+            s.Load();
+            timer.Start();
+            s.Play();
+            //int samples_in_5_seconds = 100;//20000
+            //line.X1 = 0;
+            //line.Y1 = 0;
+            //line.X2 = 0;
+            //line.Y2 = canH;
+            //line.Visibility = System.Windows.Visibility.Visible;
 
             //while (line.X1 < 681.4357)
             //{
@@ -206,13 +220,27 @@ namespace play_audio
             //    waveCanvas.Children.Remove(line);
 
             //}
+
+
+            //anotherLine.Y1 = 0;
+            //anotherLine.Y2 = canH;
+            //while (anotherLine.X1 < 681.4357)
+            //{
+            //    anotherLine.X1 = anotherLine.X1 + 681.4357 / 700;
+            //    Debug.Print("line.X1  : " + anotherLine.X1);
+            //    anotherLine.X2 = anotherLine.X1;
+            //    Debug.Print("Here too");
+            //    //System.Threading.Thread.Sleep(1000);
+            //}
+
+            /*
             DoubleAnimation myDoubleAnimation = new DoubleAnimation();
-            myDoubleAnimation.From = waveCanvas.Margin.Left;
-            myDoubleAnimation.To = waveCanvas.Margin.Right;
+            myDoubleAnimation.From = 0;
+            myDoubleAnimation.To = 600;
             myDoubleAnimation.Duration =
                 new Duration(TimeSpan.FromSeconds(5));
-            // myDoubleAnimation.AutoReverse = true;
-            // myDoubleAnimation.RepeatBehavior = RepeatBehavior.Forever;
+             myDoubleAnimation.AutoReverse = true;
+             myDoubleAnimation.RepeatBehavior = RepeatBehavior.Forever;
 
             Storyboard.SetTarget(myDoubleAnimation, anotherLine);
             // Storyboard.SetTarget(myDoubleAnimation, "{Binding ElementName = anotherLine}")
@@ -224,7 +252,22 @@ namespace play_audio
             Debug.Print("Here!!");
             // this.waveCanvas.Children.Add(line);
 
+            */
 
+
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            // throw new NotImplementedException();
+            if (anotherLine.X1 < 681.4357)
+            {
+                anotherLine.X1 = anotherLine.X1 + 1;
+                Debug.Print("line.X1  : " + anotherLine.X1);
+                anotherLine.X2 = anotherLine.X1;
+                Debug.Print("Here too");
+                anotherLine.Visibility = Visibility.Visible;
+            }
         }
 
         private void OnPlaybackStopped(object sender, StoppedEventArgs e)
@@ -241,11 +284,7 @@ namespace play_audio
                 X = 1.99 * x / 1800 * plW,
                 Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
             };
-            //Debug.Print("Points added: " + p);
-            double k = p.Y;
-            double h = p.X;
-            //Debug.Print("p.X : " + p.X);
-            File.AppendAllText(@"D:\GIT\AeroWin2\AudioUse\textfile2.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
+            
             return p;
         }
 

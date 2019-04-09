@@ -212,7 +212,7 @@ namespace AudioUse
                 Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
               
             };
-            Debug.Print("X : " + p.X);
+           
             double k = p.Y;
             double h = p.X;
             //File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
