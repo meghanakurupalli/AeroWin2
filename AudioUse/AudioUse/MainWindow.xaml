@@ -4,16 +4,36 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        xmlns:geared="clr-namespace:LiveCharts.Geared;assembly=LiveCharts.Geared"
         xmlns:local="clr-namespace:audiotrail"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+
         <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="160" 
                 Margin="30,10,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                Width="730" Background="Aquamarine" />
-        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,197,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>        
+                Width="703" Background="Aquamarine" />
+        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,187,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>        
         <!--<lvc:CartesianChart Series="{Binding PolylineCollection}" Margin="10,209,68,10" />-->
+        <lvc:CartesianChart Name="CartChart"
+            Margin="30,228,0,0" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
+                            Pan="Xy" >
+            <!--<lvc:CartesianChart.Series>
+                <lvc:LineSeries Values="{Binding SeriesCollection}" ScalesXAt="0"/>
+                
+            </lvc:CartesianChart.Series>-->
+            <!--<lvc:CartesianChart Series="{Binding seriesCollection}"/>-->
+            <lvc:CartesianChart.Series>
+                <!--<geared:GLineSeries Values ="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>-->
+                <lvc:LineSeries Values="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>
+            </lvc:CartesianChart.Series>
 
 
+            <lvc:CartesianChart.AxisX >
+                <lvc:Axis Title="Time (s)" />
+            </lvc:CartesianChart.AxisX>
+
+        </lvc:CartesianChart>
+            
     </Grid>
 </Window>

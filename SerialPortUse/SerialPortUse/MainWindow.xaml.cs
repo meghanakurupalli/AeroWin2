@@ -17,15 +17,19 @@ namespace WpfApp1
         private readonly int QUEUE_THRESHOLD = 8;
         SerialPort port = null;
         Queue<byte> receivedData = new Queue<byte>();
-        Timer myTimer = new Timer( 500 );
+        Timer myTimer = new Timer(1);
         caliberationValues givesPacket = new caliberationValues();
         public float[] temparr;
         public static float[] temparray2 = new float[19];
+        Timer anotherTimer = new Timer();
+
 
 
         public MainWindow()
         {
             InitializeComponent();
+
+            button1.IsEnabled = false;
 
             definition = new CRC16.Definition() { TruncatedPolynomial = 0x8005 };
             hashFunction = new CRC16( definition );
@@ -38,8 +42,21 @@ namespace WpfApp1
             myTimer.Elapsed += MyTimer_Elapsed;
             myTimer.Start();
 
+            //anotherTimer.Elapsed += new ElapsedEventHandler(anotherTimerElapsed);
+            //anotherTimer.Interval = 5000;
+            //anotherTimer.Start();
+
             DataContext = this;
         }
+
+        //private void anotherTimerElapsed(object sender, ElapsedEventArgs e)
+        //{
+
+
+        //    myTimer.Stop();
+
+        //    //throw new NotImplementedException();
+        //}
 
         private CRC16.Definition definition;
         private CRC16 hashFunction;
@@ -69,7 +86,7 @@ namespace WpfApp1
             if ( decodedPackets.Count > 0 )
             {
                 var packet = decodedPackets.Dequeue();
-                Debug.Print("New added packet info " + packet.ToString() );
+                //Debug.Print("New added packet info " + packet.ToString() );
 
                 switch ( packet.packetType )
                 {
@@ -78,7 +95,7 @@ namespace WpfApp1
                     case PacketType.PressureTemperature:
                         if (temparray2[1] != 0)
                         {
-                            Debug.Print("temparr[1] !=0");
+                           // Debug.Print("temparr[1] !=0");
 
                             var rawValuePacket = new RawValuePacket(packet);
 
@@ -94,10 +111,11 @@ namespace WpfApp1
                                         pcomp_FS = (float)(temparray2[13] * Math.Pow(pint2, 3) + temparray2[12] * Math.Pow(pint2, 2) + temparray2[11] * pint2 + temparray2[10]);
                                         pcomp = pcomp_FS * temparray2[0] + temparray2[1];
                                         PressureLineSeriesValues.Add(pcomp);
+                                          
                                     }
                                    TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
                                }));
-                            Debug.Print(rawValuePacket.ToString());
+                           // Debug.Print(rawValuePacket.ToString());
                         }
                         break;
                     case PacketType.TemperatureOnly:
@@ -109,12 +127,12 @@ namespace WpfApp1
                         temparr = caliberationvalues.returnArray;
                         for (int i = 0; i < 14; i++)
                         {
-                            Debug.Print("temparr[" + i + "] = " + temparr[i]);
+                           // Debug.Print("temparr[" + i + "] = " + temparr[i]);
                         }
                         temparray2 = temparr;
                         break;                
                     default:
-                        Debug.Print( "Invalid packet received" );
+                       // Debug.Print( "Invalid packet received" );
                         break;
                 }
 
@@ -212,7 +230,7 @@ namespace WpfApp1
                         break;
 
                     default:
-                        Debug.Print( "Default state" );
+                       // Debug.Print( "Default state" );
                         break;
                 }
             }
@@ -443,7 +461,7 @@ namespace WpfApp1
             for (int i = 8; i < 13; i++)
             {
                 tempA[i] = packet.payload[i];
-                Debug.Print("Units : " + tempA[i]);
+                //Debug.Print("Units : " + tempA[i]);
                 j += 1;
                 //unitA = unitA << 8 | packet.payload[j];
             }
