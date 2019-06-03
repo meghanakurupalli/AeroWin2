@@ -13,6 +13,8 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using LiveCharts;
 using LiveCharts.Wpf;
+using System.Windows.Input;
+using PlayAudio;
 
 namespace play_audio
 {
@@ -23,67 +25,55 @@ namespace play_audio
     {
         // public ChartValues<Polyline> PolylineCollection;
         string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
-        public ChartValues<float> audioPoints { get; set; }
+        public ChartValues<double> audioPoints { get; set; }
         public VisualElementsCollection Visuals { get; set; }
+        public double FirstXPos { get; private set; }
+        public double FirstYPos { get; private set; }
+        public double FirstArrowXPos { get; private set; }
+        public double FirstArrowYPos { get; private set; }
+        public object MovingObject { get; private set; }
+
         public MainWindow()
         {
             InitializeComponent();
-            audioPoints = new ChartValues<float>();
-            Line line2 = new Line();
-            line2.X1 = 20;
-            line2.X2 = 20;
-            line2.Y1 = 0;
-            line2.Y2 = 160;
-            line2.Visibility = Visibility.Visible;
+            audioPoints = new ChartValues<double>();
+           
+            //cWin.Owner = this;
+            
+            
 
-
-            // StartRecording(5);
             playaudio.IsEnabled = true;
-            Visuals = new VisualElementsCollection
-            {
-                new VisualElement
-                {X = 25,
-                Y = 50,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                //UIElement = new Line { Name = "line1", X1 = 20, X2 = 20, Y1 = 0, Y2 = 160, Visibility = Visibility.Visible }
-                UIElement = line2},
 
-                new VisualElement
-                {
-                    X =50,Y=100, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, UIElement = line2
-                }
-            };
 
 
             DataContext = this;
+            
 
         }
 
-        
+        cursorWindow cWin = new cursorWindow();
         WaveFileReader wfr;
-        WaveOut wo;
+        protected bool isDragging;
+        
 
-        Polyline pl;
-        Line line;
+        bool captured = false;
+        double x_shape, x_canvas;
+        UIElement source = null;
+        double cursor_1_position, cursor_2_position, cursor_1_value, cursor_2_value;
+        double xValueOnChart1, xValueOnChart2;
+        
         int n = 0;
+        
 
+        
 
-        double canH = 0;
-        double canW = 0;
-        double plH = 0;
-        double plW = 0;
-        int time = 0;
-        double seconds = 0;
-        int numtodisplay = 2205; //No of samples displayed in a second
-
-        public float[] getCoefficients()
+        public double[] getCoefficients()
         {
             string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");
 
 
             string[] coefficients = new string[10];
-            float[] coefficients1 = new float[10];
+            double[] coefficients1 = new double[10];
             foreach (string line in lines)
             {
                 coefficients = line.Split(new char[] { ',' });
@@ -92,83 +82,41 @@ namespace play_audio
 
             for (int i = 0; i < coefficients.Length; i++)
             {
-                coefficients1[i] = float.Parse(coefficients[i]);
+                coefficients1[i] = double.Parse(coefficients[i]);
             }
-            
+
             return (coefficients1);
 
         }
 
 
-        
+
 
         private void playaudio_Click(object sender, RoutedEventArgs e)
         {
+            Debug.Print("ht : "+LayoutRoot.Height);
             playaudio.IsEnabled = false;
-            float[] coefficients = new float[10];
-            float[] a = new float[5];
-            float[] b = new float[5];
-            Queue<float> displaypoint = new Queue<float>();
-            Queue<float> screens = new Queue<float>();
-            
-
-            canH = waveCanvas.Height;
-            canW = waveCanvas.Width;
-
-            pl = new Polyline();
-            pl.Stroke = Brushes.Black;
-            pl.Name = "waveform";
-            pl.StrokeThickness = 1;
-            pl.MaxHeight = canH - 4;
-            pl.MaxWidth = canW - 4;
-            plH = pl.MaxHeight;
-            plW = pl.MaxWidth;
-
-            
-            anotherLine.X1 = 0;
-            anotherLine.X2 = 00;
-            anotherLine.Y1 = 0;
-            anotherLine.Y2 = canH;
-            anotherLine.Visibility = Visibility.Visible;
-
-            //CartChart.VisualElements.Add(new VisualElement
-            //{
-            //    Name = "Visuals",
-            //    X = 5,
-            //    Y = 150,
-            //    HorizontalAlignment = HorizontalAlignment.Center,
-            //    VerticalAlignment = VerticalAlignment.Center,
-            //    UIElement = new Line { Name = "line1", X1 = 20, X2 = 20, Y1 = 0, Y2 = 160, Visibility = Visibility.Visible }
-            //});
-
-            
-
+            double[] coefficients = new double[10];
+            double[] a = new double[5];
+            double[] b = new double[5];
+            Queue<double> displaypoint = new Queue<double>();
+            Queue<double> screens = new Queue<double>();
+            double a1 = LayoutRoot.Width;
+            Debug.Print("Lay : " + a1);
             //var wout = new WaveOut();
 
             wfr = new WaveFileReader(generatedWaveFilesPath + @"\record4.wav");
-            
-            Debug.Print("JH" +wfr.Length);
 
-            DispatcherTimer timer = new DispatcherTimer();
-            // timer.Interval = TimeSpan.FromMilliseconds(1);
-            timer.Interval = TimeSpan.FromMilliseconds(0.4);
-            timer.Tick += Timer_Tick;
+            Debug.Print("JH" + wfr.Length);
+
+          
 
             SoundPlayer s = new SoundPlayer(generatedWaveFilesPath + @"\record4.wav");
-
-            //MediaPlayer m = new MediaPlayer();
-            //m.Open(new Uri("D:\\GIT\\AeroWin2\\GeneratedWaveFiles\\record4.wav"));
             
 
-            //Debug.Print("wfr format : " + wfr.WaveFormat.SampleRate);
-            
-           
 
             byte[] allBytes = File.ReadAllBytes(generatedWaveFilesPath + @"\record4.wav");
-            //Debug.Print("allBytes length : " + allBytes.Length);
-
-
-           // wfr.Read(allBytes, 0, allBytes.Length);
+            
             byte[] points = new byte[4];
 
 
@@ -184,9 +132,9 @@ namespace play_audio
             }
 
 
-            
-            float[] points2 = displaypoint.ToArray();
-            float[] points3 = displaypoint.ToArray();
+
+            double[] points2 = displaypoint.ToArray();
+            double[] points3 = displaypoint.ToArray();
 
             coefficients = getCoefficients();
             for (int i = 0; i < 5; i++)
@@ -211,78 +159,48 @@ namespace play_audio
             double val;
 
             for (Int32 x = 0; x < points3.Length; ++x)
-            {
-                
-                pl.Points.Add(Normalize(x, points3[x]));
+            {               
                 val = points3[x];
-                screens.Enqueue(points3[x]);
-                audioPoints.Add(points3[x]);
+                Point p = new Point();
+                p.X = x;
+                p.Y = points3[x];
+                val = Normalize(x, p.Y);
+                audioPoints.Add(val);
                 n++;
             }
-            //audioPoints.Add(points3[x]);
-            audioPoints.AddRange(screens);
-            this.waveCanvas.Children.Add(pl);
-
+            
+            Debug.Print("n:" + n);//n is the total number of audio points shown on screen
             s.Load();
             
-            timer.Start();
             s.Play();
-            //s.p
-            //m.Play();
-           
-            //Debug.Print("lastPoint : " + lastPoint);
+            audioLine.Visibility = Visibility.Visible;
+            Button btn = sender as Button;
+            Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
+            myStoryBoard.Begin(btn);
+            
 
+            
+            
+            Debug.Print("allbytes len : " + allBytes.Length);
 
+            
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            // throw new NotImplementedException();
-            if (anotherLine.X1 < lastPoint )//&& anotherLine.X1 < canW)
-            {
-                //anotherLine.X1 = anotherLine.X1 + lastPoint/19700;
-                anotherLine.X1 = anotherLine.X1 + 0.692;
-
-                //Sync not working properly
 
 
-                anotherLine.X2 = anotherLine.X1;
-                //anotherLine.Visibility = Visibility.Visible;
-            }
-
-            //if (line1 < lastPoint)//&& anotherLine.X1 < canW)
-            //{
-            //    //anotherLine.X1 = anotherLine.X1 + lastPoint/19700;
-            //    anotherLine.X1 = anotherLine.X1 + 0.692;
-
-            //    //Sync not working properly
-
-
-            //    anotherLine.X2 = anotherLine.X1;
-            //    //anotherLine.Visibility = Visibility.Visible;
-            //}
-        }
-
-        private void OnPlaybackStopped(object sender, StoppedEventArgs e)
-        {
-            // throw new NotImplementedException();
-            Debug.Print("On playback stopped event handler");
-        }
+        
 
         double lastPoint = 0;
-        Point Normalize(Int32 x, float y)
+        double Normalize(Int32 x,double y)
         {
             Point p = new Point
-            {
-
-                X = 1.99 * x / 1670 * plW,
-                //Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
+            {                
                 Y = y / Math.Pow(2, 25)
             };
 
             lastPoint = p.X;
 
-            return p;
+            return p.Y;
         }
 
         public static Point ElementPointToScreenPoint(UIElement element, Point pointOnElement)
@@ -290,14 +208,157 @@ namespace play_audio
             return element.PointToScreen(pointOnElement);
         }
 
+        private void clickToShowCursors(object sender, RoutedEventArgs e)
+        {
 
+            cWin.Show();
+            if (showCursor.IsChecked==true)
+            {
+                Cursor1.Visibility = Visibility.Visible;
+                Cursor2.Visibility = Visibility.Visible;
+                
+            }
+            else
+            {
+                Cursor1.Visibility = Visibility.Collapsed;
+                Cursor2.Visibility = Visibility.Collapsed;
+            }
+            for (int i = 0; i < audioPoints.Count; i++)
+            {
+                Debug.Print("Audio point : " + i + " " + audioPoints[i]);
+            }
 
-        //private void playaudio_Click(object sender, RoutedEventArgs e)
-        //{
-        //    playaudio.IsEnabled = false;
-        //    waveCanvas.Children.Clear();
+        }
 
+        private void Cursor1_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            source = (UIElement)sender;
+            Mouse.Capture(source);
+            captured = true;
+            x_shape = Canvas.GetLeft(source);
+            x_canvas = e.GetPosition(LayoutRoot).X;
+        }
 
-        //}
+        private void Cursor1_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Mouse.Capture(null);
+            captured = false;
+        }
+
+        private void Cursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            
+            if (captured)
+            {
+                cursor_1_position = e.GetPosition(LayoutRoot).X; 
+                x_shape += cursor_1_position - x_canvas;
+                Canvas.SetLeft(source, x_shape);
+                x_canvas = cursor_1_position;
+                
+                cursor1moved();
+            }
+        }
+        
+        private void cursor1moved()
+        {
+            double canW = LayoutRoot.Width;
+            double mul_factor = n/canW; // Gives 1.04 
+            Debug.Print("Mul factor : " + mul_factor);
+            double[] arr = new double[834]; 
+
+            //double difference = cursor_1_position - cursor_2_position;
+            //Debug.Print("ucr1pos : " + cursor_1_position + "cur2pos : " + cursor_2_position);
+            //Debug.Print("in new function : " + difference);
+            //Debug.Print("Last position : " + lastPoint);
+            double posOnLiveChart1 = cursor_1_position * mul_factor;
+            double ceil1 = Math.Ceiling(posOnLiveChart1);
+            double floor1 = Math.Floor(posOnLiveChart1);
+            
+            if((posOnLiveChart1-floor1)<(ceil1-posOnLiveChart1))
+            {
+                xValueOnChart1 = floor1;
+            }
+            else
+            {
+                xValueOnChart1 = ceil1;
+            }
+            // Debug.Print("posOnLiveChart : " + posOnLiveChart + " Ceiling : " + ceil + " flooring : " + floor);
+            // Debug.Print("for value of canvas = " + cursor_1_position + " value on chart is : " + xValueOnChart + " Corresponding value is : "+audioPoints[Convert.ToInt32(xValueOnChart)]);
+            double temp2 = audioPoints[Convert.ToInt32(xValueOnChart1)];
+            cursor_1_value = Math.Round(temp2, 3);
+            cWin.audioCur1.Text =Convert.ToString(cursor_1_value);
+            updateDifference();
+            
+
+        }
+
+        private void Cursor2_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            source = (UIElement)sender;
+            Mouse.Capture(source);
+            captured = true;
+            x_shape = Canvas.GetLeft(source);
+            x_canvas = e.GetPosition(LayoutRoot).X;
+        }
+
+        private void Cursor1_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Cursor1.Cursor = Cursors.Cross;
+            Cursor2.Cursor = Cursors.Cross;
+        }
+
+        private void Cursor2_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Mouse.Capture(null);
+            captured = false;
+        }
+
+        private void Cursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (captured)
+            {
+                cursor_2_position = e.GetPosition(LayoutRoot).X;
+                x_shape += cursor_2_position - x_canvas;
+                Canvas.SetLeft(source, x_shape);
+                x_canvas = cursor_2_position;
+                //Canvas.SetTop(source, y_shape);
+                Debug.Print("x2: " + cursor_2_position);
+                cursor2moved();
+
+            }
+        }
+
+        private void cursor2moved()
+        {
+            double canW = LayoutRoot.Width;
+            double mul_factor = n / canW; // Gives 1.04 
+            Debug.Print("Mul factor : " + mul_factor);
+            //double[] arr = new double[834];
+
+            double posOnLiveChart2 = cursor_2_position * mul_factor;
+            double ceil2 = Math.Ceiling(posOnLiveChart2);
+            double floor2 = Math.Floor(posOnLiveChart2);
+
+            if ((posOnLiveChart2 - floor2) < (ceil2 - posOnLiveChart2))
+            {
+                xValueOnChart2 = floor2;
+            }
+            else
+            {
+                xValueOnChart2 = ceil2;
+            }
+            // Debug.Print("posOnLiveChart : " + posOnLiveChart + " Ceiling : " + ceil + " flooring : " + floor);
+            // Debug.Print("for value of canvas = " + cursor_1_position + " value on chart is : " + xValueOnChart + " Corresponding value is : "+audioPoints[Convert.ToInt32(xValueOnChart)]);
+            double temp1 = audioPoints[Convert.ToInt32(xValueOnChart2)];
+            cursor_2_value = Math.Round(temp1, 3);
+            cWin.audioCur2.Text = Convert.ToString(cursor_2_value);
+            updateDifference();
+        }
+
+        private void updateDifference()
+        {
+            cWin.audioDiff.Text = Convert.ToString(cursor_1_value - cursor_2_value);
+        }
     }
+        
 }

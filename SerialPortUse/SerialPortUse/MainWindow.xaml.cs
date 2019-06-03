@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.Linq;
 using System.Timers;
 using System.Windows;
 
@@ -13,6 +14,7 @@ namespace WpfApp1
     {
         public ChartValues<float> PressureLineSeriesValues { get; set; } = new ChartValues<float>();
         public ChartValues<double> TemperatureLineSeriesValues { get; set; } = new ChartValues<double>();
+        Queue<double> addpr = new Queue<double>();
 
         private readonly int QUEUE_THRESHOLD = 8;
         SerialPort port = null;
@@ -29,7 +31,7 @@ namespace WpfApp1
         {
             InitializeComponent();
 
-            button1.IsEnabled = false;
+           
 
             definition = new CRC16.Definition() { TruncatedPolynomial = 0x8005 };
             hashFunction = new CRC16( definition );
@@ -111,9 +113,10 @@ namespace WpfApp1
                                         pcomp_FS = (float)(temparray2[13] * Math.Pow(pint2, 3) + temparray2[12] * Math.Pow(pint2, 2) + temparray2[11] * pint2 + temparray2[10]);
                                         pcomp = pcomp_FS * temparray2[0] + temparray2[1];
                                         PressureLineSeriesValues.Add(pcomp);
-                                          
+                                        addpr.Enqueue(pcomp);
+                                        Debug.Print("Pressure Val : " + pcomp);      
                                     }
-                                   TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
+                                  // TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
                                }));
                            // Debug.Print(rawValuePacket.ToString());
                         }
@@ -238,7 +241,9 @@ namespace WpfApp1
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-
+            myTimer.Stop();
+            double pr = addpr.Average();
+            Debug.Print("Average : " + addpr.Average());
         }
     }
 

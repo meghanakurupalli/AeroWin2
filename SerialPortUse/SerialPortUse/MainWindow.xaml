@@ -46,6 +46,6 @@
                           Position="RightTop"/>
             </lvc:CartesianChart.AxisY>
         </lvc:CartesianChart>
-        <Canvas Name="waveCanvas" HorizontalAlignment="Left" Background="Aquamarine" Width="653" Margin="10,222,0,35" Grid.Column="1" Grid.RowSpan="2"/>
+        
     </Grid>
 </Window>
