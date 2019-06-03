@@ -26,7 +26,7 @@ namespace MainWindowDesign
             Intensity.Items.Add(null);
         }
 
-        String TokenTypeVal = null;
+        String TokenTypeVal = null; 
         String UtteranceVal, RateVal, IntensityVal, RepetitionCountVal;
         String protocolItem;
         
