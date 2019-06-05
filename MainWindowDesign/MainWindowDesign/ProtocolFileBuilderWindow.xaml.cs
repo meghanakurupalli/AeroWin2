@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,23 +25,24 @@ namespace MainWindowDesign
         public ProtocolFileBuilderWindow()
         {
             InitializeComponent();
-            Intensity.Items.Add(null);
+            //IntensityList.Items.Add(null);
         }
 
-        String TokenTypeVal = null; 
+        String TokenTypeVal = null;
         String UtteranceVal, RateVal, IntensityVal, RepetitionCountVal;
         String protocolItem;
-        
-        
+
+        ListBox SaveList = new ListBox();
         
 
         private void tokenList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //((ListBoxItem)tokenList.SelectedValue).Background = Brushes.Transparent;
             //tokenList.Background = Brushes.White;
-            
+
 
             //((ListBoxItem)tokenList.SelectedValue).Background = Brushes.LightBlue;
+            utteranceList.SelectedIndex = 0;
             if (tokenList.SelectedItem == null)
             {
                 return;
@@ -48,54 +51,93 @@ namespace MainWindowDesign
             if (TokenTypeVal == "NC")
             {
                 //((ListBoxItem)tokenList.SelectedValue).Background = Brushes.Transparent;
-              //  tokenList.Background = Brushes.White;
+                //  tokenList.Background = Brushes.White;
                 utteranceList.Items.Clear();
-                utteranceList.Items.Add("NCItem1");
-                utteranceList.Items.Add("NCItem2");
-                utteranceList.Items.Add("NCItem3");
-                utteranceList.Items.Add("NCItem4");
+                IntensityList.Items.Clear();
+                RateList.Items.Clear();
+                utteranceList.Items.Add("Rest Breath");
+                utteranceList.Items.Add("Deep Breath");
+                utteranceList.Items.Add("ma-ma-ma");
+                utteranceList.Items.Add("/M/ Sustained");
+                utteranceList.SelectedIndex = 0;
                 //((ListBoxItem)tokenList.SelectedItem).Background = Brushes.LightBlue;
             }
-            else if(TokenTypeVal == "VP")
+            else if (TokenTypeVal == "VP")
             {
                 //tokenList.Items.Background = Brushes.White;
-                
+
                 utteranceList.Items.Clear();
-                utteranceList.Items.Add("VPItem1");
-                utteranceList.Items.Add("VPItem2");
-                utteranceList.Items.Add("VPItem3");
-                utteranceList.Items.Add("VPItem4");
+                utteranceList.Items.Add("Pa-Pa-Pa");
+                utteranceList.Items.Add("Puppy 2x");
+                utteranceList.Items.Add("Puffy 2X");
+                utteranceList.Items.Add("Pamper 2x");
+                utteranceList.Items.Add("Buy Bobby a puppy");
+                IntensityList.Items.Clear();
+                IntensityList.Items.Add("HAB");
+                IntensityList.Items.Add("1");
+                IntensityList.Items.Add("2");
+                IntensityList.Items.Add("3");
+                RateList.Items.Clear();
+                RateList.Items.Add("HAB");
+                RateList.Items.Add("3");
+                RateList.Items.Add("7");
+                RateList.Items.Add("10");
+                RateList.Items.Add("15");
+                utteranceList.SelectedIndex = 0;
+                RateList.SelectedIndex = 0;
+                IntensityList.SelectedIndex = 0;
                 //((ListBoxItem)tokenList.SelectedItem).Background = Brushes.LightBlue;
             }
             else if (TokenTypeVal == "LR")
             {
                 tokenList.Background = Brushes.White;
                 utteranceList.Items.Clear();
-                utteranceList.Items.Add("LRItem1");
-                utteranceList.Items.Add("LRItem2");
-                utteranceList.Items.Add("LRItem3");
-                utteranceList.Items.Add("LRItem4");
-            //    ((ListBoxItem)tokenList.SelectedItem).Background = Brushes.LightBlue;
+                utteranceList.Items.Add("Pi");
+                utteranceList.Items.Add("Pa");
+                IntensityList.Items.Clear();
+                //IntensityList.Items.Add("HAB");
+                IntensityList.Items.Add("1");
+                IntensityList.Items.Add("2");
+                IntensityList.Items.Add("3");
+                RateList.Items.Clear();
+                RateList.Items.Add("HAB");
+                RateList.Items.Add("3");
+                RateList.Items.Add("7");
+                RateList.Items.Add("10");
+                RateList.Items.Add("15");
+                utteranceList.SelectedIndex = 0;
+                RateList.SelectedIndex = 0;
+                IntensityList.SelectedIndex = 0;
+                //    ((ListBoxItem)tokenList.SelectedItem).Background = Brushes.LightBlue;
             }
 
-            
+
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            if (tokenList.SelectedIndex == -1 || Intensity.SelectedIndex == -1)
-                MessageBox.Show("Please select an Item first!");
-            String protocol = TokenTypeVal + " " + UtteranceVal + " " + RateVal + " " + IntensityVal + " " + RepetitionCountVal;
+            if(RateVal==null)
+            {
+                RateVal = "-";
+            }
+            if(IntensityVal==null)
+            {
+                IntensityVal = "-";
+            }
+            String protocol = "Token Type : "+TokenTypeVal + " , Utterance : " + UtteranceVal + " , Rate : " + RateVal + " , Intensity : " + IntensityVal + " , Repetition Count : " + RepetitionCountVal;
+            String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
             ProtocolList.Items.Add(protocol);
-            tokenList.UnselectAll();
-            utteranceList.UnselectAll();
-            Rate.UnselectAll();
-            Intensity.UnselectAll();
-            RepetitionCount.UnselectAll();
+            SaveList.Items.Add(SaveProtocol);
+            //tokenList.UnselectAll();
+            //utteranceList.UnselectAll();
+            //RateList.UnselectAll();
+            //IntensityList.UnselectAll();
+            //RepetitionCountList.UnselectAll();
         }
 
         private void utteranceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            //utteranceList.SelectedIndex = 0;
             if (utteranceList.SelectedItem == null)
             {
                 return;
@@ -111,6 +153,8 @@ namespace MainWindowDesign
             if(protocolItem!=null)
             {
                 ProtocolList.Items.Remove(protocolItem);
+                SaveList.Items.Remove(protocolItem);
+                
             }
             else
             {
@@ -127,35 +171,111 @@ namespace MainWindowDesign
             protocolItem = ProtocolList.SelectedItem.ToString();
         }
 
-        private void Rate_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void tokenList_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Rate.SelectedItem == null)
-            {
-                return;
-            }
-            //RateVal = Rate.SelectedItem.ToString();
-            RateVal = ((ListBoxItem)Rate.SelectedValue).Content.ToString();
+            tokenList.SelectedIndex = 0;
+            //utteranceList.SelectedIndex = 0;
+            //if (RateList.Items.Count > 0)
+            //{
+            //    RateList.SelectedIndex = 0;
+            //}
+            //if (IntensityList.Items.Count > 0)
+            //{
+            //    IntensityList.SelectedIndex = 0;
+            //}
+            //RepetitionCountList.SelectedIndex = 0;
         }
 
-        private void Intensity_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void utteranceList_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Intensity.SelectedItem == null)
-            {
-                return;
-            }
-            //IntensityVal = Intensity.SelectedItem.ToString();
-            IntensityVal = ((ListBoxItem)Intensity.SelectedValue).Content.ToString();
+            utteranceList.SelectedIndex = 0;
         }
 
-        private void RepetitionCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void RateList_Loaded(object sender, RoutedEventArgs e)
         {
-            if (RepetitionCount.SelectedItem == null)
+            RateList.SelectedIndex = 0;
+        }
+
+        private void IntensityList_Loaded(object sender, RoutedEventArgs e)
+        {
+            IntensityList.SelectedIndex = 0;
+        }
+
+        private void RepetitionCountList_Loaded(object sender, RoutedEventArgs e)
+        {
+            RepetitionCountList.SelectedIndex = 0;
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+
+            SaveFileDialog save = new SaveFileDialog();
+            //save.FileName = "Protocol.csv";
+            string filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*";
+            save.Filter = filter;
+            StreamWriter writer = null;
+            if (save.ShowDialog() == true)
+
+            {
+                
+                filter = save.FileName;
+                writer = new StreamWriter(filter);
+                const string header = "Token_Type,Utterance,Rate,Intensity,Repetition_Count";
+                writer.WriteLine(header);
+                //var csv = new StringBuilder();
+                for (int i = 0; i < SaveList.Items.Count; i++)
+                {
+                    string protocol = SaveList.Items[i].ToString();
+
+                    //string[] SplitProtocol = protocol.Split(' ');
+                    //csv.Append(protocol);
+                    //Debug.Print(protocol + "\n");
+                    writer.WriteLine(protocol);
+                }
+                writer.Close();
+                
+            }
+            
+        }
+
+        //private void utteranceList_Loaded(object sender, RoutedEventArgs e)
+        //{
+        //    utteranceList.SelectedIndex = 0;
+        //}
+
+        private void RateList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //RateList.SelectedIndex = 0;
+            if (RateList.SelectedItem == null)
             {
                 return;
             }
-            //RepetitionCountVal = RepetitionCount.SelectedItem.ToString();
-            RepetitionCountVal = ((ListBoxItem)RepetitionCount.SelectedValue).Content.ToString();
+            RateVal = RateList.SelectedItem.ToString();
+            //RateVal = ((ListBoxItem)RateList.SelectedValue).Content.ToString();
         }
+
+        private void IntensityList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //IntensityList.SelectedIndex = 0;
+            if (IntensityList.SelectedItem == null)
+            {
+                return;
+            }
+            IntensityVal = IntensityList.SelectedItem.ToString();
+            //IntensityVal = ((ListBoxItem)IntensityList.SelectedValue).Content.ToString();
+        }
+
+        private void RepetitionCountList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+          //  RepetitionCountList.SelectedIndex = 0;
+            if (RepetitionCountList.SelectedItem == null)
+            {
+                return;
+            }
+            //RepetitionCountVal = RepetitionCountList.SelectedItem.ToString();
+            RepetitionCountVal = ((ListBoxItem)RepetitionCountList.SelectedValue).Content.ToString();
+        }
+        
     }
 }
 

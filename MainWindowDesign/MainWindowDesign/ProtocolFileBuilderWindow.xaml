@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
-        Title="ProtocolFileBuilderWindow" Height="450" Width="450" Background="LightGray">
+        Title="ProtocolFileBuilderWindow" Height="470" Width="450" Background="LightGray">
     <Window.Resources>
         <Style x:Key="_ListBoxItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
             <Setter Property="Template">
@@ -24,6 +24,17 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <Style  TargetType="{x:Type ListBoxItem}">
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                    <Setter Property="Background" Value="White"></Setter>
+                </Trigger>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="LightGray"></Setter>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
     <StackPanel Margin="2">
@@ -57,7 +68,9 @@
                 <LineBreak/>
                 <Run>Type</Run>
             </TextBlock>
-            <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Utterance"></TextBlock>
+            <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Utterance">
+                
+            </TextBlock>
             <TextBlock Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Run>Rate</Run>
                 <LineBreak/>
@@ -73,29 +86,34 @@
                 <LineBreak/>
                 <Run>count</Run>
             </TextBlock>
-            <ListBox Grid.Column="0" Grid.Row="1" Name="tokenList" Margin="2 2" SelectionChanged="tokenList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}" HorizontalAlignment="Center" VerticalAlignment="Top">
+            <ListBox Grid.Column="0" Grid.Row="1" Name="tokenList" Margin="2 2" SelectionChanged="tokenList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}" HorizontalAlignment="Center" VerticalAlignment="Top" Loaded="tokenList_Loaded">
 
                 <ListBoxItem Name="NC" Focusable="True" Content="NC">
                 </ListBoxItem>
                 <ListBoxItem Name="VP" >VP</ListBoxItem>
                 <ListBoxItem Name="LR" >LR</ListBoxItem>
             </ListBox>
-            <ListBox Name="utteranceList" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2 2" SelectionChanged="utteranceList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}"></ListBox>
-            <ListBox Name="Rate" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="Rate_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}">
-                <ListBoxItem>Rate1</ListBoxItem>
+            <ListBox Name="utteranceList" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="utteranceList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}" Loaded="utteranceList_Loaded">
+                <ListBoxItem>Rest Breath</ListBoxItem>
+                <ListBoxItem>Deep Breath</ListBoxItem>
+                <ListBoxItem>/M/ Sustained</ListBoxItem>
+                <ListBoxItem>ma-ma-ma</ListBoxItem>
+            </ListBox>
+            <ListBox Name="RateList" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="RateList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}" Loaded="RateList_Loaded">
+                <!--<ListBoxItem>Rate1</ListBoxItem>
                 <ListBoxItem>Rate2</ListBoxItem>
                 <ListBoxItem>Rate3</ListBoxItem>
                 <ListBoxItem>Rate4</ListBoxItem>
-                <ListBoxItem>Rate5</ListBoxItem>
+                <ListBoxItem>Rate5</ListBoxItem>-->
 
             </ListBox>
-            <ListBox Name="Intensity" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="Intensity_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}">
+            <ListBox Name="IntensityList" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="IntensityList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}" Loaded="IntensityList_Loaded">
                 <!--<ListBoxItem>Intensity1</ListBoxItem>
                 <ListBoxItem>Intensity2</ListBoxItem>
                 <ListBoxItem>Intensity3</ListBoxItem>
                 <ListBoxItem>Intensity4</ListBoxItem>-->
             </ListBox>
-            <ListBox Name="RepetitionCount" Grid.Column="4" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="RepetitionCount_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}">
+            <ListBox Name="RepetitionCountList" Grid.Column="4" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2 2" SelectionChanged="RepetitionCountList_SelectionChanged" ItemContainerStyle="{DynamicResource _ListBoxItemStyle}" Loaded="RepetitionCountList_Loaded">
                 <ListBoxItem>1</ListBoxItem>
                 <ListBoxItem>2</ListBoxItem>
                 <ListBoxItem>3</ListBoxItem>
@@ -118,7 +136,15 @@
 
             <Rectangle Fill="White"></Rectangle>
             <Rectangle Fill="White" Grid.Row="0" Grid.Column="1" ></Rectangle>
-            <ListBox Name="ProtocolList" Margin="1 1 0 1" SelectionChanged="ProtocolList_SelectionChanged"></ListBox>
+            <ListBox Name="ProtocolList" Margin="1 1 0 1" SelectionChanged="ProtocolList_SelectionChanged" FontSize="12" FontWeight="Bold" AlternationCount="2" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                
+            </ListBox>
+        </Grid>
+        <Grid Height="40" Margin="0 1 0 0">
+            <Rectangle Fill="White">
+                
+            </Rectangle>
+            <Button Background="LightGray" Margin="1 3 3 3" Height="25" Width="62"  HorizontalAlignment="Right" VerticalAlignment="Center" Content="Save" Foreground="Black" FontWeight="Normal" Name="SaveButton" Click="SaveButton_Click"  BorderBrush="Transparent" FontSize="12"></Button>
         </Grid>
 
 
