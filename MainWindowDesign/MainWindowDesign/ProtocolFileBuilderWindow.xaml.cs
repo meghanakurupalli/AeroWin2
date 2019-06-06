@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,9 @@ namespace MainWindowDesign
         String TokenTypeVal = null;
         String UtteranceVal, RateVal, IntensityVal, RepetitionCountVal;
         String protocolItem;
+        //List<protocol> protocols = new List<protocol>();
+        ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
+
 
         ListBox SaveList = new ListBox();
         
@@ -116,23 +120,39 @@ namespace MainWindowDesign
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            if(RateVal==null)
+            try
             {
-                RateVal = "-";
+                if (RateVal == null)
+                {
+                    RateVal = "-";
+                }
+                if (IntensityVal == null)
+                {
+                    IntensityVal = "-";
+                }
+                String protocol = "Token Type : " + TokenTypeVal + " , Utterance : " + UtteranceVal + " , Rate : " + RateVal + " , Intensity : " + IntensityVal + " , Repetition Count : " + RepetitionCountVal;
+                String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
+                // ProtocolList.Items.Add(protocol);
+                SaveList.Items.Add(SaveProtocol);
+                
+
+                protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+
+                ProtocolGrid.ItemsSource = protocols;
+                ProtocolGrid.DataContext = this;
+                //tokenList.UnselectAll();
+                //utteranceList.UnselectAll();
+                //RateList.UnselectAll();
+                //IntensityList.UnselectAll();
+                //RepetitionCountList.UnselectAll();
             }
-            if(IntensityVal==null)
+
+            catch(Exception ex)
             {
-                IntensityVal = "-";
+                MessageBox.Show(ex.ToString());
             }
-            String protocol = "Token Type : "+TokenTypeVal + " , Utterance : " + UtteranceVal + " , Rate : " + RateVal + " , Intensity : " + IntensityVal + " , Repetition Count : " + RepetitionCountVal;
-            String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
-            ProtocolList.Items.Add(protocol);
-            SaveList.Items.Add(SaveProtocol);
-            //tokenList.UnselectAll();
-            //utteranceList.UnselectAll();
-            //RateList.UnselectAll();
-            //IntensityList.UnselectAll();
-            //RepetitionCountList.UnselectAll();
+
+
         }
 
         private void utteranceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -152,7 +172,9 @@ namespace MainWindowDesign
         {
             if(protocolItem!=null)
             {
-                ProtocolList.Items.Remove(protocolItem);
+                // ProtocolList.Items.Remove(protocolItem);
+                ProtocolGrid.Items.Remove(protocolItem);
+                //ProtocolGrid.Items.RemoveAt(ProtocolGrid.SelectedIndex);
                 SaveList.Items.Remove(protocolItem);
                 
             }
@@ -164,26 +186,17 @@ namespace MainWindowDesign
 
         private void ProtocolList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ProtocolList.SelectedItem == null)
-            {
-                return;
-            }
-            protocolItem = ProtocolList.SelectedItem.ToString();
+            //if (ProtocolList.SelectedItem == null)
+            //{
+            //    return;
+            //}
+            //protocolItem = ProtocolList.SelectedItem.ToString();
         }
 
         private void tokenList_Loaded(object sender, RoutedEventArgs e)
         {
             tokenList.SelectedIndex = 0;
-            //utteranceList.SelectedIndex = 0;
-            //if (RateList.Items.Count > 0)
-            //{
-            //    RateList.SelectedIndex = 0;
-            //}
-            //if (IntensityList.Items.Count > 0)
-            //{
-            //    IntensityList.SelectedIndex = 0;
-            //}
-            //RepetitionCountList.SelectedIndex = 0;
+            
         }
 
         private void utteranceList_Loaded(object sender, RoutedEventArgs e)
@@ -238,6 +251,20 @@ namespace MainWindowDesign
             
         }
 
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ProtocolGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (ProtocolGrid.SelectedItem == null)
+            {
+                return;
+            }
+            protocolItem = ProtocolGrid.SelectedItem.ToString();
+        }
+
         //private void utteranceList_Loaded(object sender, RoutedEventArgs e)
         //{
         //    utteranceList.SelectedIndex = 0;
@@ -276,6 +303,15 @@ namespace MainWindowDesign
             RepetitionCountVal = ((ListBoxItem)RepetitionCountList.SelectedValue).Content.ToString();
         }
         
+    }
+
+    public class protocol
+    {
+        public string TokenType { get; set; }
+        public string Utterance { get; set; }
+        public string Rate { get; set; }
+        public string Intensity { get; set; }
+        public string RepetitionCount { get; set; }
     }
 }
 
