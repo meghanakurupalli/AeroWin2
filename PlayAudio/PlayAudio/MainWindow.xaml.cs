@@ -15,6 +15,7 @@ using LiveCharts;
 using LiveCharts.Wpf;
 using System.Windows.Input;
 using PlayAudio;
+using Microsoft.Win32;
 
 namespace play_audio
 {
@@ -26,7 +27,7 @@ namespace play_audio
         // public ChartValues<Polyline> PolylineCollection;
         string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
         public ChartValues<double> audioPoints { get; set; }
-        public VisualElementsCollection Visuals { get; set; }
+       
         public double FirstXPos { get; private set; }
         public double FirstYPos { get; private set; }
         public double FirstArrowXPos { get; private set; }
@@ -39,15 +40,9 @@ namespace play_audio
             audioPoints = new ChartValues<double>();
            
             //cWin.Owner = this;
-            
-            
-
             playaudio.IsEnabled = true;
-
-
-
             DataContext = this;
-            
+            SaveFileDialog dialog = new SaveFileDialog();
 
         }
 
@@ -94,6 +89,8 @@ namespace play_audio
 
         private void playaudio_Click(object sender, RoutedEventArgs e)
         {
+
+            int flag = 0;
             Debug.Print("ht : "+LayoutRoot.Height);
             playaudio.IsEnabled = false;
             double[] coefficients = new double[10];
@@ -167,16 +164,24 @@ namespace play_audio
                 val = Normalize(x, p.Y);
                 audioPoints.Add(val);
                 n++;
+                if (n >= 834)
+                    flag = 1;
             }
             
             Debug.Print("n:" + n);//n is the total number of audio points shown on screen
             s.Load();
             
             s.Play();
-            audioLine.Visibility = Visibility.Visible;
-            Button btn = sender as Button;
-            Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
-            myStoryBoard.Begin(btn);
+            if(flag==1)
+            {
+                
+                audioLine.Visibility = Visibility.Visible;
+                Button btn = sender as Button;
+                Thread.Sleep(15);
+                Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
+                myStoryBoard.Begin(btn);
+            }
+            
             
 
             
@@ -216,17 +221,18 @@ namespace play_audio
             {
                 Cursor1.Visibility = Visibility.Visible;
                 Cursor2.Visibility = Visibility.Visible;
-                
+                double temp1 = Math.Round(audioPoints[463], 3);
+                double temp2 = Math.Round(audioPoints[600], 3);
+                cWin.audioCur1.Text = Convert.ToString(temp1);
+                cWin.audioCur2.Text = Convert.ToString(temp2);
+
             }
             else
             {
                 Cursor1.Visibility = Visibility.Collapsed;
                 Cursor2.Visibility = Visibility.Collapsed;
             }
-            for (int i = 0; i < audioPoints.Count; i++)
-            {
-                Debug.Print("Audio point : " + i + " " + audioPoints[i]);
-            }
+            
 
         }
 
@@ -239,7 +245,22 @@ namespace play_audio
             x_canvas = e.GetPosition(LayoutRoot).X;
         }
 
+        private void Cursor2_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            source = (UIElement)sender;
+            Mouse.Capture(source);
+            captured = true;
+            x_shape = Canvas.GetLeft(source);
+            x_canvas = e.GetPosition(LayoutRoot).X;
+        }
+
         private void Cursor1_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Mouse.Capture(null);
+            captured = false;
+        }
+
+        private void Cursor2_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Mouse.Capture(null);
             captured = false;
@@ -258,7 +279,22 @@ namespace play_audio
                 cursor1moved();
             }
         }
-        
+
+        private void Cursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (captured)
+            {
+                cursor_2_position = e.GetPosition(LayoutRoot).X;
+                x_shape += cursor_2_position - x_canvas;
+                Canvas.SetLeft(source, x_shape);
+                x_canvas = cursor_2_position;
+                //Canvas.SetTop(source, y_shape);
+                //Debug.Print("x2: " + cursor_2_position);
+                cursor2moved();
+
+            }
+        }
+
         private void cursor1moved()
         {
             double canW = LayoutRoot.Width;
@@ -284,48 +320,18 @@ namespace play_audio
             }
             // Debug.Print("posOnLiveChart : " + posOnLiveChart + " Ceiling : " + ceil + " flooring : " + floor);
             // Debug.Print("for value of canvas = " + cursor_1_position + " value on chart is : " + xValueOnChart + " Corresponding value is : "+audioPoints[Convert.ToInt32(xValueOnChart)]);
-            double temp2 = audioPoints[Convert.ToInt32(xValueOnChart1)];
+            int temp1 = Convert.ToInt32(xValueOnChart1);
+            if (temp1 < 0)
+                temp1 = 0;
+            if (temp1 >= audioPoints.Count)
+                temp1 = audioPoints.Count-1;
+            Debug.Print("temp1 : " + temp1);
+            double temp2 = audioPoints[temp1];
             cursor_1_value = Math.Round(temp2, 3);
             cWin.audioCur1.Text =Convert.ToString(cursor_1_value);
             updateDifference();
             
 
-        }
-
-        private void Cursor2_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            source = (UIElement)sender;
-            Mouse.Capture(source);
-            captured = true;
-            x_shape = Canvas.GetLeft(source);
-            x_canvas = e.GetPosition(LayoutRoot).X;
-        }
-
-        private void Cursor1_MouseEnter(object sender, MouseEventArgs e)
-        {
-            Cursor1.Cursor = Cursors.Cross;
-            Cursor2.Cursor = Cursors.Cross;
-        }
-
-        private void Cursor2_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            Mouse.Capture(null);
-            captured = false;
-        }
-
-        private void Cursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (captured)
-            {
-                cursor_2_position = e.GetPosition(LayoutRoot).X;
-                x_shape += cursor_2_position - x_canvas;
-                Canvas.SetLeft(source, x_shape);
-                x_canvas = cursor_2_position;
-                //Canvas.SetTop(source, y_shape);
-                Debug.Print("x2: " + cursor_2_position);
-                cursor2moved();
-
-            }
         }
 
         private void cursor2moved()
@@ -349,11 +355,30 @@ namespace play_audio
             }
             // Debug.Print("posOnLiveChart : " + posOnLiveChart + " Ceiling : " + ceil + " flooring : " + floor);
             // Debug.Print("for value of canvas = " + cursor_1_position + " value on chart is : " + xValueOnChart + " Corresponding value is : "+audioPoints[Convert.ToInt32(xValueOnChart)]);
-            double temp1 = audioPoints[Convert.ToInt32(xValueOnChart2)];
+            int temp = Convert.ToInt32(xValueOnChart2);
+            if (temp < 0)
+                temp = 0;
+            if (temp >= audioPoints.Count)
+                temp = audioPoints.Count;
+
+            double temp1 = audioPoints[temp];
             cursor_2_value = Math.Round(temp1, 3);
             cWin.audioCur2.Text = Convert.ToString(cursor_2_value);
             updateDifference();
         }
+
+
+
+        private void Cursor1_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Cursor1.Cursor = Cursors.Cross;
+            
+        }
+        private void Cursor2_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Cursor2.Cursor = Cursors.Cross;
+
+        }      
 
         private void updateDifference()
         {

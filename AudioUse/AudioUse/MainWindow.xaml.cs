@@ -16,7 +16,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using LiveCharts;
-using LiveCharts.Geared;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
@@ -61,12 +60,15 @@ namespace AudioUse
 
             
             DataContext = this;
+            SaveFile sWin = new SaveFile();
+            sWin.Show();
+            fileName = sWin.FileName.Text.ToString();
         }
 
         WaveIn wi;
         static WaveFileWriter wfw;        
         Polyline pl;
-      
+        string fileName;
 
         double canH = 0;
         double canW = 0;
@@ -177,7 +179,7 @@ namespace AudioUse
             byte[] points = new byte[4];
 
 
-            for (int i = 0; i < e.BytesRecorded - 4; i += 80)
+            for (int i = 0; i < e.BytesRecorded - 4; i += 100)
             //Check how things work when I take a sample for every 20 samples. 
             //Check why the canvas is not getting filled up properly
             //Instead of assuming arbitrary values with trail and error, see what aspects actally matter.
