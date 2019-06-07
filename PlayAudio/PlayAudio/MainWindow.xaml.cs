@@ -102,7 +102,7 @@ namespace play_audio
             Debug.Print("Lay : " + a1);
             //var wout = new WaveOut();
 
-            wfr = new WaveFileReader(generatedWaveFilesPath + @"\record4.wav");
+            wfr = new WaveFileReader(generatedWaveFilesPath + @"\record4.wav" );
 
             Debug.Print("JH" + wfr.Length);
 
