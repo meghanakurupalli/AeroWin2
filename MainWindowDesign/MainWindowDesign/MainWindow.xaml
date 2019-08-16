@@ -87,7 +87,7 @@
 
                 </ToolBar>
             </ToolBarTray>
-            <Grid Width="900" Margin="8 20" HorizontalAlignment="Left" Height="600">
+            <Grid Width="1000" Margin="8 20" HorizontalAlignment="Left" Height="600">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="0*"/>
                     <ColumnDefinition/>
@@ -127,10 +127,17 @@
                     <Run Typography.Variants="Subscript" FontSize="8">2</Run>
                     <Run FontSize="12">O/LPS)</Run>
                 </TextBlock>
+                
+                
                 <Grid Grid.Column="2" Grid.Row="0">
-                    <lvc:CartesianChart x:Name="audioChart" Height="150">
-                        <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False"/>
+                    <lvc:CartesianChart Name="CartChart" Height="150" Zoom= "Xy"
+                            Pan="Xy">
+                        <lvc:CartesianChart.Series>
+                            <!--<geared:GLineSeries Values ="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>-->
+                            <lvc:LineSeries Values="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>
+                        </lvc:CartesianChart.Series>
+                        <lvc:CartesianChart.AxisX >
+                            <lvc:Axis Title="Time (s)" />
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
@@ -138,6 +145,8 @@
                     </lvc:CartesianChart>
                     <Canvas x:Name="audioCanvas" Height="150"></Canvas>
                 </Grid>
+                
+                
                 <Grid Grid.Column="2" Grid.Row="1">
                     <lvc:CartesianChart x:Name="airFlowChart" Height="150">
                         <lvc:CartesianChart.AxisX>
@@ -187,7 +196,7 @@
                     </Grid.ColumnDefinitions>
                 </Grid>
             </Grid>
-            <Button Width="200" Height="50" Background="AliceBlue" Content="Start" FontSize="18" FontWeight="Bold" Foreground="Black" BorderBrush="AliceBlue"></Button>
+            <Button Width="200" Height="50" Background="AliceBlue" Content="Start" FontSize="18" FontWeight="Bold" Foreground="Black" BorderBrush="AliceBlue" Name="StartButton" Click="StartButton_Click"></Button>
             <!--Add grid for button and add time-->
         </StackPanel>
     </Border>

@@ -1,0 +1,78 @@
+﻿<Window x:Class="MainWindowDesign.SaveFileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MainWindowDesign"
+        mc:Ignorable="d"
+        Title="SaveFileWindow" Height="350" Width="400">
+    <StackPanel Height="300" VerticalAlignment="Top">
+        <Grid Height="125" Margin="2 2">
+            <StackPanel>
+                <Label Height="30" FontSize="12" FontWeight="Bold" VerticalAlignment="Bottom">
+                    Data File:
+                </Label>
+                <Grid Height="50" Margin="2 2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">File Name :</Label>
+                    <TextBox Grid.Column="1" Height="25" Margin="2 2" x:Name="FileName"></TextBox>
+
+
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Height="30" Content="Directory Path : C\\Something"></Label>
+                    <Button Grid.Column="2" Height="25" Content="Browse" FontWeight="SemiBold" x:Name="Save" Background="LightGray" Foreground="Black" ></Button>
+                </Grid>
+
+                <Separator/>
+
+            </StackPanel>
+        </Grid>
+        <Grid Height="125" Margin="2 2">
+            <StackPanel>
+                <Label Height="30" FontSize="12" FontWeight="Bold" VerticalAlignment="Bottom">
+                    Protocol File:
+                </Label>
+                <Grid Height="50" Margin="2 2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">File Name :</Label>
+                    <TextBox Grid.Column="1" Height="25" Margin="2 2" x:Name="ProtocolFileName"></TextBox>
+
+
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4*"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Directory path : C\\something"></Label>
+                    <Button Grid.Column="1" Height="25" Content="Browse" FontWeight="SemiBold" Background="LightGray" Foreground="Black"></Button>
+                </Grid>
+                <Separator/>
+
+            </StackPanel>
+        </Grid>
+        <Grid Height="30">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+        </Grid>
+    </StackPanel>
+</Window>
