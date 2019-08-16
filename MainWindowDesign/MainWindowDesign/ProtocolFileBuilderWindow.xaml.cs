@@ -32,6 +32,7 @@ namespace MainWindowDesign
         String TokenTypeVal = null;
         String UtteranceVal, RateVal, IntensityVal, RepetitionCountVal;
         String protocolItem;
+        int protocolIndex;
         //List<protocol> protocols = new List<protocol>();
         ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
 
@@ -122,34 +123,25 @@ namespace MainWindowDesign
         {
             try
             {
-                if (RateVal == null)
+                if (TokenTypeVal == "NC")
                 {
                     RateVal = "-";
-                }
-                if (IntensityVal == null)
-                {
                     IntensityVal = "-";
                 }
-                String protocol = "Token Type : " + TokenTypeVal + " , Utterance : " + UtteranceVal + " , Rate : " + RateVal + " , Intensity : " + IntensityVal + " , Repetition Count : " + RepetitionCountVal;
                 String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
                 // ProtocolList.Items.Add(protocol);
                 SaveList.Items.Add(SaveProtocol);
                 
-
                 protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
 
                 ProtocolGrid.ItemsSource = protocols;
                 ProtocolGrid.DataContext = this;
-                //tokenList.UnselectAll();
-                //utteranceList.UnselectAll();
-                //RateList.UnselectAll();
-                //IntensityList.UnselectAll();
-                //RepetitionCountList.UnselectAll();
+                
             }
 
             catch(Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                MessageBox.Show(ex.ToString(), "Cannot add protocol");
             }
 
 
@@ -172,15 +164,19 @@ namespace MainWindowDesign
         {
             if(protocolItem!=null)
             {
+
                 // ProtocolList.Items.Remove(protocolItem);
-                ProtocolGrid.Items.Remove(protocolItem);
+                // ProtocolGrid.Items.Remove(protocolItem);
                 //ProtocolGrid.Items.RemoveAt(ProtocolGrid.SelectedIndex);
+                ProtocolGrid.Items.RemoveAt(protocolIndex);
+                
                 SaveList.Items.Remove(protocolItem);
+                
                 
             }
             else
             {
-                MessageBox.Show("Select an item to delete!");
+                MessageBox.Show("Select an item to delete!", "Warning");
             }
         }
 
@@ -263,6 +259,8 @@ namespace MainWindowDesign
                 return;
             }
             protocolItem = ProtocolGrid.SelectedItem.ToString();
+            protocolIndex = ProtocolGrid.SelectedIndex;
+            Debug.Print("Protoocl item : " + protocolItem + "Index  : "+protocolIndex);
         }
 
         //private void utteranceList_Loaded(object sender, RoutedEventArgs e)

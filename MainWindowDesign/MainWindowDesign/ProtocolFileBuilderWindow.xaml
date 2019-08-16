@@ -151,7 +151,7 @@
             <!--<ListBox Name="ProtocolList" Margin="1 1 0 1" SelectionChanged="ProtocolList_SelectionChanged" FontSize="12" FontWeight="Bold" AlternationCount="2" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                 
             </ListBox>-->
-            <DataGrid Name="ProtocolGrid" ItemsSource="{Binding protocols}" IsReadOnly="True" SelectedCellsChanged="ProtocolGrid_SelectedCellsChanged">
+            <DataGrid Name="ProtocolGrid" IsReadOnly="True" SelectedCellsChanged="ProtocolGrid_SelectedCellsChanged" SelectionUnit="FullRow">
                 
             </DataGrid>
         </Grid>
