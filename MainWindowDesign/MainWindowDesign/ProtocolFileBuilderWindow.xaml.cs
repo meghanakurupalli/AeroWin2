@@ -168,9 +168,11 @@ namespace MainWindowDesign
                 // ProtocolList.Items.Remove(protocolItem);
                 // ProtocolGrid.Items.Remove(protocolItem);
                 //ProtocolGrid.Items.RemoveAt(ProtocolGrid.SelectedIndex);
-                ProtocolGrid.Items.RemoveAt(protocolIndex);
+                //ProtocolGrid.Items.RemoveAt(protocolIndex);
+                protocols.RemoveAt(protocolIndex);
                 
-                SaveList.Items.Remove(protocolItem);
+                //SaveList.Items.Remove(protocolItem);
+                SaveList.Items.RemoveAt(protocolIndex);
                 
                 
             }
