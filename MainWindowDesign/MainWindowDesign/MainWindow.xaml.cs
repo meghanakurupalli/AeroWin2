@@ -35,13 +35,14 @@ namespace MainWindowDesign
 
         string generatedWaveFilesPath = "D:\\GIT\\AeroWin2\\GeneratedWaveFiles";
         public SeriesCollection SeriesCollection { get; set; }
+        public 
 
         WaveIn wi;
         static WaveFileWriter wfw;
         
-        string fileName;
+        string DataFileName;
        
-
+        public string FileNameFromSFW;
         double seconds = 0;
 
 
@@ -51,19 +52,21 @@ namespace MainWindowDesign
         long count = 0;
         int numtodisplay = 2205;
 
+        
+
 
         double time = 0;
         public MainWindow()
         {
+            
             InitializeComponent();
             DataContext = this;
 
             audioPoints = new ChartValues<double>();
 
             
-            SaveFileWindow sWin = new SaveFileWindow();
-            sWin.Show();
-            fileName = sWin.FileName.Text.ToString();
+            
+            
 
         }
 
@@ -93,22 +96,10 @@ namespace MainWindowDesign
             wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
             wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
+            DataFileName = FileNameFromSFW;
 
-            wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
-
-
-            //canH = waveCanvas.Height;
-            //canW = waveCanvas.Width;
-
-            //pl = new Polyline();
-            //pl.Stroke = Brushes.Black;
-            //pl.Name = "waveform";
-            //pl.StrokeThickness = 1;
-            //pl.MaxHeight = canH - 4;
-            //pl.MaxWidth = canW - 4;
-            //// pl.m
-            //plH = pl.MaxHeight;
-            //plW = pl.MaxWidth;
+            wfw = new WaveFileWriter(generatedWaveFilesPath + DataFileName + ".wav", wi.WaveFormat);
+            Debug.Print("DataFileName : " + DataFileName);
 
             displaypts = new Queue<Point>();
             displaypoint = new Queue<float>();
@@ -146,14 +137,14 @@ namespace MainWindowDesign
             //Debug.Print("Writing to file : " + e.BytesRecorded);
             //wfw.Flush();
 
-            Debug.Print("Seconds : " + seconds);
+           // Debug.Print("Seconds : " + seconds);
             if (seconds - time > 0)
             {
-                Debug.Print("inside if : " + time + ", Seconds : " + seconds);
+               //Debug.Print("inside if : " + time + ", Seconds : " + seconds);
                 wi.StopRecording();
                 // May try flushing here
                 wfw.Flush();
-                Debug.Print("stop recording");
+                //Debug.Print("stop recording");
             }
             //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
 
@@ -234,25 +225,7 @@ namespace MainWindowDesign
             //this.waveCanvas.Children.Add(pl);
         }
 
-        //Point Normalize(Int32 x, float y)
-        //{
-
-        //    Point p = new Point
-        //    {
-
-        //        // X = 1.99 * x / 1800 * plW,
-        //        X = 1.99 * x / 1670 * plW,
-        //        Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
-        //        //Y = y/(Math.Pow(2,30))
-
-
-        //    };
-
-        //    // double k = p.Y;
-        //    /// double h = p.X;
-        //    //File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
-        //    return p;
-        //}
+        
 
         Point Normalize2(Int32 x, float y)
         {
@@ -283,20 +256,16 @@ namespace MainWindowDesign
 
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void NewFileButton_Click(object sender, RoutedEventArgs e)
         {
-
-        }
-
-        private void NewFile_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
+            
+            SaveFileWindow sWin = new SaveFileWindow();
+            sWin.Activate();
+            sWin.Topmost = true;
+            sWin.Show();
+            DataFileName = sWin.FileName.Text.ToString();
+            StartButton.IsEnabled = true;
+        }      
 
         private void ProtocolBuilder_Click(object sender, RoutedEventArgs e)
         {
@@ -304,6 +273,10 @@ namespace MainWindowDesign
             pWin.Show();
         }
 
+        public void enableStartButton()
+        {
+            StartButton.IsEnabled = true;
+        }
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
 
@@ -311,8 +284,17 @@ namespace MainWindowDesign
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
+            //SaveFileWindow sfw2 = new SaveFileWindow();
+            //sfw2.startButtonSFW = this.StartButton;
             time = 5.0;
             StartRecording(time);
         }
+
+       
+        private void NewFile_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+        
     }
 }

@@ -19,7 +19,7 @@
         <StackPanel>
             <Menu IsMainMenu="True" >
                 <MenuItem Header="_File">
-                    <MenuItem Header="_New">
+                    <MenuItem x:Name="NewFileButton" Header="_New" Click="NewFileButton_Click">
                         <MenuItem.Icon>
                             <materialDesign:PackIcon Kind="FilePlus" />
                         </MenuItem.Icon>
@@ -196,7 +196,7 @@
                     </Grid.ColumnDefinitions>
                 </Grid>
             </Grid>
-            <Button Width="200" Height="50" Background="AliceBlue" Content="Start" FontSize="18" FontWeight="Bold" Foreground="Black" BorderBrush="AliceBlue" Name="StartButton" Click="StartButton_Click"></Button>
+            <Button Width="200" Height="50" Background="AliceBlue" Content="Start" FontSize="18" FontWeight="Bold" Foreground="Black" BorderBrush="AliceBlue" Name="StartButton" Click="StartButton_Click" IsEnabled="False"></Button>
             <!--Add grid for button and add time-->
         </StackPanel>
     </Border>
