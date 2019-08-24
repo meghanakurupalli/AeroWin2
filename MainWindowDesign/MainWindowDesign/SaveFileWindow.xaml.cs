@@ -87,9 +87,13 @@ namespace MainWindowDesign
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            //mwin.StartButton = this.SaveButton;
-            //mwin.StartButton.IsEnabled = true;
-            // StartButton.IsEnabled = true;
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window.GetType() == typeof(MainWindow))
+                {
+                    ((MainWindow) window).StartButton.IsEnabled = true;
+                }
+            }
             Close();
         }
 
