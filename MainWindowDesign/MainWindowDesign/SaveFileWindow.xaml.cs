@@ -22,11 +22,27 @@ namespace MainWindowDesign
     /// </summary>
     public partial class SaveFileWindow : Window
     {
-        string DataFileName;
-        SaveFileDialog save = new SaveFileDialog();
+        
+        //SaveFileDialog save = new SaveFileDialog();
         OpenFileDialog openFileDialog = new OpenFileDialog();
         MainWindow mwin = new MainWindow();
         public Button startButtonSFW;
+        string _dataFileName;
+        string _protocolFileName;
+
+        public event EventHandler SaveButtonClicked;
+        string generatedProtocolFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedProtocolFilesPath"];
+        public string Data_File_Name
+        {
+            get { return _dataFileName; }
+            set { _dataFileName = value; }
+        }
+
+        public string Protocol_File_Name
+        {
+            get { return _protocolFileName; }
+            set { _protocolFileName = value; }
+        }
         public SaveFileWindow()
         {
             InitializeComponent();
@@ -51,6 +67,7 @@ namespace MainWindowDesign
             //save.Filter = filter;
             //StreamWriter writer = null;
             openFileDialog.Filter = filter;
+            openFileDialog.InitialDirectory = generatedProtocolFilesPath;
             //if (save.ShowDialog() == true)
 
             //{
@@ -75,12 +92,12 @@ namespace MainWindowDesign
             
             if(openFileDialog.ShowDialog()==true)
             {
-                string DataFileName_ext;
-                DataFileName_ext = openFileDialog.ToString();
-                DataFileName = System.IO.Path.GetFileNameWithoutExtension(DataFileName_ext);
-                Debug.Print("File name : " + DataFileName);
-                ProtocolFileName.Text = DataFileName;
-                mwin.FileNameFromSFW = DataFileName;
+                string ProtocolFileName_ext;
+                ProtocolFileName_ext = openFileDialog.ToString();
+                _protocolFileName = System.IO.Path.GetFileNameWithoutExtension(ProtocolFileName_ext);
+                Debug.Print("protocol File name : " + _protocolFileName);
+                ProtocolFileName.Text = _protocolFileName;
+                
             }
 
         }
@@ -94,6 +111,15 @@ namespace MainWindowDesign
                     ((MainWindow) window).StartButton.IsEnabled = true;
                 }
             }
+            if(SaveButtonClicked !=null)
+            {
+                _dataFileName = FileName.Text;
+                _protocolFileName = ProtocolFileName.Text;
+                SaveButtonClicked(this, new EventArgs());
+            }
+
+            //this.DialogResult = true;
+
             Close();
         }
 

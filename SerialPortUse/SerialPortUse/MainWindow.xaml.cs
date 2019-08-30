@@ -44,21 +44,21 @@ namespace WpfApp1
             myTimer.Elapsed += MyTimer_Elapsed;
             myTimer.Start();
 
-            //anotherTimer.Elapsed += new ElapsedEventHandler(anotherTimerElapsed);
-            //anotherTimer.Interval = 5000;
-            //anotherTimer.Start();
+            anotherTimer.Elapsed += new ElapsedEventHandler(anotherTimerElapsed);
+            anotherTimer.Interval = 30000;
+            anotherTimer.Start();
 
             DataContext = this;
         }
 
-        //private void anotherTimerElapsed(object sender, ElapsedEventArgs e)
-        //{
+        private void anotherTimerElapsed(object sender, ElapsedEventArgs e)
+        {
 
 
-        //    myTimer.Stop();
+            myTimer.Stop();
 
-        //    //throw new NotImplementedException();
-        //}
+            //throw new NotImplementedException();
+        }
 
         private CRC16.Definition definition;
         private CRC16 hashFunction;

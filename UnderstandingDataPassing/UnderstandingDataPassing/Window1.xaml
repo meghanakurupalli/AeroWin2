@@ -1,0 +1,14 @@
+﻿<Window x:Class="UnderstandingDataPassing.Window1"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UnderstandingDataPassing"
+        mc:Ignorable="d"
+        Title="Window1" Height="456.303" Width="815.126">
+    <Grid>
+        <TextBox Width="300" Margin="206,171,301,214" x:Name="textbox" RenderTransformOrigin="0.43,-0.286"/>
+        <Button Height="40" Width="80" Margin="579,168,133,211" Content="OK" x:Name="button" Click="button_Click"></Button>
+
+    </Grid>
+</Window>

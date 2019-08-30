@@ -32,8 +32,8 @@
             <lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding PressureLineSeriesValues}"
                                 ScalesXAt="0"/>
-                <!--<lvc:LineSeries Values="{Binding TemperatureLineSeriesValues}"
-                                ScalesYAt="1"/>-->
+                <lvc:LineSeries Values="{Binding TemperatureLineSeriesValues}"
+                                ScalesYAt="1"/>
             </lvc:CartesianChart.Series>
 
             <lvc:CartesianChart.AxisX>

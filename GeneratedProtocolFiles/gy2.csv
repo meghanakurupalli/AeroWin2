@@ -1,0 +1,6 @@
+Token_Type,Utterance,Rate,Intensity,Repetition_Count
+NC,Rest Breath,-,-,1
+LR,Pi,10,1,1
+NC,/M/ Sustained,-,-,1
+VP,Puffy 2X,HAB,2,1
+LR,Pi,15,1,4

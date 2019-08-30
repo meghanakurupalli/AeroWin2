@@ -313,6 +313,10 @@ namespace MainWindowDesign
         public string Intensity { get; set; }
         public string RepetitionCount { get; set; }
     }
+
+    
+
+
 }
 
 //When tokens in list boxes are added like utterance list values, change them like in utterance list values then.

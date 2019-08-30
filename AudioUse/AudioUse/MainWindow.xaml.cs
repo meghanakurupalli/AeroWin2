@@ -146,10 +146,23 @@ namespace AudioUse
             wfw.Close();
             wfw.Dispose();
             wfw = null;
+            byte[] byteArray = new byte[84800];
+            for(int i = 0;i<byteArray.Length;i++)
+            {
+                byteArray[i] = byteList[i];
+            }
+            Debug.Print("Byte list count : " + byteList.Count);
+            fileName = @"D:\GIT\AeroWin2\GeneratedWavefiles\thisFile.dat";
+            using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                fs.Write(byteArray, 0, byteArray.Length);
+                
+            }
 
-            
-           // btnDownloadFile.IsEnabled = true;
+            // btnDownloadFile.IsEnabled = true;
         }
+
+        List<byte> byteList = new List<byte>();
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
         {
@@ -160,7 +173,8 @@ namespace AudioUse
 
 
             wfw.Write(e.Buffer, 0, e.BytesRecorded);
-            
+            byteList.AddRange(e.Buffer);
+            Debug.Print("Each time Buffer : " + e.Buffer + " Bytes Recorded : " + e.BytesRecorded);
 
             //Debug.Print("Writing to file : " + e.BytesRecorded);
             //wfw.Flush();
@@ -168,7 +182,7 @@ namespace AudioUse
             Debug.Print("Seconds : " + seconds);
             if (seconds-time > 0)
             {
-                Debug.Print("inside if : " + time + ", Seconds : "+seconds);
+                //Debug.Print("inside if : " + time + ", Seconds : "+seconds);
                 wi.StopRecording();
                 // May try flushing here
                 wfw.Flush();

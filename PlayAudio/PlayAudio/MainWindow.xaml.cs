@@ -91,7 +91,7 @@ namespace play_audio
         {
 
             int flag = 0;
-            Debug.Print("ht : "+LayoutRoot.Height);
+            //Debug.Print("ht : "+LayoutRoot.Height);
             playaudio.IsEnabled = false;
             double[] coefficients = new double[10];
             double[] a = new double[5];
@@ -99,30 +99,32 @@ namespace play_audio
             Queue<double> displaypoint = new Queue<double>();
             Queue<double> screens = new Queue<double>();
             double a1 = LayoutRoot.Width;
-            Debug.Print("Lay : " + a1);
+            //Debug.Print("Lay : " + a1);
             //var wout = new WaveOut();
 
             wfr = new WaveFileReader(generatedWaveFilesPath + @"\record4.wav" );
 
-            Debug.Print("JH" + wfr.Length);
-
-          
+            //Debug.Print("JH" + wfr.Length);
 
             SoundPlayer s = new SoundPlayer(generatedWaveFilesPath + @"\record4.wav");
-            
 
-
-            byte[] allBytes = File.ReadAllBytes(generatedWaveFilesPath + @"\record4.wav");
+            byte[] allBytes = File.ReadAllBytes(@"D:\GIT\AeroWin2\GeneratedWaveFiles\thisFile.dat");
+           
             
             byte[] points = new byte[4];
 
-
+            //i=44
             for (int i = 44; i < allBytes.Length - 4; i += 100)
             {
                 points[2] = allBytes[i];
                 points[3] = allBytes[i + 1];
                 points[1] = allBytes[i + 2];
                 points[0] = allBytes[i + 3];
+
+                //points[2] = allBytes[i];
+                //points[3] = allBytes[i + 1];
+                //points[1] = allBytes[i + 2];
+                //points[0] = allBytes[i + 3];
 
                 displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
 
@@ -164,8 +166,13 @@ namespace play_audio
                 val = Normalize(x, p.Y);
                 audioPoints.Add(val);
                 n++;
-                if (n >= 834)
+                //if (n >= 834)
+                //    flag = 1;
+                if (audioPoints.Count >= 834)
+                {
                     flag = 1;
+                    
+                }
             }
             
             Debug.Print("n:" + n);//n is the total number of audio points shown on screen
@@ -174,11 +181,12 @@ namespace play_audio
             s.Play();
             if(flag==1)
             {
-                
+               
                 audioLine.Visibility = Visibility.Visible;
                 Button btn = sender as Button;
-                Thread.Sleep(15);
+               // Thread.Sleep(15);
                 Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
+                //Thread.Sleep(5000);
                 myStoryBoard.Begin(btn);
             }
             
