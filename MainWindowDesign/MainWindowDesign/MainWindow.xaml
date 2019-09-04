@@ -15,6 +15,16 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
         Title="AeroWin RT" Height="1000" Width="1200">
+    <Window.Resources>
+        <Storyboard x:Key="moveLine" Name="forMovingtheLine">
+            <DoubleAnimation Storyboard.TargetName="audioLine" Storyboard.TargetProperty="X1" From="5.0" To="780" Duration="0:0:5">
+
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="audioLine" Storyboard.TargetProperty="X2" From="5.0" To="780" Duration="0:0:5">
+
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
     <Border Margin="10 10 10 10">
         <StackPanel>
             <Menu IsMainMenu="True" >
@@ -106,7 +116,7 @@
                     <Run FontSize="12">(hertz)</Run>
                 </TextBlock>
                 <!--<Button Width="30" Height="25" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2" Margin="28,25,53,40" Background="Gray"></Button>-->
-                <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2" Margin="28,23,53,40" x:Name="PlayFile" IsEnabled="False"
+                <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2" Margin="28,23,53,40" x:Name="PlayFile" IsEnabled="False" Click="PlayFile_Click"
                         ToolTip="MaterialDesignFloatingActionMiniLightButton">
                         <materialDesign:PackIcon
                             Kind="Audio"

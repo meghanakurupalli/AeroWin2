@@ -43,6 +43,7 @@ namespace play_audio
             playaudio.IsEnabled = true;
             DataContext = this;
             SaveFileDialog dialog = new SaveFileDialog();
+            
 
         }
 
@@ -56,6 +57,7 @@ namespace play_audio
         UIElement source = null;
         double cursor_1_position, cursor_2_position, cursor_1_value, cursor_2_value;
         double xValueOnChart1, xValueOnChart2;
+        byte[] partOfallBytes = new byte[20050];
         
         int n = 0;
         
@@ -84,7 +86,7 @@ namespace play_audio
 
         }
 
-
+        
 
 
         private void playaudio_Click(object sender, RoutedEventArgs e)
@@ -108,18 +110,41 @@ namespace play_audio
 
             SoundPlayer s = new SoundPlayer(generatedWaveFilesPath + @"\record4.wav");
 
-            byte[] allBytes = File.ReadAllBytes(@"D:\GIT\AeroWin2\GeneratedWaveFiles\thisFile.dat");
-           
+            byte[] allBytes = File.ReadAllBytes(@"D:\GIT\AeroWin2\GeneratedWaveFiles\record4.wav");
+
+            Array.Copy(allBytes, 44, partOfallBytes, 44, 20000);
+            Array.Copy(allBytes, 0, partOfallBytes, 0, 44);
+
             
+            //WaveOutEvent wout = new WaveOutEvent();
+            //In the main window design, for playing the audio from the file, use indexes and play chunks of audio whenever required. for display, use the above method to copy header and bytes required. 
+            //Check if the length of audio being recorded is always same, or varies some times.
+
             byte[] points = new byte[4];
 
             //i=44
-            for (int i = 44; i < allBytes.Length - 4; i += 100)
+            //for (int i = 44; i < allBytes.Length - 4; i += 100)
+            //{
+            //    points[2] = allBytes[i];
+            //    points[3] = allBytes[i + 1];
+            //    points[1] = allBytes[i + 2];
+            //    points[0] = allBytes[i + 3];
+
+            //    //points[2] = allBytes[i];
+            //    //points[3] = allBytes[i + 1];
+            //    //points[1] = allBytes[i + 2];
+            //    //points[0] = allBytes[i + 3];
+
+            //    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+
+            //}
+
+            for (int i = 44; i < partOfallBytes.Length - 4; i += 100)
             {
-                points[2] = allBytes[i];
-                points[3] = allBytes[i + 1];
-                points[1] = allBytes[i + 2];
-                points[0] = allBytes[i + 3];
+                points[2] = partOfallBytes[i];
+                points[3] = partOfallBytes[i + 1];
+                points[1] = partOfallBytes[i + 2];
+                points[0] = partOfallBytes[i + 3];
 
                 //points[2] = allBytes[i];
                 //points[3] = allBytes[i + 1];
@@ -129,7 +154,6 @@ namespace play_audio
                 displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
 
             }
-
 
 
             double[] points2 = displaypoint.ToArray();

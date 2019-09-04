@@ -414,7 +414,7 @@ namespace MainWindowDesign
 
 
 
-                SoundPlayer s = new SoundPlayer(path);
+                
 
 
 
@@ -482,25 +482,24 @@ namespace MainWindowDesign
                 }
 
                 Debug.Print("n:" + n);//n is the total number of audio points shown on screen
-                s.Load();
+                
+                //if (flag == 1)
+                //{
 
-                s.Play();
-                if (flag == 1)
-                {
-
-                    audioLine.Visibility = Visibility.Visible;
-                    System.Windows.Controls.Button btn = sender as System.Windows.Controls.Button;
-                    // Thread.Sleep(15);
-                    Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
-                    //Thread.Sleep(5000);
-                    //myStoryBoard.Begin(btn);
-                }
+                //    audioLine.Visibility = Visibility.Visible;
+                //    System.Windows.Controls.Button btn = sender as System.Windows.Controls.Button;
+                //    // Thread.Sleep(15);
+                //    Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
+                //    //Thread.Sleep(5000);
+                //    //myStoryBoard.Begin(btn);
+                //}
 
 
 
 
 
                 Debug.Print("allbytes len : " + allBytes.Length);
+                PlayFile.IsEnabled = true;
             }
 
 
@@ -1149,6 +1148,20 @@ namespace MainWindowDesign
                 cursor2moved();
 
             }
+        }
+
+        private void PlayFile_Click(object sender, RoutedEventArgs e)
+        {
+            string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
+            SoundPlayer s = new SoundPlayer(path);
+            s.Load();
+            s.Play();
+            audioLine.Visibility = Visibility.Visible;
+            System.Windows.Controls.Button btn = sender as System.Windows.Controls.Button;
+            // Thread.Sleep(15);
+            Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
+            //Thread.Sleep(5000);
+            myStoryBoard.Begin(btn);
         }
 
         private void cursor1moved()
