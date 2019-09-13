@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using LiveCharts.Wpf;
+using NAudio.Utils;
 
 namespace AudioUse
 {
@@ -36,6 +37,11 @@ namespace AudioUse
 
         string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
         public SeriesCollection SeriesCollection{ get; set; }
+
+        
+        DateTime newTime = new DateTime();
+        
+        
         
 
         double time = 0;
@@ -43,30 +49,31 @@ namespace AudioUse
         {
             
             InitializeComponent();
+            DateTime oldTime = DateTime.UtcNow;
 
             // audioPoints = new GearedValues<double>();
             audioPoints = new ChartValues<double>();
-            //audioPoints.WithQuality(Quality.Highest);
-
-            //SeriesCollection = new SeriesCollection
-            //{
-            //    new LineSeries
-            //    {
-            //        Title = "Title1", Values = new ChartValues<double> { 1, 2, 3, 4, 5 }
-            //    }
-            //};
             time = 5.0;
-            StartRecording(time);         
 
-            
+            //for (int i = 0; i < 2; i++)
+            //{
+            //    StartRecording(time);
+            //}
+
+            newTime = oldTime.AddSeconds(5);
+            StartRecording(time);
+
+
+
             DataContext = this;
-            SaveFile sWin = new SaveFile();
-            sWin.Show();
-            fileName = sWin.FileName.Text.ToString();
+            //SaveFile sWin = new SaveFile();
+            //sWin.Show();
+            //fileName = sWin.FileName.Text.ToString();
+            
         }
 
         WaveIn wi;
-        static WaveFileWriter wfw;        
+        WaveFileWriter wfw;        
         Polyline pl;
         string fileName;
 
@@ -75,14 +82,14 @@ namespace AudioUse
         double plH = 0;
         double plW = 0;
         
-        double seconds = 0;
+        //double seconds = 0;
 
 
         Queue<Point> displaypts;
         Queue<float> displaypoint;
 
         long count = 0;
-        int numtodisplay = 2205; //No of samples displayed in a second
+        int numtodisplay = 5205; //No of samples displayed in a second
        // audioPoints = new ChartValues<double>();
 
         public float[] getCoefficients()
@@ -104,16 +111,24 @@ namespace AudioUse
 
             return (coefficients1);
         }
-        
 
+        static int o = 0;
         void StartRecording(double time)
         {
+            if(time ==0)
+            {
+                Debug.Print("time became zero here");
+            }
+            o++;
+            Debug.Print("o val in startRecording method : " + o);
             wi = new WaveIn();
-            wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
+            wi.DataAvailable += wi_DataAvailable;
+            //wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
             wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
 
-            wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
+            wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record"+o+".wav", wi.WaveFormat);
+            //wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
 
 
             canH = waveCanvas.Height;
@@ -133,65 +148,81 @@ namespace AudioUse
             displaypoint = new Queue<float>();
 
             wi.StartRecording();
+            
+            
 
             this.time = time;
 
         }
 
+        
+
         void wi_RecordingStopped(object sender, StoppedEventArgs e)
         {
  
             wi.Dispose();
-            wi = null;
-            wfw.Close();
-            wfw.Dispose();
-            wfw = null;
-            byte[] byteArray = new byte[84800];
-            for(int i = 0;i<byteArray.Length;i++)
+            //wi = null;
+            //wfw.Close();
+            wfw.Flush();
+            //wfw = null;
+            Debug.Print("o val before entering if : " + o);
+            if (o <= 5)
             {
-                byteArray[i] = byteList[i];
+                Debug.Print("o val after entering if : " + o);
+                newTime = DateTime.UtcNow.AddSeconds(5);
+                StartRecording(5);
             }
-            Debug.Print("Byte list count : " + byteList.Count);
-            fileName = @"D:\GIT\AeroWin2\GeneratedWavefiles\thisFile.dat";
-            using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-            {
-                fs.Write(byteArray, 0, byteArray.Length);
-                
-            }
+            seconds = 0;
+            
+            //byte[] byteArray = new byte[84800];
+            //for(int i = 0;i<byteArray.Length;i++)
+            //{
+            //    byteArray[i] = byteList[i];
+            //}
+            //Debug.Print("Byte list count : " + byteList.Count);
+            //fileName = @"D:\GIT\AeroWin2\GeneratedWavefiles\thisFile.dat";
+            //using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            //{
+            //    fs.Write(byteArray, 0, byteArray.Length);
+
+            //}
 
             // btnDownloadFile.IsEnabled = true;
         }
 
         List<byte> byteList = new List<byte>();
-
+        double seconds = 0;
         void wi_DataAvailable(object sender, WaveInEventArgs e)
         {
             float[] coefficients = new float[10];
             float[] a = new float[5];
             float[] b = new float[5];
+            
             seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
 
 
             wfw.Write(e.Buffer, 0, e.BytesRecorded);
             byteList.AddRange(e.Buffer);
-            Debug.Print("Each time Buffer : " + e.Buffer + " Bytes Recorded : " + e.BytesRecorded);
+           // Debug.Print("Each time Buffer : " + e.Buffer + " Bytes Recorded : " + e.BytesRecorded);
 
             //Debug.Print("Writing to file : " + e.BytesRecorded);
             //wfw.Flush();
 
             Debug.Print("Seconds : " + seconds);
+            
             if (seconds-time > 0)
             {
                 //Debug.Print("inside if : " + time + ", Seconds : "+seconds);
                 wi.StopRecording();
                 // May try flushing here
-                wfw.Flush();
+                
+                
                 Debug.Print("stop recording");
             }
             //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
 
             byte[] points = new byte[4];
-
+            Debug.Print("e.BytesRecorded : " + e.BytesRecorded);
 
             for (int i = 0; i < e.BytesRecorded - 4; i += 100)
             //Check how things work when I take a sample for every 20 samples. 
@@ -209,6 +240,10 @@ namespace AudioUse
                 }
                 else
                 {
+                    if(displaypoint==null)
+                    {
+                        Debug.Print("It doesn't make any sense!!");
+                    }
                     displaypoint.Dequeue();
                     displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
                 }
@@ -263,6 +298,14 @@ namespace AudioUse
 
             }
 
+
+            //Debug.Print("DateTime.UtcNow  : " + DateTime.UtcNow + " newTime : " + newTime);
+            //if (DateTime.UtcNow.Subtract(newTime).TotalMilliseconds > 100)
+            //{                
+            //    audioPoints.Clear();
+            //    //newTime = DateTime.UtcNow.AddSeconds(5);
+            //}
+
             
             this.waveCanvas.Children.Add(pl);
         }
@@ -281,9 +324,7 @@ namespace AudioUse
               
             };
             
-           // double k = p.Y;
-           /// double h = p.X;
-            //File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
+           
             return p;
         }
 
@@ -319,5 +360,3 @@ namespace AudioUse
         
     }
 }
-//Trying to display the audio data using livecharts. Added the livecharts part and commented out adding polyline to the canvas.
-//changes for displaying point collection have to be made in xaml, not the C# code.

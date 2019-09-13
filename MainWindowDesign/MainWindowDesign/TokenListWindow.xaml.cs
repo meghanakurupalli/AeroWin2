@@ -86,12 +86,7 @@ namespace MainWindowDesign
             TokenListGrid.SelectedIndex = 0;
             if (val == true)
             {
-                tempChar = true;
-                //for(int i = 0; i < TokenListGrid.Items.Count; i++)
-                //{
-                //    TokenListGrid.SelectedIndex = i;
-                //    System.Threading.Thread.Sleep(6000);
-                //}
+                tempChar = true;                
             }
         }
 
@@ -113,6 +108,24 @@ namespace MainWindowDesign
             
             
             //throw new NotImplementedException();
+        }
+
+        public void sayThisHappens()
+        {
+            if (i < TokenListGrid.Items.Count - 1)
+            {
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() =>
+                {
+                    TokenListGrid.SelectedIndex = i;
+                    i++;
+                }));
+            }
+            else
+            {
+                i = 0;
+            }
+                
         }
 
         public string Protocol_File_Name_TWin;

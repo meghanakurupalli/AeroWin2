@@ -38,6 +38,11 @@ namespace MainWindowDesign
 
 
         ListBox SaveList = new ListBox();
+
+        public int CountOfProtocolFile
+        {
+            get { return protocols.Count(); }
+        }
         
 
         private void tokenList_SelectionChanged(object sender, SelectionChangedEventArgs e)

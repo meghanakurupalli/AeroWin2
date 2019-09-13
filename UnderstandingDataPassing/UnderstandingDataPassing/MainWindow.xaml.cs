@@ -20,19 +20,33 @@ namespace UnderstandingDataPassing
     /// </summary>
     public partial class MainWindow : Window
     {
+        DateTime newTime;
         public MainWindow()
         {
             InitializeComponent();
-            Window1 win1 = new Window1();
+            // Window1 win1 = new Window1();
 
-            win1.Show();
+            //win1.Show();
 
+            DateTime oldTime = DateTime.UtcNow;
+            newTime = oldTime.AddSeconds(5);
+            
         }
 
         private void Mainwinbtn_Click(object sender, RoutedEventArgs e)
         {
-            Window2 win2 = new Window2(MainWinTxtbox.Text.ToString());
-            win2.Show();
+            //Window2 win2 = new Window2(MainWinTxtbox.Text.ToString());
+            //win2.Show();
+            int flag = 0;
+            while (flag != 1)
+            {
+                if (DateTime.UtcNow == newTime)
+                {
+                    MessageBox.Show("It's a match!");
+                    flag = 1;
+                }
+            }
+
         }
         public MainWindow(string str)
         {

@@ -114,6 +114,17 @@ namespace MainWindowDesign
             DataFileName = sWin.Data_File_Name;
             ProtocolFileName = sWin.Protocol_File_Name;
             ProtFileTWin = ProtocolFileName;
+
+            string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
+            if (!File.Exists(path))
+            {
+                // Create a file to write to.
+                using (StreamWriter sw = File.CreateText(path))
+                {
+                    sw.WriteLine(ProtocolFileName);
+                }
+            }
+
             //TokenListWindow TWin = new TokenListWindow();
             //TWin.Protocol_File_Name_TWin = ProtocolFileName;
             //Debug.Print("abba jabba : "+TWin.Protocol_File_Name_TWin.ToString());
@@ -155,7 +166,7 @@ namespace MainWindowDesign
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
             string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
             wfw = new WaveFileWriter(path, wi.WaveFormat);
-            Debug.Print("DataFileName : " + DataFileName);
+            //Debug.Print("DataFileName : " + DataFileName);
 
             displaypts = new Queue<Point>();
             displaypoint = new Queue<float>();
@@ -163,6 +174,8 @@ namespace MainWindowDesign
             wi.StartRecording();
 
             this.time = time;
+            audioTimer.Elapsed += AudioTimer_Elapsed;
+            audioTimer.Start();
 
         }
 
@@ -174,10 +187,14 @@ namespace MainWindowDesign
             wfw.Close();
             wfw.Dispose();
             wfw = null;
-
+            audioPoints.Clear();
+            Debug.Print("Total no of bytes Recorded : " + byteRecordCount);
 
             // btnDownloadFile.IsEnabled = true;
         }
+
+        System.Timers.Timer audioTimer = new System.Timers.Timer(5000);
+        static int byteRecordCount = 0;
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
         {
@@ -186,20 +203,30 @@ namespace MainWindowDesign
             float[] b = new float[5];
             seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
 
+            //Debug.Print("DaFaq seconds : " + seconds);
 
-            wfw.Write(e.Buffer, 0, e.BytesRecorded);
-
-
+            byteRecordCount = byteRecordCount + e.BytesRecorded;
+            wfw.Write(e.Buffer,0, e.BytesRecorded);
+            
+            Debug.Print("e.BytesRecorded : " + e.BytesRecorded);
             //Debug.Print("Writing to file : " + e.BytesRecorded);
             //wfw.Flush();
-
+            
            // Debug.Print("Seconds : " + seconds);
+           //if(seconds == 5|| seconds==10||seconds==15||seconds==20)
+           //{
+           //     audioPoints.Clear();
+           //     TWin2.sayThisHappens();
+           //}
+
             if (seconds - time > 0)
             {
                //Debug.Print("inside if : " + time + ", Seconds : " + seconds);
                 wi.StopRecording();
                 // May try flushing here
                 wfw.Flush();
+                audioTimer.Stop();
+                TWin2.Close();
                 //Debug.Print("stop recording");
             }
             //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
@@ -227,8 +254,7 @@ namespace MainWindowDesign
                     displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
                 }
             }
-            //this.waveCanvas.Children.Clear();
-            //pl.Points.Clear();
+            
 
             audioPoints.Clear();
             float[] points2 = displaypoint.ToArray();
@@ -253,20 +279,6 @@ namespace MainWindowDesign
 
             }
 
-            //Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-            //                    new Action(() =>
-            //                    {
-            //                        for (Int32 x = 0; x < points3.Length; ++x)
-            //                        {
-            //                            pl.Points.Add(Normalize(x, points3[x]));
-            //                            Point p = Normalize(x, points3[x]);
-            //                           // audioPoints.Add(p.Y);
-            //                            Debug.Print("Y values : " + p.Y);
-            //                        }
-            //                    }));
-
-
-
             for (Int32 x = 0; x < points3.Length; ++x)
             {
                 //pl.Points.Add(Normalize(x, points3[x]));
@@ -276,12 +288,24 @@ namespace MainWindowDesign
 
 
             }
+            
 
-
-            //this.waveCanvas.Children.Add(pl);
         }
 
-        
+        private void AudioTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Debug.Print("audio points before they are cleared : " + audioPoints.Count());
+            if (audioPoints != null && audioPoints.Count > 0)
+            {
+                //audioPoints.Clear();
+                 audioPoints[500] = 2000;
+                
+               // Debug.Print("audio points after they are cleared : " + audioPoints.Count());
+            }
+            
+            TWin2.sayThisHappens();
+            //throw new NotImplementedException();
+        }
 
         Point Normalize2(Int32 x, float y)
         {
@@ -336,6 +360,7 @@ namespace MainWindowDesign
             StartButton.IsEnabled = true;
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
             string filter = "WAV file (*.wav)|*.wav| All Files (*.*)|*.*";
+            //When integrated with the pressure sensor, show csv files instead of wav files.
             openFileDialog.Filter = filter;
             openFileDialog.InitialDirectory = generatedWaveFilesPath;
             if (openFileDialog.ShowDialog() == true)
@@ -377,10 +402,29 @@ namespace MainWindowDesign
             if (StartButton.Content.ToString() == "Start")
             {
                 TWin.Close();
-                Debug.Print("ProtFileTWin : " + ProtFileTWin);
-                TWin2 = new TokenListWindow(ProtFileTWin, startButtonClicked);
+                //Debug.Print("ProtFileTWin : " + ProtFileTWin);
+                //TWin2 = new TokenListWindow(ProtFileTWin, startButtonClicked);
+                //TWin2.Show();
+
+                TWin2 = new TokenListWindow(ProtFileTWin);
                 TWin2.Show();
-                time = 5.0;
+                string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
+                string[] txtFileContentGivesProtocolFileName = File.ReadAllLines(path);
+
+                //Debug.Print("txtFileContentGivesProtocolFileName count :" + txtFileContentGivesProtocolFileName[0]+"done");
+
+                //Debug.Print("txtFileContentGivesProtocolFileName : " + txtFileContentGivesProtocolFileName);
+                string pathToProtocolFileCount = System.IO.Path.Combine(generatedProtocolFilesPath, txtFileContentGivesProtocolFileName[0] + ".csv");
+                string[] allLines = File.ReadAllLines(pathToProtocolFileCount);
+                int noOfProtocolsInPF = allLines.Count() - 1;
+
+                //string pathidk = generatedProtocolFilesPath + txtFileContentGivesProtocolFileName + ".csv";
+
+                //int count = File.ReadLines().Count();
+                //Debug.Print("pathidk : " + pathidk);
+                Debug.Print("pathToProtocolFileCount : " + pathToProtocolFileCount);
+                time = 5.0*noOfProtocolsInPF;
+                //time = 5;
                 StartRecording(time);
 
                 //port.Open();
@@ -407,16 +451,11 @@ namespace MainWindowDesign
                 //var wout = new WaveOut();
 
                 string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
+                Debug.Print("Printing protocol file name in play button clicked : " + ProtocolFileName);
 
                 wfr = new WaveFileReader(path);
 
                 //Debug.Print("JH" + wfr.Length);
-
-
-
-                
-
-
 
                 byte[] allBytes = File.ReadAllBytes(path);
 
@@ -482,22 +521,6 @@ namespace MainWindowDesign
                 }
 
                 Debug.Print("n:" + n);//n is the total number of audio points shown on screen
-                
-                //if (flag == 1)
-                //{
-
-                //    audioLine.Visibility = Visibility.Visible;
-                //    System.Windows.Controls.Button btn = sender as System.Windows.Controls.Button;
-                //    // Thread.Sleep(15);
-                //    Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
-                //    //Thread.Sleep(5000);
-                //    //myStoryBoard.Begin(btn);
-                //}
-
-
-
-
-
                 Debug.Print("allbytes len : " + allBytes.Length);
                 PlayFile.IsEnabled = true;
             }
