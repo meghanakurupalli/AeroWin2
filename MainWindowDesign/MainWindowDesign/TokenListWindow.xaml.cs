@@ -29,6 +29,7 @@ namespace MainWindowDesign
         ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
 
         public bool isStartButtonClicked = false;
+        
         string path;
 
         public TokenListWindow()
@@ -62,6 +63,8 @@ namespace MainWindowDesign
            
         }
 
+        
+
         public TokenListWindow(string str, bool val)
         {
             System.Timers.Timer myTimer = new System.Timers.Timer();
@@ -92,6 +95,15 @@ namespace MainWindowDesign
 
         private bool tempChar = false;
         static int i;
+
+        public void ChangeIndexSelection() {
+            var countOfProtocols = TokenListGrid.Items.Count;
+            int nextIndex = TokenListGrid.SelectedIndex + 1;
+            if (nextIndex <= countOfProtocols-2)
+            {
+                TokenListGrid.SelectedIndex = nextIndex;
+            }
+        }
 
         private void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
@@ -126,6 +138,11 @@ namespace MainWindowDesign
                 i = 0;
             }
                 
+        }
+
+        public void SelectionUpdater(int num)
+        {
+            TokenListGrid.SelectedIndex = num;
         }
 
         public string Protocol_File_Name_TWin;

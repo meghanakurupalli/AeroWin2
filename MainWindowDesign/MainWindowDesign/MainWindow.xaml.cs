@@ -35,6 +35,7 @@ namespace MainWindowDesign
     public partial class MainWindow : Window
     {
         public ChartValues<Polyline> PolylineCollection;
+        
 
         //public GearedValues<double> audioPoints { get; set; }//= new ChartValues<double>();
         public ChartValues<double> audioPoints { get; set; }//= new ChartValues<double>();
@@ -57,13 +58,13 @@ namespace MainWindowDesign
         public string FileNameFromSFW;
         double seconds = 0;
 
-        
+        DateTime newTime = new DateTime();
 
         Queue<Point> displaypts;
         Queue<float> displaypoint;
 
-        long count = 0;
-        int numtodisplay = 2205;
+        //long count = 0;
+        //int numtodisplay = 2205;
 
         public ChartValues<float> PressureLineSeriesValues { get; set; } = new ChartValues<float>();
         public ChartValues<double> TemperatureLineSeriesValues { get; set; } = new ChartValues<double>();
@@ -129,10 +130,9 @@ namespace MainWindowDesign
             //TWin.Protocol_File_Name_TWin = ProtocolFileName;
             //Debug.Print("abba jabba : "+TWin.Protocol_File_Name_TWin.ToString());
             //TWin.Show();
-
-            TWin = new TokenListWindow(ProtocolFileName);
+            TWin = new TokenListWindow(ProtFileTWin);
+            TWin.Owner = this;
             TWin.Show();
-            
             Debug.Print("Data File name from SFW : " + DataFileName + " Prot : " + ProtocolFileName);
         }
 
@@ -158,13 +158,18 @@ namespace MainWindowDesign
             return (coefficients1);
         }
 
+        static int countProtocolsInPF = 0;
+
+
+
         void StartRecording(double time)
         {
+            countProtocolsInPF++;
             wi = new WaveIn();
             wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
             wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
-            string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
+            string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + countProtocolsInPF + ".wav");
             wfw = new WaveFileWriter(path, wi.WaveFormat);
             //Debug.Print("DataFileName : " + DataFileName);
 
@@ -174,8 +179,8 @@ namespace MainWindowDesign
             wi.StartRecording();
 
             this.time = time;
-            audioTimer.Elapsed += AudioTimer_Elapsed;
-            audioTimer.Start();
+            //audioTimer.Elapsed += AudioTimer_Elapsed;
+            //audioTimer.Start();
 
         }
 
@@ -183,18 +188,27 @@ namespace MainWindowDesign
         {
 
             wi.Dispose();
-            wi = null;
-            wfw.Close();
-            wfw.Dispose();
-            wfw = null;
+            //wi = null;
+            //wfw.Close();
+            //wfw.Dispose();
+            //wfw = null;
+            wfw.Flush();
+            if(countProtocolsInPF<noOfProtocolsInPF)
+            {
+                newTime = DateTime.UtcNow.AddSeconds(5);
+                StartRecording(time);
+            }
+            seconds = 0;
             audioPoints.Clear();
-            Debug.Print("Total no of bytes Recorded : " + byteRecordCount);
+            TWin.ChangeIndexSelection();
+            //TWin.SelectionUpdater(countProtocolsInPF);
+            //Debug.Print("Total no of bytes Recorded : " + byteRecordCount);
 
             // btnDownloadFile.IsEnabled = true;
         }
 
-        System.Timers.Timer audioTimer = new System.Timers.Timer(5000);
-        static int byteRecordCount = 0;
+       // System.Timers.Timer audioTimer = new System.Timers.Timer(5000);
+        //static int byteRecordCount = 0;
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
         {
@@ -205,10 +219,10 @@ namespace MainWindowDesign
 
             //Debug.Print("DaFaq seconds : " + seconds);
 
-            byteRecordCount = byteRecordCount + e.BytesRecorded;
+           // byteRecordCount = byteRecordCount + e.BytesRecorded;
             wfw.Write(e.Buffer,0, e.BytesRecorded);
             
-            Debug.Print("e.BytesRecorded : " + e.BytesRecorded);
+            //Debug.Print("e.BytesRecorded : " + e.BytesRecorded);
             //Debug.Print("Writing to file : " + e.BytesRecorded);
             //wfw.Flush();
             
@@ -221,12 +235,13 @@ namespace MainWindowDesign
 
             if (seconds - time > 0)
             {
-               //Debug.Print("inside if : " + time + ", Seconds : " + seconds);
+                //Debug.Print("inside if : " + time + ", Seconds : " + seconds);                
                 wi.StopRecording();
+                
                 // May try flushing here
-                wfw.Flush();
-                audioTimer.Stop();
-                TWin2.Close();
+                //wfw.Flush();
+               // audioTimer.Stop();
+                //TWin.Close();
                 //Debug.Print("stop recording");
             }
             //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
@@ -243,16 +258,17 @@ namespace MainWindowDesign
                 points[1] = e.Buffer[i + 1];
                 points[2] = e.Buffer[i + 2];
                 points[3] = e.Buffer[i + 3];
-                if (count < numtodisplay)
-                {
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
-                    ++count;
-                }
-                else
-                {
-                    displaypoint.Dequeue();
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
-                }
+                //if (count < numtodisplay)
+                //{
+                //    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+                //    ++count;
+                //}
+                //else
+                //{
+                //    displaypoint.Dequeue();
+                //    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+                //}
+                displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
             }
             
 
@@ -303,7 +319,7 @@ namespace MainWindowDesign
                // Debug.Print("audio points after they are cleared : " + audioPoints.Count());
             }
             
-            TWin2.sayThisHappens();
+            TWin.sayThisHappens();
             //throw new NotImplementedException();
         }
 
@@ -391,8 +407,8 @@ namespace MainWindowDesign
 
         }
 
-        public bool startButtonClicked = false;
-        TokenListWindow TWin2;
+        public bool startButtonClicked = false;        
+        int noOfProtocolsInPF = 0;
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             startButtonClicked = true;
@@ -401,36 +417,42 @@ namespace MainWindowDesign
 
             if (StartButton.Content.ToString() == "Start")
             {
-                TWin.Close();
+                //TWin.Close();
                 //Debug.Print("ProtFileTWin : " + ProtFileTWin);
                 //TWin2 = new TokenListWindow(ProtFileTWin, startButtonClicked);
                 //TWin2.Show();
 
-                TWin2 = new TokenListWindow(ProtFileTWin);
-                TWin2.Show();
+                //TWin = new TokenListWindow(ProtFileTWin);
+                //TWin.Owner = this;
+                //TWin.Show();
+                
                 string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
                 string[] txtFileContentGivesProtocolFileName = File.ReadAllLines(path);
 
                 //Debug.Print("txtFileContentGivesProtocolFileName count :" + txtFileContentGivesProtocolFileName[0]+"done");
 
                 //Debug.Print("txtFileContentGivesProtocolFileName : " + txtFileContentGivesProtocolFileName);
+
+                DateTime oldTime = DateTime.UtcNow;
+                newTime = oldTime.AddSeconds(5);
+
                 string pathToProtocolFileCount = System.IO.Path.Combine(generatedProtocolFilesPath, txtFileContentGivesProtocolFileName[0] + ".csv");
                 string[] allLines = File.ReadAllLines(pathToProtocolFileCount);
-                int noOfProtocolsInPF = allLines.Count() - 1;
+                noOfProtocolsInPF = allLines.Count() - 1;
 
                 //string pathidk = generatedProtocolFilesPath + txtFileContentGivesProtocolFileName + ".csv";
 
                 //int count = File.ReadLines().Count();
                 //Debug.Print("pathidk : " + pathidk);
                 Debug.Print("pathToProtocolFileCount : " + pathToProtocolFileCount);
-                time = 5.0*noOfProtocolsInPF;
-                //time = 5;
+                //time = 5.0*noOfProtocolsInPF;
+                time = 5;
                 StartRecording(time);
 
                 //port.Open();
                 //port.DataReceived += SerialDataReceived;
                 //myTimer.Elapsed += MyTimer_Elapsed;
-                //myTimer.Start();
+                //myTimer.Start(); 
             }
             //SaveFileWindow sfw2 = new SaveFileWindow();
             //sfw2.startButtonSFW = this.StartButton;
@@ -1185,6 +1207,17 @@ namespace MainWindowDesign
             Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
             //Thread.Sleep(5000);
             myStoryBoard.Begin(btn);
+        }
+
+        private void DeviceChannels_Click(object sender, RoutedEventArgs e)
+        {
+            DeviceAndAIChannelsWindow DWin = new DeviceAndAIChannelsWindow();
+            DWin.Show();
+        }
+
+        private void DeviceChannels_Click_1(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void cursor1moved()

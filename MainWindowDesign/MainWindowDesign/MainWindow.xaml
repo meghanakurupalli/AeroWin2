@@ -49,7 +49,7 @@
                 <MenuItem Header="Settings">
                     <!--Settings are here-->
                     <MenuItem Header="Subtraction Token"/>
-                    <MenuItem Header="Device and AI Channels"/>
+                    <MenuItem Header="Device and AI Channels" Name ="DeviceChannels" Click="DeviceChannels_Click"/>
                     <MenuItem Header="Peak Detection"/>
                 </MenuItem>
 

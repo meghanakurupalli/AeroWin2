@@ -152,7 +152,7 @@
                 
             </ListBox>-->
             <DataGrid Name="ProtocolGrid" IsReadOnly="True" SelectedCellsChanged="ProtocolGrid_SelectedCellsChanged" SelectionUnit="FullRow">
-                
+               
             </DataGrid>
         </Grid>
         <Grid Height="40" Margin="0 1 0 0">

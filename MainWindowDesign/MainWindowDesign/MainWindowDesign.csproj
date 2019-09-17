@@ -78,6 +78,9 @@
     <Compile Include="CursorWindow.xaml.cs">
       <DependentUpon>CursorWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DeviceAndAIChannelsWindow.xaml.cs">
+      <DependentUpon>DeviceAndAIChannelsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ProtocolFileBuilderWindow.xaml.cs">
       <DependentUpon>ProtocolFileBuilderWindow.xaml</DependentUpon>
     </Compile>
@@ -88,6 +91,10 @@
       <DependentUpon>TokenListWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="CursorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceAndAIChannelsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

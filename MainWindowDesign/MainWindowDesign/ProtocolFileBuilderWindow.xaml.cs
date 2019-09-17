@@ -126,25 +126,94 @@ namespace MainWindowDesign
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            int flag = 0;
+            int i = 0;
+            protocol idk = new protocol();
+            String SaveProtocol;
             try
             {
-                if (TokenTypeVal == "NC")
-                {
-                    RateVal = "-";
-                    IntensityVal = "-";
-                }
-                String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
-                // ProtocolList.Items.Add(protocol);
-                SaveList.Items.Add(SaveProtocol);
-                
-                protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+                //string tokenTypeValue = "NC";
+                //if (TokenTypeVal == "NC")
+                //{
+                //    RateVal = "-";
+                //    IntensityVal = "-";
+                //}
 
+                //if(TokenTypeVal=="VP")
+                //{
+                //    while(i < ProtocolGrid.Items.Count)
+                //    {
+                //        if (idk.TokenType == "NC")
+                //            flag = 1;
+                //        i++;
+                //    }
+
+                //    if(flag==0)
+                //    {
+                //        MessageBox.Show("Cannot add VP items without atleast one NC item");
+                //    }
+                //    else
+                //    {
+
+                //    }
+                //}
+                //String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
+                //// ProtocolList.Items.Add(protocol);
+                //SaveList.Items.Add(SaveProtocol);
+                
+                //protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+
+                //ProtocolGrid.ItemsSource = protocols;
+                //ProtocolGrid.DataContext = this;
+                switch(TokenTypeVal)
+                {
+                    case "NC":
+                        RateVal = "-";
+                        IntensityVal = "-";
+                        SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
+                        // ProtocolList.Items.Add(protocol);
+                        SaveList.Items.Add(SaveProtocol);
+                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+
+                        break;
+                    case "VP":
+                        while (i < ProtocolGrid.Items.Count)
+                        {
+                            string temp = protocols[i].TokenType;
+                            if (temp == "NC")
+                                flag = 1;
+                            i++;
+                        }
+                        if (flag == 0)
+                        {
+                            MessageBox.Show("Cannot add VP items without atleast one NC item","Cannot add Protocol!",MessageBoxButton.OK,MessageBoxImage.Asterisk);
+                        }
+                        else
+                        {
+                            SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
+                            // ProtocolList.Items.Add(protocol);
+                            SaveList.Items.Add(SaveProtocol);
+                            protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+                        }
+                        break;
+                    case "LR":
+                        SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
+                        // ProtocolList.Items.Add(protocol);
+                        SaveList.Items.Add(SaveProtocol);
+                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+                        break;
+                    default:
+                        MessageBox.Show("Cannot add VP items without atleast one NC item", "Cannot add Protocol!", MessageBoxButton.OK, MessageBoxImage.Asterisk);
+                        break;
+
+                }
+                Debug.Print("Protoclos : " + protocols);
                 ProtocolGrid.ItemsSource = protocols;
                 ProtocolGrid.DataContext = this;
-                
+
             }
 
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "Cannot add protocol");
             }

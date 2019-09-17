@@ -74,13 +74,13 @@ namespace AudioUse
 
         WaveIn wi;
         WaveFileWriter wfw;        
-        Polyline pl;
+       // Polyline pl;
         string fileName;
 
-        double canH = 0;
-        double canW = 0;
-        double plH = 0;
-        double plW = 0;
+        //double canH = 0;
+        //double canW = 0;
+        //double plH = 0;
+        //double plW = 0;
         
         //double seconds = 0;
 
@@ -88,8 +88,8 @@ namespace AudioUse
         Queue<Point> displaypts;
         Queue<float> displaypoint;
 
-        long count = 0;
-        int numtodisplay = 5205; //No of samples displayed in a second
+        //long count = 0;
+        //int numtodisplay = 5205; //No of samples displayed in a second
        // audioPoints = new ChartValues<double>();
 
         public float[] getCoefficients()
@@ -115,10 +115,10 @@ namespace AudioUse
         static int o = 0;
         void StartRecording(double time)
         {
-            if(time ==0)
-            {
-                Debug.Print("time became zero here");
-            }
+            //if(time ==0)
+            //{
+            //    Debug.Print("time became zero here");
+            //}
             o++;
             Debug.Print("o val in startRecording method : " + o);
             wi = new WaveIn();
@@ -131,18 +131,18 @@ namespace AudioUse
             //wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
 
 
-            canH = waveCanvas.Height;
-            canW = waveCanvas.Width;
+            //canH = waveCanvas.Height;
+            //canW = waveCanvas.Width;
 
-            pl = new Polyline();
-            pl.Stroke = Brushes.Black;
-            pl.Name = "waveform";
-            pl.StrokeThickness = 1;
-            pl.MaxHeight = canH - 4;
-            pl.MaxWidth = canW - 4;
-            // pl.m
-            plH = pl.MaxHeight;
-            plW = pl.MaxWidth;
+            //pl = new Polyline();
+            //pl.Stroke = Brushes.Black;
+            //pl.Name = "waveform";
+            //pl.StrokeThickness = 1;
+            //pl.MaxHeight = canH - 4;
+            //pl.MaxWidth = canW - 4;
+            //// pl.m
+            //plH = pl.MaxHeight;
+            //plW = pl.MaxWidth;
 
             displaypts = new Queue<Point>();
             displaypoint = new Queue<float>();
@@ -233,23 +233,24 @@ namespace AudioUse
                 points[1] = e.Buffer[i + 1];
                 points[2] = e.Buffer[i + 2];
                 points[3] = e.Buffer[i + 3];
-                if (count < numtodisplay)
-                {
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
-                    ++count;
-                }
-                else
-                {
-                    if(displaypoint==null)
-                    {
-                        Debug.Print("It doesn't make any sense!!");
-                    }
-                    displaypoint.Dequeue();
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
-                }
+                //if (count < numtodisplay)
+                //{
+                //    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+                //    ++count;
+                //}
+                //else
+                //{
+                //    if(displaypoint==null)
+                //    {
+                //        Debug.Print("It doesn't make any sense!!");
+                //    }
+                //    displaypoint.Dequeue();
+                //    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+                //}
+                displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
             }
-            this.waveCanvas.Children.Clear();
-            pl.Points.Clear();
+            //this.waveCanvas.Children.Clear();
+            //pl.Points.Clear();
              
             audioPoints.Clear();
             float[] points2 = displaypoint.ToArray();
@@ -290,7 +291,7 @@ namespace AudioUse
 
             for (Int32 x = 0; x < points3.Length; ++x)
             {
-                pl.Points.Add(Normalize(x, points3[x]));
+                //pl.Points.Add(Normalize(x, points3[x]));
                 Point p = Normalize2(x, points3[x]);
                // Debug.Print("p.Y : " + p.Y);
                 audioPoints.Add(p.Y);
@@ -307,7 +308,7 @@ namespace AudioUse
             //}
 
             
-            this.waveCanvas.Children.Add(pl);
+            //this.waveCanvas.Children.Add(pl);
         }
 
         Point Normalize(Int32 x, float y)
@@ -317,8 +318,8 @@ namespace AudioUse
             {
 
                 // X = 1.99 * x / 1800 * plW,
-                X = 1.99 * x / 1670 * plW,
-                Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
+                //X = 1.99 * x / 1670 * plW,
+                //Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
                 //Y = y/(Math.Pow(2,30))
                
               
@@ -335,7 +336,8 @@ namespace AudioUse
             {
 
                 // X = 1.99 * x / 1800 * plW,
-                X = 1.99 * x / 1670 * plW,
+                //X = 1.99 * x / 1670 * plW,
+                X = x,
                 // Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
                 Y = y / (Math.Pow(2, 25))
 
