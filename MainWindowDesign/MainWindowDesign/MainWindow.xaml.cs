@@ -26,6 +26,10 @@ using Microsoft.Win32;
 using System.Media;
 using System.IO;
 using System.Windows.Media.Animation;
+using System.Collections.ObjectModel;
+using System.Data;
+using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace MainWindowDesign
 {
@@ -63,6 +67,7 @@ namespace MainWindowDesign
         Queue<Point> displaypts;
         Queue<float> displaypoint;
 
+        String pathForwavFiles;
         //long count = 0;
         //int numtodisplay = 2205;
 
@@ -84,9 +89,11 @@ namespace MainWindowDesign
 
         Queue<RawValuePacket> RawValuePackets = new Queue<RawValuePacket>();
         double time = 0;
+        //ObservableCollection<protocol> protocols;
+        TokenHistoryWindow THWin;
 
-        
-        
+        List<protocol> THWinFileList = new List<protocol>();
+
         public MainWindow()
         {
             
@@ -116,6 +123,9 @@ namespace MainWindowDesign
             ProtocolFileName = sWin.Protocol_File_Name;
             ProtFileTWin = ProtocolFileName;
 
+            pathForwavFiles = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName);
+            System.IO.Directory.CreateDirectory(pathForwavFiles);
+
             string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
             if (!File.Exists(path))
             {
@@ -131,6 +141,7 @@ namespace MainWindowDesign
             //Debug.Print("abba jabba : "+TWin.Protocol_File_Name_TWin.ToString());
             //TWin.Show();
             TWin = new TokenListWindow(ProtFileTWin);
+
             TWin.Owner = this;
             TWin.Show();
             Debug.Print("Data File name from SFW : " + DataFileName + " Prot : " + ProtocolFileName);
@@ -160,17 +171,32 @@ namespace MainWindowDesign
 
         static int countProtocolsInPF = 0;
 
-
-
+        List<byte> AudioData;
+        string FilePath;
         void StartRecording(double time)
         {
+            TWin.PreviousButton.IsEnabled = false;
+            TWin.NextButton.IsEnabled = false;
             countProtocolsInPF++;
             wi = new WaveIn();
             wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
             wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
-            string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + countProtocolsInPF + ".wav");
-            wfw = new WaveFileWriter(path, wi.WaveFormat);
+
+            AudioData = new List<byte>();
+            //pathForwavFiles = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName);
+            //System.IO.Directory.CreateDirectory(pathForwavFiles);
+
+            int TWinSelectedIndex = TWin.TokenListGrid.SelectedIndex;
+            int TWinCurrentRepCount = TWin.givesCurrentRepCount;
+            Debug.Print("na_moham : " + TWinCurrentRepCount);
+            Debug.Print("File Name created : " + DataFileName + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount);
+            FilePath = System.IO.Path.Combine(pathForwavFiles, DataFileName +"_"+ TWinSelectedIndex+"_"+TWinCurrentRepCount + ".wav");
+            if(File.Exists(FilePath))
+            {
+                File.Delete(FilePath);
+            }
+            //wfw = new WaveFileWriter(path, wi.WaveFormat);
             //Debug.Print("DataFileName : " + DataFileName);
 
             displaypts = new Queue<Point>();
@@ -181,34 +207,190 @@ namespace MainWindowDesign
             this.time = time;
             //audioTimer.Elapsed += AudioTimer_Elapsed;
             //audioTimer.Start();
+            //TWinSelectedIndex = 0;
+            //TWinCurrentRepCount = 0;
 
         }
-
+        StringBuilder csv = new StringBuilder();
+        string temp1 = string.Format("{0},{1},{2},{3},{4}", "Token_Type", "Utterance", "Rate", "Intensity", "Repetition_Count");
+        static int count_for_appending_header = 0;
+        
         void wi_RecordingStopped(object sender, StoppedEventArgs e)
         {
-
+            wi.StopRecording();
             wi.Dispose();
-            //wi = null;
-            //wfw.Close();
-            //wfw.Dispose();
-            //wfw = null;
-            wfw.Flush();
-            if(countProtocolsInPF<noOfProtocolsInPF)
+            
+            // stop recording
+            using (var wfw2 = new WaveFileWriter(FilePath, wi.WaveFormat))
             {
-                newTime = DateTime.UtcNow.AddSeconds(5);
-                StartRecording(time);
+                wfw2.Write(AudioData.ToArray(), 0, AudioData.Count);            
             }
+
+            AudioData = null;
+           
+            if(count_for_appending_header<1)
+            {
+                csv.AppendLine(temp1);
+                count_for_appending_header++;
+            }
+
+            var pathForTempFile = System.IO.Path.Combine(pathForwavFiles, DataFileName + "temp" + ".csv");
+            var pathForTHFile = System.IO.Path.Combine(pathForwavFiles, DataFileName + "TH" + ".csv");
+
+            var temp = string.Format("{0},{1},{2},{3},{4}", TWin.protocols[TWin.TokenListGrid.SelectedIndex].TokenType, TWin.protocols[TWin.TokenListGrid.SelectedIndex].Utterance, TWin.protocols[TWin.TokenListGrid.SelectedIndex].Rate, TWin.protocols[TWin.TokenListGrid.SelectedIndex].Intensity, TWin.protocols[TWin.TokenListGrid.SelectedIndex].TotalRepetitionCount);
+            csv.AppendLine(temp);//sends multiple lines 
+                                 //string temp = TWin.protocols[TWin.TokenListGrid.SelectedIndex].TokenType + "," + TWin.protocols[TWin.TokenListGrid.SelectedIndex].Utterance + "," + TWin.protocols[TWin.TokenListGrid.SelectedIndex].Rate + "," + TWin.protocols[TWin.TokenListGrid.SelectedIndex].Intensity + "," + TWin.protocols[TWin.TokenListGrid.SelectedIndex].TotalRepetitionCount;
+
+
+
+
+
+            Debug.Print("csv to string : " + csv.ToString());
+
+            //Debug.Print("csv1 : " + csv[1].ToString());
+            File.AppendAllText(pathForTempFile, csv.ToString());
+
+            
+            HashSet<string> ScannedRecords = new HashSet<string>();
+
+            var dtCSV = ConvertCSVtoDataTable(pathForTempFile);
+            
+            int i = 0;
+
+            foreach (var row in dtCSV.Rows)
+            {
+                // Build a string that contains the combined column values
+                StringBuilder sb = new StringBuilder();
+                //sb.AppendFormat("[{0}={1}]", col, row[col].ToString());                
+                sb.AppendFormat("{0},{1},{2},{3},{4}", dtCSV.Rows[i][0], dtCSV.Rows[i][1], dtCSV.Rows[i][2], dtCSV.Rows[i][3], dtCSV.Rows[i][4]);
+                Debug.Print("sb to string : " + sb.ToString());
+
+                ScannedRecords.Add(sb.ToString());
+                i++;
+
+            }
+
+            var scannedRecordList = ScannedRecords.ToList();
+            
+            File.Delete(pathForTHFile);
+            
+
+            foreach (var item in scannedRecordList)
+            {
+                string[] tempo = item.Split(',');
+                var writeline = tempo[0] + "," + tempo[1] + "," + tempo[2] + "," + tempo[3] + "," + tempo[4];
+                //File.AppendAllText(generatedWaveFilesPath + "tempfile2.csv", writeline);
+                using (StreamWriter sw = File.AppendText(pathForTHFile))
+                {
+                    sw.WriteLine(writeline);
+                }
+            }
+             
+
+            csv.Clear();
+
+            //    // Try to add the string to the HashSet.
+            //    // If Add returns false, then there is a prior record with the same values 
+            //    ScannedRecords.Add(sb.ToString());
+            //    //if (ScannedRecords.Add(sb.ToString()))
+            //    //{
+            //    //    sb.AppendFormat("{0},{1},{2},{3},{4}", dtCSV.Rows[i][0], dtCSV.Rows[i][1], dtCSV.Rows[i][2], dtCSV.Rows[i][3], dtCSV.Rows[i][4]);
+            //    //    i++;
+
+            //    //}
+            //    //else
+            //    //{
+            //    //    ScannedRecords.Remove(sb.ToString());
+            //    //}
+            //}
+
+
+
+
+
+
+
+
+            //copy this hashset to a data table
+
+            //StringBuilder sb1 = new StringBuilder();
+
+            //string[] columnNames = tableWithoutDuplicates.Columns.Cast<DataColumn>().
+            //                                  Select(column => column.ColumnName).
+            //                                  ToArray();
+            //sb1.AppendLine(string.Join(",", columnNames));
+
+            //foreach (DataRow row in tableWithoutDuplicates.Rows)
+            //{
+            //    string[] fields = row.ItemArray.Select(field => field.ToString()).
+            //                                    ToArray();
+            //    sb1.AppendLine(string.Join(",", fields));
+            //}
+
+            //File.WriteAllText(generatedWaveFilesPath + "tempfile.csv", sb1.ToString());
+
+
+
+
+
+            StartButton.IsEnabled = true;
+            TWin.PreviousButton.IsEnabled = true;
+            TWin.NextButton.IsEnabled = true;
             seconds = 0;
             audioPoints.Clear();
-            TWin.ChangeIndexSelection();
-            //TWin.SelectionUpdater(countProtocolsInPF);
-            //Debug.Print("Total no of bytes Recorded : " + byteRecordCount);
+            TWin.ChangeIndexSelection();            
+            File.Delete(pathForTempFile);
 
-            // btnDownloadFile.IsEnabled = true;
         }
 
-       // System.Timers.Timer audioTimer = new System.Timers.Timer(5000);
-        //static int byteRecordCount = 0;
+
+        public DataTable RemoveDuplicateRows(DataTable dTable)
+        {
+            Hashtable hTable = new Hashtable();
+            ArrayList duplicateList = new ArrayList();
+
+            //Add list of all the unique item value to hashtable, which stores combination of key, value pair.
+            //And add duplicate item value in arraylist.
+            foreach (DataRow drow in dTable.Rows)
+            {
+                if (hTable.Contains(drow))
+                    duplicateList.Add(drow);
+                else
+                    hTable.Add(drow, string.Empty);
+            }
+
+            //Removing a list of duplicate items from datatable.
+            foreach (DataRow dRow in duplicateList)
+                dTable.Rows.Remove(dRow);
+
+            //Datatable which contains unique records will be return as output.
+            return dTable;
+        }
+
+
+        DataTable ConvertCSVtoDataTable(string strFilePath)
+        {
+            StreamReader sr = new StreamReader(strFilePath);
+            string[] headers = sr.ReadLine().Split(',');
+            DataTable dt = new DataTable();
+            foreach (string header in headers)
+            {
+                dt.Columns.Add(header);
+            }
+            while (!sr.EndOfStream)
+            {
+                string[] rows = Regex.Split(sr.ReadLine(), ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                DataRow dr = dt.NewRow();
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    dr[i] = rows[i];
+                }
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
+
+
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
         {
@@ -217,21 +399,12 @@ namespace MainWindowDesign
             float[] b = new float[5];
             seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
 
-            //Debug.Print("DaFaq seconds : " + seconds);
+            for (int i = 0; i < e.BytesRecorded; i++)
+            {
+                AudioData.Add(e.Buffer[i]);
+            }
 
-           // byteRecordCount = byteRecordCount + e.BytesRecorded;
-            wfw.Write(e.Buffer,0, e.BytesRecorded);
-            
-            //Debug.Print("e.BytesRecorded : " + e.BytesRecorded);
-            //Debug.Print("Writing to file : " + e.BytesRecorded);
-            //wfw.Flush();
-            
-           // Debug.Print("Seconds : " + seconds);
-           //if(seconds == 5|| seconds==10||seconds==15||seconds==20)
-           //{
-           //     audioPoints.Clear();
-           //     TWin2.sayThisHappens();
-           //}
+            //wfw.Write(e.Buffer,0, e.BytesRecorded);
 
             if (seconds - time > 0)
             {
@@ -361,7 +534,7 @@ namespace MainWindowDesign
             sWin.Activate();
             sWin.Topmost = true;
             sWin.Show();
-            StartButton.IsEnabled = true;
+            //StartButton.IsEnabled = true;
             sWin.SaveButtonClicked += new EventHandler(SaveFileWindow_SaveClicked);
 
             //TokenListWindow TWin = new TokenListWindow();
@@ -369,13 +542,18 @@ namespace MainWindowDesign
             //Debug.Print("Protocol file name for twin : " + ProtocolFileName);
         }
 
+        string openExtFile_PFName;
+        int openExtFile_PFCount;
+
         private void OpenExistingFileButton_Click(object sender, RoutedEventArgs e)
         {
+
+
             audioPoints.Clear();
             StartButton.Content = "Play";
             StartButton.IsEnabled = true;
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
-            string filter = "WAV file (*.wav)|*.wav| All Files (*.*)|*.*";
+            string filter = "Txt file (*.txt)|*.txt| All Files (*.*)|*.*";
             //When integrated with the pressure sensor, show csv files instead of wav files.
             openFileDialog.Filter = filter;
             openFileDialog.InitialDirectory = generatedWaveFilesPath;
@@ -386,10 +564,42 @@ namespace MainWindowDesign
                 DataFileName = System.IO.Path.GetFileNameWithoutExtension(DataFileName_ext);
                 Debug.Print("Data File name : " + DataFileName);
                 //ProtocolFileName.Text = _protocolFileName;
-
             }
 
-            
+            string temp = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
+            StreamReader streamReader = new StreamReader(File.OpenRead(temp));
+            string PFName_ext = streamReader.ReadLine();
+            string PFName = System.IO.Path.GetFileNameWithoutExtension(PFName_ext);
+
+            openExtFile_PFName = System.IO.Path.Combine(generatedProtocolFilesPath, PFName + ".csv");
+            openExtFile_PFCount = File.ReadLines(openExtFile_PFName).Count(); // This gives the no of protocols in a given protocol file,+1, for header.
+
+            Debug.Print("No errors till here, hopefully!");
+            //count = count - 1;//Header
+            //int i = 0;
+            THWin = new TokenHistoryWindow(openExtFile_PFName);
+            THWin.Show();
+            THWin.prevBtnClicked += new EventHandler(THWinPrevBtnClicked);
+            THWin.nextBtnClicked += new EventHandler(THWinNextBtnClicked);
+
+        }
+
+
+        
+
+        bool THWin_prev_Clicked = false;
+        bool THWin_next_Clicked = false;
+
+        private void THWinNextBtnClicked(object sender, EventArgs e)
+        {
+            //throw new NotImplementedException();
+            THWin_next_Clicked = true;
+        }
+
+        private void THWinPrevBtnClicked(object sender, EventArgs e)
+        {
+            THWin_prev_Clicked = true;
+            //throw new NotImplementedException();
         }
 
         private void ProtocolBuilder_Click(object sender, RoutedEventArgs e)
@@ -409,7 +619,7 @@ namespace MainWindowDesign
 
         public bool startButtonClicked = false;        
         int noOfProtocolsInPF = 0;
-        private void StartButton_Click(object sender, RoutedEventArgs e)
+        private void StartButton_Click(object sender, RoutedEventArgs Exception)
         {
             startButtonClicked = true;
 
@@ -417,134 +627,143 @@ namespace MainWindowDesign
 
             if (StartButton.Content.ToString() == "Start")
             {
-                //TWin.Close();
-                //Debug.Print("ProtFileTWin : " + ProtFileTWin);
-                //TWin2 = new TokenListWindow(ProtFileTWin, startButtonClicked);
-                //TWin2.Show();
-
-                //TWin = new TokenListWindow(ProtFileTWin);
-                //TWin.Owner = this;
-                //TWin.Show();
                 
-                string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
-                string[] txtFileContentGivesProtocolFileName = File.ReadAllLines(path);
+                try
+                {
+                    //pathForwavFiles = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName);
+                    //System.IO.Directory.CreateDirectory(pathForwavFiles);
+                    string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
+                    Debug.Print("Path : " + path);
+                    string[] txtFileContentGivesProtocolFileName_ext = File.ReadAllLines(path);
 
-                //Debug.Print("txtFileContentGivesProtocolFileName count :" + txtFileContentGivesProtocolFileName[0]+"done");
+                    //Debug.Print("txtFileContentGivesProtocolFileName count :" + txtFileContentGivesProtocolFileName[0]+"done");
 
-                //Debug.Print("txtFileContentGivesProtocolFileName : " + txtFileContentGivesProtocolFileName);
+                    //Debug.Print("txtFileContentGivesProtocolFileName : " + txtFileContentGivesProtocolFileName);
 
-                DateTime oldTime = DateTime.UtcNow;
-                newTime = oldTime.AddSeconds(5);
+                    DateTime oldTime = DateTime.UtcNow;
+                    newTime = oldTime.AddSeconds(5);
 
-                string pathToProtocolFileCount = System.IO.Path.Combine(generatedProtocolFilesPath, txtFileContentGivesProtocolFileName[0] + ".csv");
-                string[] allLines = File.ReadAllLines(pathToProtocolFileCount);
-                noOfProtocolsInPF = allLines.Count() - 1;
+                    string txtFileContentGivesProtocolFileName = System.IO.Path.GetFileNameWithoutExtension(txtFileContentGivesProtocolFileName_ext[0]);
 
-                //string pathidk = generatedProtocolFilesPath + txtFileContentGivesProtocolFileName + ".csv";
+                    string pathToProtocolFileCount = System.IO.Path.Combine(generatedProtocolFilesPath, txtFileContentGivesProtocolFileName + ".csv");
+                    Debug.Print("pathToProtocolFileCount : " + pathToProtocolFileCount);
+                    string[] allLines = File.ReadAllLines(pathToProtocolFileCount);
+                    noOfProtocolsInPF = allLines.Count() - 1;
 
-                //int count = File.ReadLines().Count();
-                //Debug.Print("pathidk : " + pathidk);
-                Debug.Print("pathToProtocolFileCount : " + pathToProtocolFileCount);
-                //time = 5.0*noOfProtocolsInPF;
-                time = 5;
-                StartRecording(time);
+                    //string pathidk = generatedProtocolFilesPath + txtFileContentGivesProtocolFileName + ".csv";
 
-                //port.Open();
-                //port.DataReceived += SerialDataReceived;
-                //myTimer.Elapsed += MyTimer_Elapsed;
-                //myTimer.Start(); 
+                    //int count = File.ReadLines().Count();
+                    //Debug.Print("pathidk : " + pathidk);
+                    
+                    //time = 5.0*noOfProtocolsInPF;
+                    time = 5;
+                    StartRecording(time);
+                }
+                catch(Exception e)
+                {
+                    System.Windows.MessageBox.Show("Exception : " + e);
+                }
+                
+
             }
-            //SaveFileWindow sfw2 = new SaveFileWindow();
-            //sfw2.startButtonSFW = this.StartButton;
+            
             else if(StartButton.Content.ToString()=="Play")
             {
+                
 
 
-                int flag = 0;
-                //Debug.Print("ht : "+LayoutRoot.Height);
-                //playaudio.IsEnabled = false;
-                double[] coefficients = new double[10];
-                double[] a = new double[5];
-                double[] b = new double[5];
-                Queue<double> displaypoint = new Queue<double>();
-                Queue<double> screens = new Queue<double>();
-                //double a1 = LayoutRoot.Width;
-                //Debug.Print("Lay : " + a1);
-                //var wout = new WaveOut();
-
-                string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
-                Debug.Print("Printing protocol file name in play button clicked : " + ProtocolFileName);
-
-                wfr = new WaveFileReader(path);
-
-                //Debug.Print("JH" + wfr.Length);
-
-                byte[] allBytes = File.ReadAllBytes(path);
-
-                byte[] points = new byte[4];
-
-
-                for (int i = 44; i < allBytes.Length - 4; i += 100)
+                try
                 {
-                    points[2] = allBytes[i];
-                    points[3] = allBytes[i + 1];
-                    points[1] = allBytes[i + 2];
-                    points[0] = allBytes[i + 3];
-
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
-
-                }
-
-
-
-                double[] points2 = displaypoint.ToArray();
-                double[] points3 = displaypoint.ToArray();
+                    //int flag = 0;
+                    //Debug.Print("ht : "+LayoutRoot.Height);
+                    //playaudio.IsEnabled = false;
+                    double[] coefficients = new double[10];
+                    double[] a = new double[5];
+                    double[] b = new double[5];
+                    Queue<double> displaypoint = new Queue<double>();
+                    Queue<double> screens = new Queue<double>();
+                    //double a1 = LayoutRoot.Width;
+                    //Debug.Print("Lay : " + a1);
+                    //var wout = new WaveOut();
 
 
+                    string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
+                    Debug.Print("Printing protocol file name in play button clicked : " + ProtocolFileName);
 
-                coefficients = getCoefficients2();
-                for (int i = 0; i < 5; i++)
-                {
-                    a[i] = coefficients[i];
+                    //wfr = new WaveFileReader(path);
 
-                }
-                for (int i = 5; i < coefficients.Length; i++)
-                {
-                    b[i - 5] = coefficients[i];
+                    //Debug.Print("JH" + wfr.Length);
 
-                }
+                    byte[] allBytes = File.ReadAllBytes(path);
 
-                for (Int32 x = 4; x < points2.Length; x++)
-                {
-                    //coefficients from file generated by MATLAB
-                    points3[x] = ((b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * points2[x - 1]) + (a[2] * points2[x - 2]) + (a[3] * points2[x - 3]) + (a[4] * points2[x - 4]));
-
-                }
+                    byte[] points = new byte[4];
 
 
-                double val;
-
-                for (Int32 x = 0; x < points3.Length; ++x)
-                {
-                    val = points3[x];
-                    Point p = new Point();
-                    p.X = x;
-                    p.Y = points3[x];
-                    val = Normalize(x, p.Y);
-                    audioPoints.Add(val);
-                    n++;
-                    //if (n >= 834)
-                    //    flag = 1;
-                    if (audioPoints.Count >= 834)
+                    for (int i = 44; i < allBytes.Length - 4; i += 100)
                     {
-                        flag = 1;
+                        points[2] = allBytes[i];
+                        points[3] = allBytes[i + 1];
+                        points[1] = allBytes[i + 2];
+                        points[0] = allBytes[i + 3];
+
+                        displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
 
                     }
-                }
 
-                Debug.Print("n:" + n);//n is the total number of audio points shown on screen
-                Debug.Print("allbytes len : " + allBytes.Length);
-                PlayFile.IsEnabled = true;
+                    double[] points2 = displaypoint.ToArray();
+                    double[] points3 = displaypoint.ToArray();
+
+
+
+                    coefficients = getCoefficients2();
+                    for (int i = 0; i < 5; i++)
+                    {
+                        a[i] = coefficients[i];
+
+                    }
+                    for (int i = 5; i < coefficients.Length; i++)
+                    {
+                        b[i - 5] = coefficients[i];
+
+                    }
+
+                    for (Int32 x = 4; x < points2.Length; x++)
+                    {
+                        //coefficients from file generated by MATLAB
+                        points3[x] = ((b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * points2[x - 1]) + (a[2] * points2[x - 2]) + (a[3] * points2[x - 3]) + (a[4] * points2[x - 4]));
+
+                    }
+
+
+                    double val;
+
+                    for (Int32 x = 0; x < points3.Length; ++x)
+                    {
+                        val = points3[x];
+                        Point p = new Point();
+                        p.X = x;
+                        p.Y = points3[x];
+                        val = Normalize(x, p.Y);
+                        audioPoints.Add(val);
+                        n++;
+                        //if (n >= 834)
+                        //    flag = 1;
+                        //if (audioPoints.Count >= 834)
+                        //{
+                        //    flag = 1;
+
+                        //}
+                    }
+
+                    Debug.Print("n:" + n);//n is the total number of audio points shown on screen
+                    Debug.Print("allbytes len : " + allBytes.Length);
+                    PlayFile.IsEnabled = true;
+                }
+                catch(Exception e)
+                {
+                    System.Windows.MessageBox.Show("Exception : " + e);
+                }
+                
             }
 
 

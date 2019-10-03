@@ -43,8 +43,8 @@
             <Rectangle Margin="1 1" Fill="White"></Rectangle>
             <!--<Button Background="LightGray" Margin="1 3 3 3" Height="25" Width="62"  HorizontalAlignment="Left" VerticalAlignment="Center" Content="File" Foreground="Black" FontWeight="Normal" Name="FileButton" Click="SaveButton_Click"  BorderBrush="Transparent" FontSize="12"></Button>-->
             <Menu>
-                <MenuItem Header="_File" Height="30" FontSize="12" FontStyle="Normal">
-                    <MenuItem Header="Open" Click="MenuItem_Click">
+                <MenuItem Header="_File" Height="30" FontSize="12" FontStyle="Normal" Click="MenuItem_Click_1">
+                    <MenuItem Header="Open" x:Name="OpenFileButton" Click="OpenFileButton_Click">
                         <MenuItem.Icon>
                             <materialDesign:PackIcon Kind="FolderOpen" />
                         </MenuItem.Icon>

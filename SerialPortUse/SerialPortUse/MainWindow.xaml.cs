@@ -81,7 +81,7 @@ namespace WpfApp1
             // float off = caliberationValues.offsetA0;
             float[] temparr = new float[14];
             float pint1 = 0;
-            float pint2 = 0;
+            float pint2 = 0; 
             float pcomp_FS = 0;
             float pcomp = 0;
             
@@ -159,7 +159,8 @@ namespace WpfApp1
 
                 if ( receivedData.Count >= QUEUE_THRESHOLD )
                 {
-                    ProcessQueue();
+
+                    ();
                 }
             }
         }

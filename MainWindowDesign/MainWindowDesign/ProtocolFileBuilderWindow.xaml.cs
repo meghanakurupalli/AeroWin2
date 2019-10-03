@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -27,17 +28,17 @@ namespace MainWindowDesign
         {
             InitializeComponent();
             //IntensityList.Items.Add(null);
+            //protocols = new ObservableCollection<protocol>(protocols.OrderBy(TokenTypeVal=>TokenTypeVal));
         }
 
+        string generatedProtocolFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedProtocolFilesPath"];
         String TokenTypeVal = null;
         String UtteranceVal, RateVal, IntensityVal, RepetitionCountVal;
         String protocolItem;
         int protocolIndex;
         //List<protocol> protocols = new List<protocol>();
         ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
-
-
-        ListBox SaveList = new ListBox();
+        ObservableCollection<protocol> newCollection = new ObservableCollection<protocol>();
 
         public int CountOfProtocolFile
         {
@@ -129,53 +130,23 @@ namespace MainWindowDesign
             int flag = 0;
             int i = 0;
             protocol idk = new protocol();
-            String SaveProtocol;
+            
             try
             {
-                //string tokenTypeValue = "NC";
-                //if (TokenTypeVal == "NC")
-                //{
-                //    RateVal = "-";
-                //    IntensityVal = "-";
-                //}
-
-                //if(TokenTypeVal=="VP")
-                //{
-                //    while(i < ProtocolGrid.Items.Count)
-                //    {
-                //        if (idk.TokenType == "NC")
-                //            flag = 1;
-                //        i++;
-                //    }
-
-                //    if(flag==0)
-                //    {
-                //        MessageBox.Show("Cannot add VP items without atleast one NC item");
-                //    }
-                //    else
-                //    {
-
-                //    }
-                //}
-                //String SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
-                //// ProtocolList.Items.Add(protocol);
-                //SaveList.Items.Add(SaveProtocol);
                 
-                //protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
-
-                //ProtocolGrid.ItemsSource = protocols;
-                //ProtocolGrid.DataContext = this;
                 switch(TokenTypeVal)
                 {
                     case "NC":
                         RateVal = "-";
                         IntensityVal = "-";
-                        SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
+                        
                         // ProtocolList.Items.Add(protocol);
-                        SaveList.Items.Add(SaveProtocol);
-                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+                                                
+                        
+                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
 
                         break;
+
                     case "VP":
                         while (i < ProtocolGrid.Items.Count)
                         {
@@ -190,25 +161,25 @@ namespace MainWindowDesign
                         }
                         else
                         {
-                            SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
-                            // ProtocolList.Items.Add(protocol);
-                            SaveList.Items.Add(SaveProtocol);
-                            protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+                          
+                            protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
+
                         }
                         break;
+
                     case "LR":
-                        SaveProtocol = TokenTypeVal + "," + UtteranceVal + "," + RateVal + "," + IntensityVal + "," + RepetitionCountVal;
-                        // ProtocolList.Items.Add(protocol);
-                        SaveList.Items.Add(SaveProtocol);
-                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, RepetitionCount = RepetitionCountVal });
+                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
                         break;
+
                     default:
                         MessageBox.Show("Cannot add VP items without atleast one NC item", "Cannot add Protocol!", MessageBoxButton.OK, MessageBoxImage.Asterisk);
                         break;
 
                 }
-                Debug.Print("Protoclos : " + protocols);
-                ProtocolGrid.ItemsSource = protocols;
+
+                //protocols.OrderBy(t=>TokenTypeVal);
+                var newCollection = protocols.OrderBy(x => x.TokenType);
+                ProtocolGrid.ItemsSource = newCollection;
                 ProtocolGrid.DataContext = this;
 
             }
@@ -238,17 +209,7 @@ namespace MainWindowDesign
         {
             if(protocolItem!=null)
             {
-
-                // ProtocolList.Items.Remove(protocolItem);
-                // ProtocolGrid.Items.Remove(protocolItem);
-                //ProtocolGrid.Items.RemoveAt(ProtocolGrid.SelectedIndex);
-                //ProtocolGrid.Items.RemoveAt(protocolIndex);
-                protocols.RemoveAt(protocolIndex);
-                
-                //SaveList.Items.Remove(protocolItem);
-                SaveList.Items.RemoveAt(protocolIndex);
-                
-                
+                protocols.RemoveAt(protocolIndex);                
             }
             else
             {
@@ -298,6 +259,7 @@ namespace MainWindowDesign
             //save.FileName = "Protocol.csv";
             string filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*";
             save.Filter = filter;
+            save.InitialDirectory = generatedProtocolFilesPath;
             StreamWriter writer = null;
             if (save.ShowDialog() == true)
 
@@ -307,23 +269,77 @@ namespace MainWindowDesign
                 writer = new StreamWriter(filter);
                 const string header = "Token_Type,Utterance,Rate,Intensity,Repetition_Count";
                 writer.WriteLine(header);
-                //var csv = new StringBuilder();
-                for (int i = 0; i < SaveList.Items.Count; i++)
-                {
-                    string protocol = SaveList.Items[i].ToString();
+                var csv = new StringBuilder();
 
-                    //string[] SplitProtocol = protocol.Split(' ');
-                    //csv.Append(protocol);
-                    //Debug.Print(protocol + "\n");
+                
+
+                for(int i = 0; i < protocols.Count; i++)
+                {
+                    string protocol = protocols[i].TokenType + "," + protocols[i].Utterance + "," + protocols[i].Rate + "," + protocols[i].Intensity + "," +  protocols[i].TotalRepetitionCount;
                     writer.WriteLine(protocol);
                 }
+
+               
                 writer.Close();
                 
             }
+            Close();
+            
+        }
+
+        private void OpenFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            string ProtocolFileName;
+            string ProtocolFileName_ext = "temp";
+            ObservableCollection<protocol> tempcollection = new ObservableCollection<protocol>();
+            OpenFileDialog openFileDialog = new OpenFileDialog()
+            {
+                Filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*",
+                InitialDirectory = generatedProtocolFilesPath
+                
+            };
+            if(openFileDialog.ShowDialog()==true)
+            {
+                ProtocolFileName_ext = openFileDialog.ToString();
+            }
+            ProtocolFileName = System.IO.Path.GetFileNameWithoutExtension(ProtocolFileName_ext);
+
+            string fileName = System.IO.Path.Combine(generatedProtocolFilesPath, ProtocolFileName + ".csv");
+            StreamReader streamReader = new StreamReader(File.OpenRead(fileName));
+            var count = File.ReadLines(fileName).Count(); // This gives the no of protocols in a given protocol file,+1, for header.
+            count = count - 1;//Header
+            int i = 0;
+            
+            while (i!=count)
+            {
+                int j = 0;
+                var splitline = streamReader.ReadLine().Split(',');
+                while(j!=splitline.Count())
+                {
+                   // Debug.Print("Splitline : " + splitline[j]);
+                    j++;
+                }
+                //openExisting[i].TokenType = splitline[0];
+                //string temp = splitline[0];
+                //Debug.Print("temp : " + temp);
+               // var RepititionCountString = splitline[4];
+                //var splitRepititionCountString = RepititionCountString.Split(' ');
+                //var temp1 = splitRepititionCountString[0]+" of ";
+                //var temp2 = splitRepititionCountString[2];
+
+                protocols.Add(new protocol { TokenType = splitline[0], Utterance = splitline[1], Rate = splitline[2], Intensity = splitline[3], TotalRepetitionCount = splitline[4] });
+                i++;
+            }
+
+            ProtocolGrid.ItemsSource = protocols;
             
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
 
         }
@@ -336,8 +352,10 @@ namespace MainWindowDesign
             }
             protocolItem = ProtocolGrid.SelectedItem.ToString();
             protocolIndex = ProtocolGrid.SelectedIndex;
-            Debug.Print("Protoocl item : " + protocolItem + "Index  : "+protocolIndex);
+            //Debug.Print("Protoocl item : " + protocolItem + "Index  : "+protocolIndex);
         }
+
+        
 
         //private void utteranceList_Loaded(object sender, RoutedEventArgs e)
         //{
@@ -379,13 +397,87 @@ namespace MainWindowDesign
         
     }
 
-    public class protocol
+    public class protocol : INotifyPropertyChanged
     {
-        public string TokenType { get; set; }
-        public string Utterance { get; set; }
-        public string Rate { get; set; }
-        public string Intensity { get; set; }
-        public string RepetitionCount { get; set; }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        private string _TokenType = "";
+        public string TokenType
+        {
+            get
+            {
+                return _TokenType;
+            }
+
+            set
+            {
+                _TokenType = value;
+                OnPropertyChanged("TokenType");
+            }
+        }
+
+        private string _Utterance = "";
+        public string Utterance
+        {
+            get
+            {
+                return _Utterance;
+            }
+
+            set
+            {
+                _Utterance = value;
+                OnPropertyChanged("Utterance");
+            }
+        }
+
+        private string _Rate = "";
+        public string Rate
+        {
+            get
+            {
+                return _Rate;
+            }
+
+            set
+            {
+                _Rate = value;
+                OnPropertyChanged("Rate");
+            }
+        }
+
+        private string _Intensity = "";
+        public string Intensity
+        {
+            get
+            {
+                return _Intensity;
+            }
+
+            set
+            {
+                _Intensity = value;
+                OnPropertyChanged("Intensity");
+            }
+        }
+
+        private string _TotalRepetitionCount = "";
+        public string TotalRepetitionCount
+        {
+            get
+            {
+                return _TotalRepetitionCount;
+            }
+
+            set
+            {
+                _TotalRepetitionCount = value;
+                OnPropertyChanged("TotalRepetitionCount");
+            }
+        }
+
+        //public string CurrentRepetitionCount { get; set; }
     }
 
     
