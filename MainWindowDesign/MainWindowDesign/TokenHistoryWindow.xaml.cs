@@ -26,25 +26,27 @@ namespace MainWindowDesign
             InitializeComponent();
         }
 
-        ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
+        public ObservableCollection<protocol> THWprotocols = new ObservableCollection<protocol>();
         bool _isPrevButtonClicked = false;
         bool _isNextButtonClicked = false;
 
         public TokenHistoryWindow(string str)
         {
             //string temp = str;
-           // path = System.IO.Path.Combine(generatedProtocolFilesPath, temp + ".csv");
+            // path = System.IO.Path.Combine(generatedProtocolFilesPath, temp + ".csv");
+            InitializeComponent();
             var reader = new StreamReader(File.OpenRead(str));
-            List<string> protocol = new List<string>();
+            //List<string> protocol = new List<string>();
             while (!reader.EndOfStream)
             {
                 var splits = reader.ReadLine().Split(',');
-                protocols.Add(new protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = splits[4] });
+                THWprotocols.Add(new protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = splits[4] });
+
                 // Didn't yet edit in this window. Just gave something arbitrary.
 
             }
-            protocols.RemoveAt(0);
-            TokenHistoryGrid.ItemsSource = protocols;
+            //protocols.RemoveAt(0);
+            TokenHistoryGrid.ItemsSource = THWprotocols;
             TokenHistoryGrid.DataContext = this;
             TokenHistoryGrid.SelectedIndex = 0;
             reader.Close();
@@ -60,7 +62,15 @@ namespace MainWindowDesign
             }
             //_isPrevButtonClicked = true;
             int now = TokenHistoryGrid.SelectedIndex;
-            TokenHistoryGrid.SelectedIndex = now - 1;
+            if(now==0)
+            {
+                TokenHistoryGrid.SelectedIndex = 0;
+            }
+            else
+            {
+                TokenHistoryGrid.SelectedIndex = now - 1;
+            }
+            
         }
 
         private void THWNextButton_Click(object sender, RoutedEventArgs e)
@@ -72,7 +82,14 @@ namespace MainWindowDesign
             }
             
             int now = TokenHistoryGrid.SelectedIndex;
-            TokenHistoryGrid.SelectedIndex = now + 1;
+            if (now == TokenHistoryGrid.Items.Count-1)
+            {
+                TokenHistoryGrid.SelectedIndex = TokenHistoryGrid.Items.Count - 1;
+            }
+            else
+            {
+                TokenHistoryGrid.SelectedIndex = now + 1;
+            }
         }
 
         public EventHandler prevBtnClicked;

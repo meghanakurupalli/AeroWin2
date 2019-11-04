@@ -39,10 +39,6 @@ namespace MainWindowDesign
 
             InitializeComponent();
             //mwin = new MainWindow();
-            
-            
-
-
         }
 
         public TokenListWindow(string str)
@@ -139,7 +135,7 @@ namespace MainWindowDesign
             {
                 
                 saveme++;
-                _givesCurrentRepCount = saveme;
+                _givesCurrentRepCount = saveme; 
                 var temp2 = string.Concat(saveme, " of ", currentProtocolRepetitionCount);
                 currentProtocol.TotalRepetitionCount = temp2;
                 Debug.Print("temp2 : " + temp2);

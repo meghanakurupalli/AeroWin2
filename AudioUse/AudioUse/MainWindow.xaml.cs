@@ -69,7 +69,8 @@ namespace AudioUse
             //SaveFile sWin = new SaveFile();
             //sWin.Show();
             //fileName = sWin.FileName.Text.ToString();
-            
+            showColumnChart();
+
         }
 
         WaveIn wi;
@@ -111,6 +112,23 @@ namespace AudioUse
 
             return (coefficients1);
         }
+
+        private void showColumnChart()
+        {
+            List<KeyValuePair<string, int>> valueList = new List<KeyValuePair<string, int>>();
+            valueList.Add(new KeyValuePair<string, int>("Developer", 60));
+            valueList.Add(new KeyValuePair<string, int>("Misc", 20));
+            valueList.Add(new KeyValuePair<string, int>("Tester", 50));
+            valueList.Add(new KeyValuePair<string, int>("QA", 30));
+            valueList.Add(new KeyValuePair<string, int>("Project Manager", 40));
+
+            //Setting data for column chart
+            //Setting data for line chart
+            MSChart.DataContext = valueList;
+        }
+
+        
+
 
         static int o = 0;
         void StartRecording(double time)
@@ -295,6 +313,7 @@ namespace AudioUse
                 Point p = Normalize2(x, points3[x]);
                // Debug.Print("p.Y : " + p.Y);
                 audioPoints.Add(p.Y);
+                //MSChart.DataContext = p.Y;
 
 
             }

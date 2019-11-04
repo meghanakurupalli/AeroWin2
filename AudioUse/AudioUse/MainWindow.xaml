@@ -4,18 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
-        xmlns:local="clr-namespace:audiotrail"
+        xmlns:DVC="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+        
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
 
-        <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="160" 
+        <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="70" 
                 Margin="30,10,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Visible"
                 Width="703" Background="Aquamarine" />
-        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,187,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>        
+        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,187,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>
         <!--<lvc:CartesianChart Series="{Binding PolylineCollection}" Margin="10,209,68,10" />-->
         <lvc:CartesianChart Name="CartChart"
-            Margin="30,228,0,0" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
+            Margin="30,96,0,249" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
                             Pan="Xy" >
             <!--<lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding SeriesCollection}" ScalesXAt="0"/>
@@ -33,6 +34,14 @@
             </lvc:CartesianChart.AxisX>
 
         </lvc:CartesianChart>
-            
+
+        <DVC:Chart Margin="46,10,10,12" Name="MSChart">
+            <DVC:Chart.Series>
+                <DVC:LineSeries IndependentValueBinding="{Binding Path=Key}" DependentValueBinding="{Binding Path=Value}"></DVC:LineSeries>
+            </DVC:Chart.Series>
+
+        </DVC:Chart>
+
+
     </Grid>
 </Window>

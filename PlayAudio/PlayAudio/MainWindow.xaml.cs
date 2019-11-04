@@ -104,16 +104,16 @@ namespace play_audio
             //Debug.Print("Lay : " + a1);
             //var wout = new WaveOut();
 
-            wfr = new WaveFileReader(generatedWaveFilesPath + @"\record4.wav" );
+            wfr = new WaveFileReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\finalchecko5\finalchecko5_0_1.wav");
 
             //Debug.Print("JH" + wfr.Length);
 
-            SoundPlayer s = new SoundPlayer(generatedWaveFilesPath + @"\record4.wav");
+            SoundPlayer s = new SoundPlayer(@"D:\GIT\AeroWin2\GeneratedWaveFiles\finalchecko5\finalchecko5_0_1.wav");
 
-            byte[] allBytes = File.ReadAllBytes(@"D:\GIT\AeroWin2\GeneratedWaveFiles\record4.wav");
+            byte[] allBytes = File.ReadAllBytes(@"D:\GIT\AeroWin2\GeneratedWaveFiles\finalchecko5\finalchecko5_0_1.wav");
 
-            Array.Copy(allBytes, 44, partOfallBytes, 44, 20000);
-            Array.Copy(allBytes, 0, partOfallBytes, 0, 44);
+           // Array.Copy(allBytes, 44, partOfallBytes, 44, 20000);
+            //Array.Copy(allBytes, 0, partOfallBytes, 0, 44);
 
             
             //WaveOutEvent wout = new WaveOutEvent();
@@ -139,12 +139,12 @@ namespace play_audio
 
             //}
 
-            for (int i = 44; i < partOfallBytes.Length - 4; i += 100)
+            for (int i = 44; i < allBytes.Length - 4; i += 100)
             {
-                points[2] = partOfallBytes[i];
-                points[3] = partOfallBytes[i + 1];
-                points[1] = partOfallBytes[i + 2];
-                points[0] = partOfallBytes[i + 3];
+                points[2] = allBytes[i];
+                points[3] = allBytes[i + 1];
+                points[1] = allBytes[i + 2];
+                points[0] = allBytes[i + 3];
 
                 //points[2] = allBytes[i];
                 //points[3] = allBytes[i + 1];

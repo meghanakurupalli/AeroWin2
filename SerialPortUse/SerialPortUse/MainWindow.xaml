@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfApp1"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing" Closed="Window_Closed">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
@@ -28,7 +28,7 @@
                 />
 
         <lvc:CartesianChart Grid.Column="1"
-                            Margin="0,5,5,157">
+                            Margin="0,5,5,177">
             <lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding PressureLineSeriesValues}"
                                 ScalesXAt="0"/>
@@ -46,6 +46,26 @@
                           Position="RightTop"/>
             </lvc:CartesianChart.AxisY>
         </lvc:CartesianChart>
-        
+
+        <lvc:CartesianChart Grid.Column="1"
+                            Margin="0,187,5,0">
+            <lvc:CartesianChart.Series>
+                <lvc:LineSeries Values="{Binding airFlowLineSeriesValues}"
+                                ScalesXAt="0"/>
+                <lvc:LineSeries Values="{Binding TemperatureLineSeriesValues}"
+                                ScalesYAt="1"/>
+            </lvc:CartesianChart.Series>
+
+            <lvc:CartesianChart.AxisX>
+                <lvc:Axis Title="Time (s)"/>
+            </lvc:CartesianChart.AxisX>
+            <lvc:CartesianChart.AxisY>
+                <lvc:Axis Title="Air Flow"
+                          Position="LeftBottom"/>
+                <lvc:Axis Title=""
+                          Position="RightTop"/>
+            </lvc:CartesianChart.AxisY>
+        </lvc:CartesianChart>
+
     </Grid>
 </Window>
