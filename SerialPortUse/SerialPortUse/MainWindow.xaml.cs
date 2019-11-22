@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
+using System.Threading;
 using System.Timers;
 using System.Windows;
 
@@ -20,11 +21,9 @@ namespace WpfApp1
         private readonly int QUEUE_THRESHOLD = 8;
         SerialPort port = null;
         Queue<byte> receivedData = new Queue<byte>();
-        Timer myTimer = new Timer(100);
-        caliberationValues givesPacket = new caliberationValues();
+        calibrationValues givesPacket = new calibrationValues();
         public float[] temparr;
         public static float[] temparray2 = new float[28];
-        Timer anotherTimer = new Timer();
         //static int calibrationPacketCount = 0;
         static int no_of_times = 0;
 
@@ -33,9 +32,6 @@ namespace WpfApp1
         public MainWindow()
         {
             InitializeComponent();
-
-           
-
             definition = new CRC16.Definition() { TruncatedPolynomial = 0x8005 };
             hashFunction = new CRC16( definition );
             hashFunction.Initialize();
@@ -45,15 +41,124 @@ namespace WpfApp1
             port.Open();
             
             port.DataReceived += SerialDataReceived;
-            myTimer.Elapsed += MyTimer_Elapsed;
-            myTimer.Start();
+            //myTimer.Elapsed += MyTimer_Elapsed;
+            //myTimer.Start();
             //port.Write("stop");
 
             //anotherTimer.Elapsed += new ElapsedEventHandler(anotherTimerElapsed);
             //anotherTimer.Interval = 30000;
             //anotherTimer.Start();
+            Thread backgroundThread = new Thread(dataCollectionThread);
+            backgroundThread.IsBackground = true;
+            backgroundThread.Start();
 
             DataContext = this;
+        }
+
+        private void dataCollectionThread()
+        {
+            while(true)
+            {
+                float[] temparr = new float[14];
+                float pint1 = 0;
+                float pint2 = 0;
+                float pcomp_FS = 0;
+                float pcomp = 0;
+
+                float afint1 = 0;
+                float afint2 = 0;
+                float afcomp_FS = 0;
+                float afcomp = 0;
+                int tempflag = 0;
+
+                if (decodedPackets.Count > 0)
+                {
+                    var packet = decodedPackets.Dequeue();
+                    //Debug.Print("New added packet info " + packet.ToString() );
+
+                    switch (packet.packetType)
+                    {
+                        case PacketType.PressureOnly:
+                            break;
+                        case PacketType.PressureTemperature:
+                            if (temparray2[1] != 0)
+                            {
+                                // Debug.Print("temparr[1] !=0");
+
+                                var rawValuePacket = new RawValuePacket(packet);
+
+                                RawValuePackets.Enqueue(rawValuePacket);
+                                foreach(var item in rawValuePacket.PresB)
+                                {
+                                    pint1 = item - (float)((temparray2[19] * Math.Pow(rawValuePacket.TempB, 3)) + (temparray2[18] * Math.Pow(rawValuePacket.TempB, 2)) + (temparray2[17] * rawValuePacket.TempB) + temparray2[16]);
+                                    pint2 = pint1 / (float)(temparray2[23] * Math.Pow(rawValuePacket.TempB, 3) + temparray2[22] * Math.Pow(rawValuePacket.TempB, 2) + temparray2[21] * rawValuePacket.TempB + temparray2[20]);
+                                    pcomp_FS = (float)(temparray2[27] * Math.Pow(pint2, 3) + temparray2[26] * Math.Pow(pint2, 2) + temparray2[25] * pint2 + temparray2[24]);
+                                    pcomp = pcomp_FS * temparray2[14] + temparray2[15];
+                                    //Does nothing
+                                }
+
+                                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,new Action(() =>
+                                {
+                                //    foreach (var item in rawValuePacket.PresA)
+                                //    //Channel for airflow
+                                //    {
+                                //            afint1 = item - (float)((temparray2[5] * Math.Pow(rawValuePacket.TempA, 3)) + (temparray2[4] * Math.Pow(rawValuePacket.TempA, 2)) + (temparray2[3] * rawValuePacket.TempA) + temparray2[2]);
+                                //            afint2 = afint1 / (float)(temparray2[9] * Math.Pow(rawValuePacket.TempA, 3) + temparray2[8] * Math.Pow(rawValuePacket.TempA, 2) + temparray2[7] * rawValuePacket.TempA + temparray2[6]);
+                                //            afcomp_FS = (float)(temparray2[13] * Math.Pow(afint2, 3) + temparray2[12] * Math.Pow(afint2, 2) + temparray2[11] * afint2 + temparray2[10]);
+                                //            afcomp = afcomp_FS * temparray2[0] + temparray2[1];
+                                //            airFlowLineSeriesValues.Add(afcomp);
+
+
+                                //        }
+
+                                    foreach (var item1 in rawValuePacket.PresB)
+                                //    //Channel for pressure
+                                    {
+                                //            pint1 = item - (float)((temparray2[19] * Math.Pow(rawValuePacket.TempB, 3)) + (temparray2[18] * Math.Pow(rawValuePacket.TempB, 2)) + (temparray2[17] * rawValuePacket.TempB) + temparray2[16]);
+                                //            pint2 = pint1 / (float)(temparray2[23] * Math.Pow(rawValuePacket.TempB, 3) + temparray2[22] * Math.Pow(rawValuePacket.TempB, 2) + temparray2[21] * rawValuePacket.TempB + temparray2[20]);
+                                //            pcomp_FS = (float)(temparray2[27] * Math.Pow(pint2, 3) + temparray2[26] * Math.Pow(pint2, 2) + temparray2[25] * pint2 + temparray2[24]);
+                                //            pcomp = pcomp_FS * temparray2[14] + temparray2[15];
+                                //            PressureLineSeriesValues.Add(pcomp);
+                                    }
+                                //    // TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
+                                }));
+                                // Debug.Print(rawValuePacket.ToString());
+                            }
+                            break;
+                        case PacketType.TemperatureOnly:
+                            break;
+                        case PacketType.CalibrationInfo:
+
+                            var calibrationvalues = new calibrationValues(packet);
+                            temparr = new float[28];
+                            temparr = calibrationvalues.returnArrayA;
+                            for (int i = 0; i < 14; i++)
+                            {
+
+                                // Debug.Print("temparr[" + i + "] = " + temparr[i]);
+                            }
+                            temparray2 = temparr;
+                            port.Write("go");
+                            break;
+
+                        default:
+                            // Debug.Print( "Invalid packet received" );
+                            break;
+                    }
+
+                    //Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                    //   new Action(() =>
+                    //   {
+                    //       foreach (var item in rawValuePacket.PresA)
+                    //       {
+                    //           PressureLineSeriesValues.Add(item);
+                    //       }
+                    //       TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
+                    //   }));
+                }
+            }
+            
+            throw new NotImplementedException();
         }
 
         private CRC16.Definition definition;
@@ -71,100 +176,6 @@ namespace WpfApp1
         }
 
         Queue<RawValuePacket> RawValuePackets = new Queue<RawValuePacket>();
-
-        private void MyTimer_Elapsed( object sender, ElapsedEventArgs e )
-        {
-            // float off = caliberationValues.offsetA0;
-            float[] temparr = new float[14];
-            float pint1 = 0;
-            float pint2 = 0; 
-            float pcomp_FS = 0;
-            float pcomp = 0;
-
-            float afint1 = 0;
-            float afint2 = 0;
-            float afcomp_FS = 0;
-            float afcomp = 0;
-            
-            if ( decodedPackets.Count > 0 )
-            {
-                var packet = decodedPackets.Dequeue();
-                //Debug.Print("New added packet info " + packet.ToString() );
-
-                switch ( packet.packetType )
-                {
-                    case PacketType.PressureOnly:
-                        break;
-                    case PacketType.PressureTemperature:
-                        if (temparray2[1] != 0)
-                        {
-                           // Debug.Print("temparr[1] !=0");
-
-                            var rawValuePacket = new RawValuePacket(packet);
-
-                            RawValuePackets.Enqueue(rawValuePacket);
-
-                            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                                new Action(() =>
-                                {
-                                    foreach (var item in rawValuePacket.PresA)
-                                    //Channel for airflow
-                                    {
-                                        afint1 = item - (float)((temparray2[5] * Math.Pow(rawValuePacket.TempA, 3)) + (temparray2[4] * Math.Pow(rawValuePacket.TempA, 2)) + (temparray2[3] * rawValuePacket.TempA) +temparray2[2]);
-                                        afint2 = afint1 /(float)(temparray2[9] * Math.Pow(rawValuePacket.TempA, 3)+ temparray2[8] * Math.Pow(rawValuePacket.TempA, 2) + temparray2[7] * rawValuePacket.TempA + temparray2[6]);
-                                        afcomp_FS = (float)(temparray2[13] * Math.Pow(afint2, 3) + temparray2[12] * Math.Pow(afint2, 2) + temparray2[11] * afint2 + temparray2[10]);
-                                        afcomp = afcomp_FS * temparray2[0] + temparray2[1];
-                                        airFlowLineSeriesValues.Add(afcomp);
-                                              
-
-                                    }
-
-                                    foreach (var item in rawValuePacket.PresB)
-                                    //Channel for pressure
-                                    {
-                                        pint1 = item - (float)((temparray2[19] * Math.Pow(rawValuePacket.TempB, 3)) + (temparray2[18] * Math.Pow(rawValuePacket.TempB, 2)) + (temparray2[17] * rawValuePacket.TempB) + temparray2[16]);
-                                        pint2 = pint1 / (float)(temparray2[23] * Math.Pow(rawValuePacket.TempB, 3) + temparray2[22] * Math.Pow(rawValuePacket.TempB, 2) + temparray2[21] * rawValuePacket.TempB + temparray2[20]);
-                                        pcomp_FS = (float)(temparray2[27] * Math.Pow(pint2, 3) + temparray2[26] * Math.Pow(pint2, 2) + temparray2[25] * pint2 + temparray2[24]);
-                                        pcomp = pcomp_FS * temparray2[14] + temparray2[15];
-                                        PressureLineSeriesValues.Add(pcomp);
-                                    }
-                                    // TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
-                                }));
-                           // Debug.Print(rawValuePacket.ToString());
-                        }
-                        break;
-                    case PacketType.TemperatureOnly:
-                        break;
-                    case PacketType.CalibrationInfo:
-                        
-                        var caliberationvalues = new caliberationValues(packet);
-                        temparr = new float[28];
-                        temparr = caliberationvalues.returnArrayA;
-                        for (int i = 0; i < 14; i++)
-                        {
-
-                           // Debug.Print("temparr[" + i + "] = " + temparr[i]);
-                        }
-                        temparray2 = temparr;
-                        port.Write("go");
-                        break;
-                        
-                    default:
-                       // Debug.Print( "Invalid packet received" );
-                        break;
-                }
-
-                //Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                //   new Action(() =>
-                //   {
-                //       foreach (var item in rawValuePacket.PresA)
-                //       {
-                //           PressureLineSeriesValues.Add(item);
-                //       }
-                //       TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
-                //   }));
-            }
-        }
 
         private void SerialDataReceived( object sender, SerialDataReceivedEventArgs e )
         {
@@ -194,10 +205,13 @@ namespace WpfApp1
 
         Packet processPacket = new Packet();
         private Queue<byte> processPayload = new Queue<byte>();
+        private Queue<byte> calculateCRC = new Queue<byte>();
 
         private Queue<Packet> decodedPackets = new Queue<Packet>();
+        byte[] CRCTemp = new byte[2];
 
         private readonly byte START_BYTE = 0x59;
+        private int CRCLength = 2;
 
         private void ProcessQueue()
         {
@@ -239,7 +253,7 @@ namespace WpfApp1
                         break;
 
                     case ProcessQueueStates.GetLength:
-                        processLength = nextByte + 1;            //Adding 1 to accomodate the sequence number? 
+                        processLength = nextByte + 1;            //Adding 1 to accomodate the sequence number? Why add 1?
                         processPacket.PayloadLength = (byte)processLength;
                         
                         processState = ProcessQueueStates.GrabbingPayload;
@@ -249,25 +263,48 @@ namespace WpfApp1
                         processPayload.Enqueue( nextByte );
                         processLength--;
 
-                        if ( processLength <= 0 )
+                        if ( processLength <= 1 )           //Changing here
                         {
                             processState = ProcessQueueStates.NextIsEnd;
                         }
                         break;
 
-                    case ProcessQueueStates.NextIsEnd:
+                    case ProcessQueueStates.NextIsEnd: //Takes the lat two bytes, Converts them into integer,and checks if the value is equal to 0x96.  
                         // TODO: Check CRC
-                        
-                        processPacket.crc = nextByte;
 
-                        if (processPacket.crc == 0x96)
+                        //processPacket.crc = nextByte; 
+                        int i = 0;
+                        int flag = 0;
+                        float CRC = 0;
+                        
+                        calculateCRC.Enqueue(nextByte);
+                        CRCLength--;
+                        int count = calculateCRC.Count;
+                        if(CRCLength == 0)
+                        {
+                            while(count > 0)
+                            {
+                                CRCTemp[i] = calculateCRC.Dequeue();
+                                i++;
+                                count--;
+                            }
+                            CRC = CRCTemp[1] | CRCTemp[0] << 8;
+                            flag = 1;
+                        }
+                        
+
+                        if (flag==1 && (byte)CRC == 0x96)
                         {
                             processPacket.payload = processPayload.ToArray();
                             decodedPackets.Enqueue(processPacket.Clone());
+                            processState = ProcessQueueStates.FindStart;
+                            processPayload.Clear();
+                            calculateCRC.Clear();
+                            CRCLength = 2;
                         }                        
 
-                        processState = ProcessQueueStates.FindStart;
-                        processPayload.Clear();
+                        
+                        
                         break;
 
                     default:
@@ -279,7 +316,7 @@ namespace WpfApp1
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            myTimer.Stop();
+            //myTimer.Stop();
             //double pr = addpr.Average();
             //Debug.Print("Average : " + addpr.Average());
             no_of_times++;
@@ -287,7 +324,7 @@ namespace WpfApp1
             {
                 PressureLineSeriesValues.Clear();
                 airFlowLineSeriesValues.Clear();
-                myTimer.Start();
+               // myTimer.Start();
             }
         }
 
@@ -354,7 +391,7 @@ namespace WpfApp1
             };
         }
     }
-    public class caliberationValues
+    public class calibrationValues
     {
       //  static int count = 0;
         
@@ -402,9 +439,9 @@ namespace WpfApp1
         public float[] returnArrayA =  new float[28];
 
 
-        public caliberationValues() { }
+        public calibrationValues() { }
 
-        public caliberationValues(Packet packet)
+        public calibrationValues(Packet packet)
         {
             //returnArray = new float[14];
             int j = 0;
@@ -738,6 +775,8 @@ namespace WpfApp1
                 this.PresB[ i ] = presB;
             }
 
+           // Debug.Print("Pres A : " + PresA + " PresB : " + PresB);
+
             offset = packet.PayloadLength - 5;
 
             int tempA = packet.payload[ offset++ ];
@@ -748,7 +787,7 @@ namespace WpfApp1
 
             this.TempA = tempA;
             this.TempB = tempB;
-
+            //Debug.Print("Temp A : " + tempA + " TempB : " + tempB);
         }
 
         public override string ToString()

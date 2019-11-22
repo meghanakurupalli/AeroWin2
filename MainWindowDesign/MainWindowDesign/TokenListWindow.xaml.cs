@@ -140,8 +140,6 @@ namespace MainWindowDesign
                 currentProtocol.TotalRepetitionCount = temp2;
                 Debug.Print("temp2 : " + temp2);
                 protocols[TokenListGrid.SelectedIndex].TotalRepetitionCount = temp2;
-                
-                //Not displaying on window, the chnages...
 
             }
             else
@@ -156,10 +154,14 @@ namespace MainWindowDesign
                 //TokenListGrid.ItemsSource = protocols;
             }
 
+            var currentTokenType = protocols[TokenListGrid.SelectedIndex].TokenType;
+            var nextTokenType = protocols[TokenListGrid.SelectedIndex + 1].TokenType;
+            i
+
             //_givesCurrentRepCount = 0;    
-            if (TokenListGrid.SelectedIndex == TokenListGrid.Items.Count - 2)
+            if (TokenListGrid.SelectedIndex >= TokenListGrid.Items.Count - 2)
             {
-                NextButton.IsEnabled = false;
+                TokenListGrid.SelectedIndex = TokenListGrid.Items.Count - 2;
             }
 
         }

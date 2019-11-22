@@ -29,11 +29,11 @@
 
         <lvc:CartesianChart Grid.Column="1"
                             Margin="0,5,5,177">
-            <lvc:CartesianChart.Series>
+            <lvc:CartesianChart.Series >
                 <lvc:LineSeries Values="{Binding PressureLineSeriesValues}"
-                                ScalesXAt="0"/>
+                                ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
                 <lvc:LineSeries Values="{Binding TemperatureLineSeriesValues}"
-                                ScalesYAt="1"/>
+                                ScalesYAt="1" StrokeThickness="1" PointGeometry="{x:Null}"/>
             </lvc:CartesianChart.Series>
 
             <lvc:CartesianChart.AxisX>
@@ -51,9 +51,9 @@
                             Margin="0,187,5,0">
             <lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding airFlowLineSeriesValues}"
-                                ScalesXAt="0"/>
+                                ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                 <lvc:LineSeries Values="{Binding TemperatureLineSeriesValues}"
-                                ScalesYAt="1"/>
+                                ScalesYAt="1" StrokeThickness="1" PointGeometry="{x:Null}"/>
             </lvc:CartesianChart.Series>
 
             <lvc:CartesianChart.AxisX>
