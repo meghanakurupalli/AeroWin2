@@ -28,7 +28,7 @@
                 />
 
         <lvc:CartesianChart Grid.Column="1"
-                            Margin="0,5,5,177">
+                            Margin="0,5,5,177" DisableAnimations="True" Hoverable="False" x:Name="pressureChart">
             <lvc:CartesianChart.Series >
                 <lvc:LineSeries Values="{Binding PressureLineSeriesValues}"
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
@@ -41,14 +41,14 @@
             </lvc:CartesianChart.AxisX>
             <lvc:CartesianChart.AxisY>
                 <lvc:Axis Title="Pressure (inH2O)"
-                          Position="LeftBottom"/>
+                          Position="LeftBottom" LabelFormatter="{Binding formatFunc}"/>
                 <lvc:Axis Title="Temperature (degC)"
                           Position="RightTop"/>
             </lvc:CartesianChart.AxisY>
         </lvc:CartesianChart>
 
         <lvc:CartesianChart Grid.Column="1"
-                            Margin="0,187,5,0">
+                            Margin="0,187,5,0" DisableAnimations="True" Hoverable="False" >
             <lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding airFlowLineSeriesValues}"
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>

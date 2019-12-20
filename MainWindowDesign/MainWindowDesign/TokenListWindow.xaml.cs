@@ -154,9 +154,9 @@ namespace MainWindowDesign
                 //TokenListGrid.ItemsSource = protocols;
             }
 
-            var currentTokenType = protocols[TokenListGrid.SelectedIndex].TokenType;
-            var nextTokenType = protocols[TokenListGrid.SelectedIndex + 1].TokenType;
-            i
+            //var currentTokenType = protocols[TokenListGrid.SelectedIndex].TokenType;
+           // var nextTokenType = protocols[TokenListGrid.SelectedIndex + 1].TokenType;
+            
 
             //_givesCurrentRepCount = 0;    
             if (TokenListGrid.SelectedIndex >= TokenListGrid.Items.Count - 2)
@@ -216,7 +216,8 @@ namespace MainWindowDesign
             
             if(currentIndex == 0)
             {
-                PreviousButton.IsEnabled = false;
+                //PreviousButton.IsEnabled = false;
+                TokenListGrid.SelectedIndex = 0;
             }
             else
             {
@@ -232,9 +233,10 @@ namespace MainWindowDesign
             _givesCurrentRepCount = 1;
             int currentIndex = TokenListGrid.SelectedIndex;
 
-            if (currentIndex == protocols.Count)
+            if (currentIndex == protocols.Count - 1)
             {
-                NextButton.IsEnabled = false;
+                //NextButton.IsEnabled = false;
+                TokenListGrid.SelectedIndex = protocols.Count - 1;
             }
             else
             {

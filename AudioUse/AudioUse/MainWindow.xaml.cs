@@ -124,7 +124,7 @@ namespace AudioUse
 
             //Setting data for column chart
             //Setting data for line chart
-            MSChart.DataContext = valueList;
+           // MSChart.DataContext = valueList;
         }
 
         
@@ -378,6 +378,9 @@ namespace AudioUse
 
         }
 
-        
+        private void CartChart_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

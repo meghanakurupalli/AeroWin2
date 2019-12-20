@@ -30,6 +30,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Collections;
+using System.Threading;
 
 namespace MainWindowDesign
 {
@@ -72,6 +73,7 @@ namespace MainWindowDesign
         //int numtodisplay = 2205;
 
         public ChartValues<float> PressureLineSeriesValues { get; set; } = new ChartValues<float>();
+        public ChartValues<float> AirFlowLineSeriesValues { get; set; } = new ChartValues<float>();
         public ChartValues<double> TemperatureLineSeriesValues { get; set; } = new ChartValues<double>();
         Queue<double> addpr = new Queue<double>();
 
@@ -79,7 +81,7 @@ namespace MainWindowDesign
         SerialPort port = null;
         Queue<byte> receivedData = new Queue<byte>();
         System.Timers.Timer myTimer = new System.Timers.Timer(1);
-        caliberationValues givesPacket = new caliberationValues();
+        calibrationValues givesPacket = new calibrationValues();
         public float[] temparr;
         public static float[] temparray2 = new float[19];
         System.Timers.Timer anotherTimer = new System.Timers.Timer();
@@ -93,6 +95,12 @@ namespace MainWindowDesign
         TokenHistoryWindow THWin;
 
         List<protocol> THWinFileList = new List<protocol>();
+        List<float> pressures2 = new List<float>(); //Intermediately adds pressure values so that first value of this list can be added to livecharts once a limit is reached.
+        List<float> airflows = new List<float>(); //Intermediately adds airflows values so that first value of this list can be added to livecharts once a limit is reached.
+        int checkButtonFlag1, checkButtonFlag2;
+        DateTime current = new DateTime();
+        DateTime after5sec = new DateTime();
+
 
         public MainWindow()
         {
@@ -106,11 +114,19 @@ namespace MainWindowDesign
             hashFunction = new CRC16(definition);
             hashFunction.Initialize();
 
-            port = new SerialPort("COM7", 19200, Parity.None, 8, StopBits.One);
+            //using (port = new SerialPort("COM7", 117000, Parity.None, 8, StopBits.One))
+            //{
+            //    port.Open();
+            //    port.Write("sp");
+            //};
+
+           
 
             //playaudio.IsEnabled = true;
 
             Microsoft.Win32.SaveFileDialog dialog = new Microsoft.Win32.SaveFileDialog();
+            
+            //StartButton_Click(null, null);
 
 
         }
@@ -119,11 +135,26 @@ namespace MainWindowDesign
 
         private void SaveFileWindow_SaveClicked(object sender, EventArgs e)
         {
+            port = new SerialPort("COM7", 117000, Parity.None, 8, StopBits.One);
+
+
+            if (port.IsOpen == false)
+            {
+                port.Open();
+                port.Write("sp");
+
+            }
+
+            Thread backgroundThread = new Thread(dataCollectionThread);
+            backgroundThread.IsBackground = true;
+            backgroundThread.Start();
+
+            port.DataReceived += SerialDataReceived;
             DataFileName = sWin.Data_File_Name;
             ProtocolFileName = sWin.Protocol_File_Name;
             ProtFileTWin = ProtocolFileName;
 
-            pathForwavFiles = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName);
+            pathForwavFiles = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName);// pathforwavFiles is also the path for saving pressure, airflow and resistance files.
             System.IO.Directory.CreateDirectory(pathForwavFiles);
 
             string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
@@ -397,7 +428,9 @@ namespace MainWindowDesign
 
         }
 
-        private void AudioTimer_Elapsed(object sender, ElapsedEventArgs e)
+
+        /*********** NOT USING THIS METHOD *********/
+        private void AudioTimer_Elapsed(object sender, ElapsedEventArgs e) 
         {
             Debug.Print("audio points before they are cleared : " + audioPoints.Count());
             if (audioPoints != null && audioPoints.Count > 0)
@@ -411,6 +444,8 @@ namespace MainWindowDesign
             TWin.sayThisHappens();
             //throw new NotImplementedException();
         }
+        /*********** NOT USING THIS METHOD *********/
+
 
         Point Normalize2(Int32 x, float y)
         {
@@ -533,6 +568,8 @@ namespace MainWindowDesign
 
             if (StartButton.Content.ToString() == "Start")
             {
+
+                after5sec = DateTime.UtcNow.AddSeconds(5);
                 
                 try
                 {
@@ -602,79 +639,170 @@ namespace MainWindowDesign
             return retVal;
         }
 
-        private void MyTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void closingMethod() //Calls after the 5-second interval.
         {
-            // float off = caliberationValues.offsetA0;
-            float[] temparr = new float[14];
-            float pint1 = 0;
-            float pint2 = 0;
-            float pcomp_FS = 0;
-            float pcomp = 0;
-
-            if (decodedPackets.Count > 0)
+            int TWinSelectedIndex = 0;
+            int TWinCurrentRepCount = 0;
+            this.Dispatcher.Invoke(() =>
             {
-                var packet = decodedPackets.Dequeue();
-                //Debug.Print("New added packet info " + packet.ToString() );
+                TWinSelectedIndex = TWin.TokenListGrid.SelectedIndex;
+                TWinCurrentRepCount = TWin.givesCurrentRepCount;
+            });
+            
+            // Debug.Print("na_moham : " + TWinCurrentRepCount);
+            //Debug.Print("File Name created : " + DataFileName + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount);
+            FilePath = System.IO.Path.Combine(pathForwavFiles, DataFileName + "pr_af" + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount + ".csv");
 
-                switch (packet.packetType)
+            port.Write("sp");
+            var myFile = File.Create(FilePath);
+            File.WriteAllText(FilePath, csv.ToString());
+            checkButtonFlag1 = 0;
+            checkButtonFlag2 = 0;  //These two values make sure that the 
+        }
+
+        private void dataCollectionThread()
+        {
+            // pressures2 = new List<float>();
+
+
+            while (true)
+            {
+                float[] temparr = new float[14];
+                float pint1 = 0;
+                float pint2 = 0;
+                float pcomp_FS = 0;
+                float pcomp = 0;
+
+                float afint1 = 0;
+                float afint2 = 0;
+                float afcomp_FS = 0;
+                float afcomp = 0;
+                float af = 0;
+                float af_in_cc = 0;
+                float prs = 0;
+
+
+
+                if (decodedPackets.Count > 0)
                 {
-                    case PacketType.PressureOnly:
-                        break;
-                    case PacketType.PressureTemperature:
-                        if (temparray2[1] != 0)
-                        {
-                            // Debug.Print("temparr[1] !=0");
+                    var packet = decodedPackets.Dequeue();
+                    //Debug.Print("New added packet info " + packet.ToString() );
 
-                            var rawValuePacket = new RawValuePacket(packet);
+                    switch (packet.packetType)
+                    {
+                        case PacketType.PressureOnly:
+                            break;
+                        case PacketType.PressureTemperature:
+                            if (temparray2[1] != 0)
+                            {
+                                // Debug.Print("temparr[1] !=0");
 
-                            RawValuePackets.Enqueue(rawValuePacket);
+                                var rawValuePacket = new RawValuePacket(packet);
 
-                            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                                new Action(() =>
+                                RawValuePackets.Enqueue(rawValuePacket);
+                                foreach (var item in rawValuePacket.PresB)
                                 {
-                                    foreach (var item in rawValuePacket.PresA)
+
+                                    pint1 = item - (float)((temparray2[19] * Math.Pow(rawValuePacket.TempB, 3)) + (temparray2[18] * Math.Pow(rawValuePacket.TempB, 2)) + (temparray2[17] * rawValuePacket.TempB) + temparray2[16]);
+                                    pint2 = pint1 / (float)(temparray2[23] * Math.Pow(rawValuePacket.TempB, 3) + temparray2[22] * Math.Pow(rawValuePacket.TempB, 2) + temparray2[21] * rawValuePacket.TempB + temparray2[20]);
+                                    pcomp_FS = (float)(temparray2[27] * Math.Pow(pint2, 3) + temparray2[26] * Math.Pow(pint2, 2) + temparray2[25] * pint2 + temparray2[24]);
+                                    pcomp = pcomp_FS * temparray2[14] + temparray2[15];
+                                    prs = pcomp * (float)2.53746 - (float)24.4539;
+                                    pressures2.Add(prs);
+                                    //Change here when you know how to get the pressure right
+                                    //var idk = pressures.ToList();
+
+                                    //Does nothing
+                                }
+                                foreach (var item in rawValuePacket.PresA)
+                                //Channel for airflow
+                                {
+
+                                    afint1 = item - (float)((temparray2[5] * Math.Pow(rawValuePacket.TempA, 3)) + (temparray2[4] * Math.Pow(rawValuePacket.TempA, 2)) + (temparray2[3] * rawValuePacket.TempA) + temparray2[2]);
+                                    afint2 = afint1 / (float)(temparray2[9] * Math.Pow(rawValuePacket.TempA, 3) + temparray2[8] * Math.Pow(rawValuePacket.TempA, 2) + temparray2[7] * rawValuePacket.TempA + temparray2[6]);
+                                    afcomp_FS = (float)(temparray2[13] * Math.Pow(afint2, 3) + temparray2[12] * Math.Pow(afint2, 2) + temparray2[11] * afint2 + temparray2[10]);
+                                    afcomp = afcomp_FS * temparray2[0] + temparray2[1];
+                                    //af = afcomp; //- (float)0.07945;
+                                    af_in_cc = (float)4543.25 * afcomp - (float)364.758;
+                                    airflows.Add(af_in_cc);
+                                    //airflows.Add(item);
+                                    //no_of_times++;
+                                    //airFlowLineSeriesValues.Add(afcomp);
+
+                                }
+
+                                if (rawValuePacket.buttonData == 7 && checkButtonFlag1 == 0)
+                                {
+                                    checkButtonFlag2 = 1;
+                                    checkButtonFlag1 = 1;
+                                    //after5sec = DateTime.UtcNow.AddSeconds(5);
+                                    this.Dispatcher.Invoke(() =>
                                     {
-                                        pint1 = item - (float)((temparray2[5] * Math.Pow(rawValuePacket.TempA, 3)) + (temparray2[4] * Math.Pow(rawValuePacket.TempA, 2)) + (temparray2[3] * rawValuePacket.TempA) + temparray2[2]);
-                                        pint2 = pint1 / (float)(temparray2[9] * Math.Pow(rawValuePacket.TempA, 3) + temparray2[8] * Math.Pow(rawValuePacket.TempA, 2) + temparray2[7] * rawValuePacket.TempA + temparray2[6]);
-                                        pcomp_FS = (float)(temparray2[13] * Math.Pow(pint2, 3) + temparray2[12] * Math.Pow(pint2, 2) + temparray2[11] * pint2 + temparray2[10]);
-                                        pcomp = pcomp_FS * temparray2[0] + temparray2[1];
-                                        PressureLineSeriesValues.Add(pcomp);
-                                        addpr.Enqueue(pcomp);
-                                        Debug.Print("Pressure Val : " + pcomp);
+                                        PressureLineSeriesValues.Clear();
+                                        AirFlowLineSeriesValues.Clear();
+                                        StartButton.Content = "Start";
+                                        StartButton_Click(null, null);
+                                    });
+                                    //Have to call closing method
+
+                                }
+                                if (checkButtonFlag1 == 1)
+                                {
+                                    var newLine = string.Format("{0},{1}", prs, af_in_cc);
+                                    csv.AppendLine(newLine);
+                                }
+                                if (pressures2.Count > 5 && airflows.Count > 5 && checkButtonFlag2 == 1)
+                                {
+                                    //Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+                                    //{
+                                    //    // float temp = pressures2[0];
+                                    //    //Debug.Print("Invoked at : " + DateTime.Now.ToString("hh.mm.ss.ffffff"));
+
+                                    this.Dispatcher.Invoke(() =>
+                                    {
+                                        PressureLineSeriesValues.Add(pressures2[0]);
+                                        AirFlowLineSeriesValues.Add(airflows[0]);
+                                        pressures2.Clear();
+                                        airflows.Clear();
+                                    });
+
+
+
+                                    //PressureLineSeriesValues.Add(pressures2[0]);
+                                    //AirFlowLineSeriesValues.Add(airflows[0]);
+                                    //pressures2.Clear();
+                                    //airflows.Clear();
+                                   
+                                    if (DateTime.UtcNow.Subtract(after5sec).TotalMilliseconds > 0)
+                                    {
+                                        closingMethod();
                                     }
-                                    // TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
-                                }));
-                            // Debug.Print(rawValuePacket.ToString());
-                        }
-                        break;
-                    case PacketType.TemperatureOnly:
-                        break;
-                    case PacketType.CalibrationInfo:
 
-                        var caliberationvalues = new caliberationValues(packet);
-                        temparr = new float[19];
-                        temparr = caliberationvalues.returnArray;
-                        for (int i = 0; i < 14; i++)
-                        {
-                            // Debug.Print("temparr[" + i + "] = " + temparr[i]);
-                        }
-                        temparray2 = temparr;
-                        break;
-                    default:
-                        // Debug.Print( "Invalid packet received" );
-                        break;
+                                }
+
+                            }
+                            break;
+                        case PacketType.TemperatureOnly:
+                            break;
+                        case PacketType.CalibrationInfo:
+
+                            var calibrationvalues = new calibrationValues(packet);
+                            temparr = new float[28];
+                            temparr = calibrationvalues.returnArrayA;
+                            temparray2 = temparr;
+                            port.Write("go");
+                            break;
+
+                        default:
+                            // Debug.Print( "Invalid packet received" );
+                            break;
+                    }
+
+
                 }
-
-                //Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                //   new Action(() =>
-                //   {
-                //       foreach (var item in rawValuePacket.PresA)
-                //       {
-                //           PressureLineSeriesValues.Add(item);
-                //       }
-                //       TemperatureLineSeriesValues.Add(rawValuePacket.TempA * 0.03125);
-                //   }));
             }
+
+            throw new NotImplementedException();
         }
 
         private void SerialDataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -704,10 +832,16 @@ namespace MainWindowDesign
 
         Packet processPacket = new Packet();
         private Queue<byte> processPayload = new Queue<byte>();
+        private Queue<byte> calculateCRC = new Queue<byte>();
 
         private Queue<Packet> decodedPackets = new Queue<Packet>();
+        byte[] CRCTemp = new byte[2];
 
         private readonly byte START_BYTE = 0x59;
+
+        private int CRCLength = 2;
+
+        int flag = 0;
 
         private void ProcessQueue()
         {
@@ -727,12 +861,30 @@ namespace MainWindowDesign
                     case ProcessQueueStates.GetType:
                         processPacket.packetType = (PacketType)nextByte;
 
-                        processState = ProcessQueueStates.GetLength;
+                        //if (processPacket.packetType == (PacketType)0x36)
+                        //{
+                        //    processState = ProcessQueueStates.FindStart;                            
+                        //}
+                        if (!(processPacket.packetType == PacketType.CalibrationInfo
+                            || processPacket.packetType == PacketType.CalibrationRequest
+                            || processPacket.packetType == PacketType.ConfigureRequest
+                            || processPacket.packetType == PacketType.PressureOnly
+                            || processPacket.packetType == PacketType.PressureTemperature
+                            || processPacket.packetType == PacketType.TemperatureOnly
+                            || processPacket.packetType == PacketType.Ack))
+                        {
+
+                            processState = ProcessQueueStates.FindStart;
+                        }
+
+                        //Debug.Print("Packet type : " + processPacket.packetType);
+                        else { processState = ProcessQueueStates.GetLength; }
+
                         break;
 
                     case ProcessQueueStates.GetLength:
-                        processPacket.PayloadLength = nextByte;
-                        processLength = nextByte;
+                        processLength = nextByte + 1;            //Adding 1 to accomodate the sequence number? Why add 1?
+                        processPacket.PayloadLength = (byte)processLength;
 
                         processState = ProcessQueueStates.GrabbingPayload;
                         break;
@@ -741,21 +893,41 @@ namespace MainWindowDesign
                         processPayload.Enqueue(nextByte);
                         processLength--;
 
-                        if (processLength <= 0)
+                        if (processLength <= 1)           //Changing here
                         {
                             processState = ProcessQueueStates.NextIsEnd;
                         }
                         break;
 
-                    case ProcessQueueStates.NextIsEnd:
+                    case ProcessQueueStates.NextIsEnd: //Takes the lat two bytes, Converts them into integer,and checks if the value is equal to 0x96.  
                         // TODO: Check CRC
 
-                        processPacket.crc = nextByte;
-                        processPacket.payload = processPayload.ToArray();
-                        decodedPackets.Enqueue(processPacket.Clone());
+                        //processPacket.crc = nextByte; 
+                        int i = 0;
 
-                        processState = ProcessQueueStates.FindStart;
-                        processPayload.Clear();
+                        float CRC = 0;
+
+                        if (flag == 0 && nextByte == 0)
+                        {
+                            flag = 1;
+                        }
+                        if (nextByte == 1)
+                        {
+
+                        }
+
+                        if (flag == 1 && nextByte == 0x96)
+                        {
+                            processPacket.payload = processPayload.ToArray();
+                            decodedPackets.Enqueue(processPacket.Clone());
+                            processState = ProcessQueueStates.FindStart;
+                            processPayload.Clear();
+                            calculateCRC.Clear();
+                            CRCLength = 2;
+                            flag = 0;
+                        }
+
+
                         break;
 
                     default:
@@ -763,6 +935,12 @@ namespace MainWindowDesign
                         break;
                 }
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+           // port.Write("sp");
+            //port.Close();
         }
 
         public enum PacketType
@@ -815,47 +993,62 @@ namespace MainWindowDesign
             }
         }
 
-        public class caliberationValues
+        public class calibrationValues
         {
             //  static int count = 0;
 
-            public float SequenceNumber;
-
             public float rangeA;
+            public float rangeB;
 
             public float minA;
+            public float minB;
 
             public float offsetA0;
             public float offsetA1;
             public float offsetA2;
             public float offsetA3;
 
+            public float offsetB0;
+            public float offsetB1;
+            public float offsetB2;
+            public float offsetB3;
+
             public float spanA0;
             public float spanA1;
             public float spanA2;
             public float spanA3;
+
+            public float spanB0;
+            public float spanB1;
+            public float spanB2;
+            public float spanB3;
 
             public float shapeA0;
             public float shapeA1;
             public float shapeA2;
             public float shapeA3;
 
+            public float shapeB0;
+            public float shapeB1;
+            public float shapeB2;
+            public float shapeB3;
+
 
             public byte[] tempA;
-            public float[] returnArray = new float[19];
+            public byte[] tempB;
+            public float[] returnArrayA = new float[28];
 
 
-            public caliberationValues() { }
+            public calibrationValues() { }
 
-            public caliberationValues(Packet packet)
+            public calibrationValues(Packet packet)
             {
-                //returnArray = new float[14];
                 int j = 0;
                 if (packet.packetType != PacketType.CalibrationInfo)
                 {
                     throw new Exception(" Invalid packet type");
                 }
-                this.SequenceNumber = packet.payload[0];
+               
 
                 tempA = new byte[122];
 
@@ -866,7 +1059,8 @@ namespace MainWindowDesign
 
                 rangeA = System.BitConverter.ToSingle(tempA, 0);
 
-                returnArray[j] = rangeA;
+
+                returnArrayA[j] = rangeA;
                 j += 1;
                 for (int i = 4; i < 8; i++)
                 {
@@ -874,7 +1068,7 @@ namespace MainWindowDesign
                 }
                 minA = System.BitConverter.ToSingle(tempA, 4);
 
-                returnArray[j] = minA;
+                returnArrayA[j] = minA;
                 j += 1;
                 //int unitA = packet.payload[8];
 
@@ -885,7 +1079,7 @@ namespace MainWindowDesign
 
                 }
                 offsetA0 = System.BitConverter.ToSingle(tempA, 13);
-                returnArray[j] = offsetA0;
+                returnArrayA[j] = offsetA0;
                 j += 1;
 
                 for (int i = 17; i < 21; i++)
@@ -894,7 +1088,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 offsetA1 = System.BitConverter.ToSingle(tempA, 17);
-                returnArray[j] = offsetA1;
+                returnArrayA[j] = offsetA1;
                 j += 1;
 
                 for (int i = 21; i < 25; i++)
@@ -903,7 +1097,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 offsetA2 = System.BitConverter.ToSingle(tempA, 21);
-                returnArray[j] = offsetA2;
+                returnArrayA[j] = offsetA2;
                 j += 1;
 
                 for (int i = 25; i < 29; i++)
@@ -912,7 +1106,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 offsetA3 = System.BitConverter.ToSingle(tempA, 25);
-                returnArray[j] = offsetA3;
+                returnArrayA[j] = offsetA3;
                 j += 1;
 
 
@@ -922,7 +1116,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 spanA0 = System.BitConverter.ToSingle(tempA, 29);
-                returnArray[j] = spanA0;
+                returnArrayA[j] = spanA0;
                 j += 1;
 
                 for (int i = 33; i < 37; i++)
@@ -930,7 +1124,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 spanA1 = System.BitConverter.ToSingle(tempA, 33);
-                returnArray[j] = spanA1;
+                returnArrayA[j] = spanA1;
                 j += 1;
 
                 for (int i = 37; i < 41; i++)
@@ -938,7 +1132,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 spanA2 = System.BitConverter.ToSingle(tempA, 37);
-                returnArray[j] = spanA2;
+                returnArrayA[j] = spanA2;
                 j += 1;
 
                 for (int i = 41; i < 45; i++)
@@ -946,7 +1140,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 spanA3 = System.BitConverter.ToSingle(tempA, 41);
-                returnArray[j] = spanA3;
+                returnArrayA[j] = spanA3;
                 j += 1;
 
 
@@ -955,7 +1149,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 shapeA0 = System.BitConverter.ToSingle(tempA, 45);
-                returnArray[j] = shapeA0;
+                returnArrayA[j] = shapeA0;
                 j += 1;
 
                 for (int i = 49; i < 53; i++)
@@ -963,7 +1157,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 shapeA1 = System.BitConverter.ToSingle(tempA, 49);
-                returnArray[j] = shapeA1;
+                returnArrayA[j] = shapeA1;
                 j += 1;
 
                 for (int i = 53; i < 57; i++)
@@ -971,7 +1165,7 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 shapeA2 = System.BitConverter.ToSingle(tempA, 53);
-                returnArray[j] = shapeA2;
+                returnArrayA[j] = shapeA2;
                 j += 1;
 
                 for (int i = 57; i < 61; i++)
@@ -979,21 +1173,135 @@ namespace MainWindowDesign
                     tempA[i] = packet.payload[i];
                 }
                 shapeA3 = System.BitConverter.ToSingle(tempA, 57);
-                returnArray[j] = shapeA3;
+                returnArrayA[j] = shapeA3;
                 j += 1;
 
-                for (int i = 8; i < 13; i++)
+
+                for (int i = 61; i < 65; i++)
                 {
                     tempA[i] = packet.payload[i];
-                    //Debug.Print("Units : " + tempA[i]);
-                    j += 1;
-                    //unitA = unitA << 8 | packet.payload[j];
                 }
+                rangeB = System.BitConverter.ToSingle(tempA, 61);
+                returnArrayA[j] = rangeB;
+                j += 1;
 
+                for (int i = 65; i < 69; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                }
+                minB = System.BitConverter.ToSingle(tempA, 65);
+                returnArrayA[j] = minB;
+                j += 1;
 
-                //count += 1;
-                //   Debug.Print("count : " + returnArray[j]);
-                // setReturnValues(returnArray);
+                //69 to 73 : Char values, not used.
+
+                for (int i = 74; i < 78; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                }
+                offsetB0 = System.BitConverter.ToSingle(tempA, 74);
+                returnArrayA[j] = offsetB0;
+                j += 1;
+
+                for (int i = 78; i < 82; i++)
+                {
+                    //offB1
+                    tempA[i] = packet.payload[i];
+                }
+                offsetB1 = System.BitConverter.ToSingle(tempA, 78);
+                returnArrayA[j] = offsetB1;
+                j += 1;
+
+                for (int i = 82; i < 86; i++)
+                {
+                    //offB2
+                    tempA[i] = packet.payload[i];
+                }
+                offsetB2 = System.BitConverter.ToSingle(tempA, 82);
+                returnArrayA[j] = offsetB2;
+                j += 1;
+
+                for (int i = 86; i < 90; i++)
+                {
+                    //offB3
+                    tempA[i] = packet.payload[i];
+                }
+                offsetB3 = System.BitConverter.ToSingle(tempA, 86);
+                returnArrayA[j] = offsetB3;
+                j += 1;
+
+                for (int i = 90; i < 94; i++)
+                {
+                    //SPANB0
+                    tempA[i] = packet.payload[i];
+                }
+                spanB0 = System.BitConverter.ToSingle(tempA, 90);
+                returnArrayA[j] = spanB0;
+                j += 1;
+
+                for (int i = 94; i < 98; i++)
+                {
+                    //SPANB1
+                    tempA[i] = packet.payload[i];
+                }
+                spanB1 = System.BitConverter.ToSingle(tempA, 94);
+                returnArrayA[j] = spanB1;
+                j += 1;
+
+                for (int i = 98; i < 102; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                    //SPANB2
+                }
+                spanB2 = System.BitConverter.ToSingle(tempA, 98);
+                returnArrayA[j] = spanB2;
+                j += 1;
+
+                for (int i = 102; i < 106; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                    //SPANB3
+                }
+                spanB3 = System.BitConverter.ToSingle(tempA, 102);
+                returnArrayA[j] = spanB3;
+                j += 1;
+
+                for (int i = 106; i < 110; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                    //shapesb0
+                }
+                shapeB0 = System.BitConverter.ToSingle(tempA, 106);
+                returnArrayA[j] = shapeB0;
+                j += 1;
+
+                for (int i = 110; i < 114; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                    //shapesb1
+                }
+                shapeB1 = System.BitConverter.ToSingle(tempA, 110);
+                returnArrayA[j] = shapeB1;
+                j += 1;
+
+                for (int i = 114; i < 118; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                    //shapesb2
+                }
+                shapeB2 = System.BitConverter.ToSingle(tempA, 114);
+                returnArrayA[j] = shapeB2;
+                j += 1;
+
+                for (int i = 118; i < 122; i++)
+                {
+                    tempA[i] = packet.payload[i];
+                    //shapesb3
+                }
+                shapeB3 = System.BitConverter.ToSingle(tempA, 118);
+                returnArrayA[j] = shapeB3;
+                j += 1;
+
             }
 
             //private void setReturnValues(float[] returnArray)
@@ -1022,6 +1330,7 @@ namespace MainWindowDesign
 
             public int[] PresA;
             public int[] PresB;
+            public int buttonData;
 
             public RawValuePacket() { }
 
@@ -1034,7 +1343,7 @@ namespace MainWindowDesign
 
                 this.SequenceNumber = packet.payload[0];
 
-                int count = (packet.PayloadLength - 1 - 4) / (2 * 3);
+                int count = (packet.PayloadLength - 1 - 4 - 2) / (2 * 3);
 
                 this.PresA = new int[count];
                 this.PresB = new int[count];
@@ -1058,16 +1367,23 @@ namespace MainWindowDesign
                     this.PresB[i] = presB;
                 }
 
-                offset = packet.PayloadLength - 4;
+                // Debug.Print("Pres A : " + PresA + " PresB : " + PresB);            
+                offset = packet.PayloadLength - 6;
 
                 int tempA = packet.payload[offset++];
                 tempA = tempA << 8 | packet.payload[offset++];
+                //int tempA2 = packet.payload[offset++];
+
 
                 int tempB = packet.payload[offset++];
                 tempB = tempB << 8 | packet.payload[offset++];
-
+                //int tempB2 = packet.payload[offset++];
                 this.TempA = tempA;
                 this.TempB = tempB;
+                int buttonData = (int)packet.payload[offset];
+                this.buttonData = buttonData;
+
+                //Debug.Print("Btn : " + buttonData);
 
             }
 

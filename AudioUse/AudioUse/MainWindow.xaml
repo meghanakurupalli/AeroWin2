@@ -13,10 +13,10 @@
         <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="70" 
                 Margin="30,10,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Visible"
                 Width="703" Background="Aquamarine" />
-        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,187,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>
+        <Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,294,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>
         <!--<lvc:CartesianChart Series="{Binding PolylineCollection}" Margin="10,209,68,10" />-->
         <lvc:CartesianChart Name="CartChart"
-            Margin="30,96,0,249" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
+            Margin="30,96,0,180" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
                             Pan="Xy" >
             <!--<lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding SeriesCollection}" ScalesXAt="0"/>
@@ -35,12 +35,12 @@
 
         </lvc:CartesianChart>
 
-        <DVC:Chart Margin="46,10,10,12" Name="MSChart">
+        <!--<DVC:Chart Margin="46,10,10,12" Name="MSChart">
             <DVC:Chart.Series>
                 <DVC:LineSeries IndependentValueBinding="{Binding Path=Key}" DependentValueBinding="{Binding Path=Value}"></DVC:LineSeries>
             </DVC:Chart.Series>
 
-        </DVC:Chart>
+        </DVC:Chart>-->
 
 
     </Grid>
