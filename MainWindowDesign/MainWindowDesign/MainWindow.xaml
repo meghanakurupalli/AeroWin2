@@ -14,7 +14,7 @@
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        Title="AeroWin RT" Height="1000" Width="1200">
+        Title="AeroWin RT" Height="1000" Width="1200" WindowState="Maximized">
     <Window.Resources>
         <Storyboard x:Key="moveLine" Name="forMovingtheLine">
             <DoubleAnimation Storyboard.TargetName="audioLine" Storyboard.TargetProperty="X1" From="5.0" To="780" Duration="0:0:5">
@@ -231,7 +231,7 @@
                     </Grid.ColumnDefinitions>
                 </Grid>
             </Grid>
-            <Button Width="200" Height="50" Background="AliceBlue" Content="Start" FontSize="18" FontWeight="Bold" Foreground="Black" BorderBrush="AliceBlue" Name="StartButton" Click="StartButton_Click" IsEnabled="False"></Button>
+            <Button Width="200" Height="50" Background="AliceBlue" Content="Start" FontSize="18" FontWeight="Bold" Foreground="Black" BorderBrush="AliceBlue" Name="StartButton" Click="StartButton_Click" IsEnabled="False" Visibility="Hidden"></Button>
             <!--Add grid for button and add time-->
         </StackPanel>
     </Border>

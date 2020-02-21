@@ -14,6 +14,10 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using LiveCharts;
 using LiveCharts.Wpf;
+using CenterSpace.NMath.Core;
+using System.IO;
+using System.Diagnostics;
+
 namespace liveChartsExample
 {
     /// <summary>
@@ -25,6 +29,8 @@ namespace liveChartsExample
         public SeriesCollection Seriescollection { get; set; }
         public LineSeries LineSeries { get; set; }
         public VisualElementsCollection Visuals { get; set; }
+        Vector vector = new Vector();
+        double[] arr;
 
         public MainWindow()
         {
@@ -45,7 +51,48 @@ namespace liveChartsExample
                 }
 
             };
+            arr = new double[2000];
+            int i = 0;
+            using (var rd = new StreamReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\idkol\idkolpr_af_0_1.csv"))
+            {
+                while (!rd.EndOfStream)
+                {
+                   
+                    var splits = rd.ReadLine().Split(',');
+                    arr[i] = double.Parse(splits[0]);
+                    i++;
+                    // column1.Add(splits[0]);
+                    //column2.Add(splits[1]);
+                }
+            }
 
+            Dictionary<int, double> dict = new Dictionary<int, double>();
+            for(int j = 1; j < arr.Length; j++)
+            {
+                if(arr[j-1]<arr[j] && arr[j]>arr[j+1] && arr[j]>0.2)
+                {
+                    dict.Add(j, arr[j]);
+                }
+            }
+
+            int h = 0;
+            var v = new DoubleVector(arr);
+
+            PeakFinderSavitzkyGolay pfa = new PeakFinderSavitzkyGolay(v, 50, 4);
+            pfa.LocatePeaks();
+            List<float> list = new List<float>();
+            pfa.GetAllPeaks();
+           // int j = 0;
+
+            for (int p = 0; p < pfa.NumberPeaks; p++)
+            {
+                Extrema peak = pfa[p];
+                if(peak.Y > 0.2)
+                {
+                    Debug.Print("Found peak at = ({0},{1})", peak.X, peak.Y);
+                }
+                
+            }
 
             Line line1 = new Line();
             line1.X1 = 10;

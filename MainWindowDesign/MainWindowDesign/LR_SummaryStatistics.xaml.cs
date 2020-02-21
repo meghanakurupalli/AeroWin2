@@ -15,15 +15,13 @@ using System.Windows.Shapes;
 namespace MainWindowDesign
 {
     /// <summary>
-    /// Interaction logic for CursorWindow.xaml
+    /// Interaction logic for LR_SummaryStatistics.xaml
     /// </summary>
-    public partial class CursorWindow : Window
+    public partial class LR_SummaryStatistics : Window
     {
-        public CursorWindow()
+        public LR_SummaryStatistics()
         {
             InitializeComponent();
-            this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
-            this.Top = SystemParameters.PrimaryScreenWidth - this.Height;
         }
     }
 }

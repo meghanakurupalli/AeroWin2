@@ -305,7 +305,18 @@ namespace MainWindowDesign
             ProtocolFileName = System.IO.Path.GetFileNameWithoutExtension(ProtocolFileName_ext);
 
             string fileName = System.IO.Path.Combine(generatedProtocolFilesPath, ProtocolFileName + ".csv");
-            StreamReader streamReader = new StreamReader(File.OpenRead(fileName));
+            StreamReader streamReader = null;
+            try
+            {
+                streamReader = new StreamReader(File.OpenRead(fileName));
+            }
+            catch(FileNotFoundException)
+            {
+                MessageBox.Show("File not found");
+            }
+
+
+            
             var count = File.ReadLines(fileName).Count(); // This gives the no of protocols in a given protocol file,+1, for header.
             count = count - 1;//Header
             int i = 0;
