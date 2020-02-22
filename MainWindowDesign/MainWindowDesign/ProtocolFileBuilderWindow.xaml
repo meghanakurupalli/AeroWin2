@@ -139,7 +139,7 @@
             </Grid.ColumnDefinitions>
             <Rectangle Fill="White"></Rectangle>
             <Rectangle Grid.Column="1" Fill="White"></Rectangle>
-            <Button Background="LightGray" Margin="1 3 1 3" Height="25" Width="62"  HorizontalAlignment="Left"  Content="Add>" Foreground="Black" FontWeight="Normal" Name="AddButton" Click="AddButton_Click" BorderBrush="Transparent" FontSize="12"></Button>
+            <Button Background="LightGray" Margin="1 3 1 3" Height="25" Width="62"  HorizontalAlignment="Left"  Content="Add" Foreground="Black" FontWeight="Normal" Name="AddButton" Click="AddButton_Click" BorderBrush="Transparent" FontSize="12"></Button>
             <Button Background="LightGray" Grid.Column="1" Margin="1,3,0,3" Height="25" Width="72"  HorizontalAlignment="Left"  Content="Delete" Foreground="Black" FontWeight="Normal" Name="DeleteButton" Click="DeleteButton_Click" BorderBrush="Transparent" FontSize="12">
 
             </Button>

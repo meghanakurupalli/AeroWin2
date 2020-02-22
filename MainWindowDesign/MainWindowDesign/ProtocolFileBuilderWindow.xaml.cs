@@ -209,7 +209,10 @@ namespace MainWindowDesign
         {
             if(protocolItem!=null)
             {
-                protocols.RemoveAt(protocolIndex);                
+                protocols.RemoveAt(protocolIndex);
+                var newCollection = protocols.OrderBy(x => x.TokenType);
+                ProtocolGrid.ItemsSource = newCollection;
+                ProtocolGrid.DataContext = this;
             }
             else
             {

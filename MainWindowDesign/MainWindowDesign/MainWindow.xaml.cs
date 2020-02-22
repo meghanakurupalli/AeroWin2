@@ -518,7 +518,8 @@ namespace MainWindowDesign
             //When integrated with the pressure sensor, show csv files instead of wav files.
             openFileDialog.Filter = filter;
             openFileDialog.InitialDirectory = generatedWaveFilesPath;
-            if (openFileDialog.ShowDialog() == true)
+            bool? isFileSelected = openFileDialog.ShowDialog();
+            if (isFileSelected.HasValue && isFileSelected.Value)
             {
                 string DataFileName_ext;
                 DataFileName_ext = openFileDialog.ToString();
@@ -526,8 +527,11 @@ namespace MainWindowDesign
                 Debug.Print("Data File name : " + DataFileName);
 
 
-               //send datafilename to THWin.
+                //send datafilename to THWin.
                 //ProtocolFileName.Text = _protocolFileName;
+            }
+            else {
+                return;
             }
 
             string temp = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".txt");
@@ -737,7 +741,7 @@ namespace MainWindowDesign
             }
             List<double> offsets = new List<double>();
 
-            for (int i = 0; i < pressureMaximas.Count;i++)
+            for (int i = 0; i < pressureMaximas.Count-1;i++)
             {
                 var num = Convert.ToInt32((pressureMaximaIndices[i] + pressureMaximaIndices[i + 1]) / 2);
                 offsets.Add(pressure[num]);
