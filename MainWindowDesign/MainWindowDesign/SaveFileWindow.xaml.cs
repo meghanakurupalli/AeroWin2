@@ -46,6 +46,18 @@ namespace MainWindowDesign
         public SaveFileWindow()
         {
             InitializeComponent();
+
+            //This code is to add an autocomplete box for selecting protocol files if necessary.
+
+            string[] filenames = Directory.GetFiles(System.Configuration.ConfigurationManager.AppSettings["GeneratedProtocolFilesPath"]);
+            List<string> fileNameList = new List<string>();
+
+            for (int i = 0; i < filenames.Length;i++)
+            {
+                fileNameList.Add(filenames[i]);
+            }
+            
+           
         }
 
         private void DataFileBrowse_Click(object sender, RoutedEventArgs e)
@@ -70,14 +82,19 @@ namespace MainWindowDesign
                 }
 
             }
-            
-            
+            else if(ProtocolFileName.Text.ToString() == null )
+            {
+                string filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*";
+                openFileDialog.Filter = filter;
+                openFileDialog.InitialDirectory = generatedProtocolFilesPath;
+
+            }
+
+
             //save.FileName = "Protocol.csv";
-            string filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*";
+
             //save.Filter = filter;
             //StreamWriter writer = null;
-            openFileDialog.Filter = filter;
-            openFileDialog.InitialDirectory = generatedProtocolFilesPath;
             //if (save.ShowDialog() == true)
 
             //{
@@ -98,9 +115,9 @@ namespace MainWindowDesign
 
             //}
 
-            
-            
-            if(openFileDialog.ShowDialog()==true)
+
+
+            if (openFileDialog.ShowDialog()==true)
             {
                 string ProtocolFileName_ext;
                 ProtocolFileName_ext = openFileDialog.ToString();

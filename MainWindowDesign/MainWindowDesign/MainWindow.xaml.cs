@@ -31,6 +31,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Threading;
+using CenterSpace.NMath.Core;
 
 namespace MainWindowDesign
 {
@@ -696,23 +697,62 @@ namespace MainWindowDesign
             
             //Calculate the local maximas now
 
-            Dictionary<int, float> pressureMaximas = new Dictionary<int, float>();
+            //Dictionary<int, double> pressureMaximas = new Dictionary<int, double>();
 
-            for (int i = 1; i < pressure.Count-1; i++)
+            //for (int i = 1; i < pressure.Count-1; i++)
+            //{
+            //    if((pressure[i-1] < pressure[i]) && (pressure[i] > pressure[i+1]) && pressure[i] > 0.2  ) //Threshold for pressure
+            //    {
+            //        pressureMaximas.Add(i,pressure[i]);
+            //    }
+            //}
+
+            double[] arr = new double[2000];
+            for(int i = 0; i < pressure.Count; i++)
             {
-                if((pressure[i-1] < pressure[i]) && (pressure[i] > pressure[i+1]) && pressure[i] > 0.2  ) //Threshold for pressure
-                {
-                    pressureMaximas.Add(i,pressure[i]);
-                }
+                arr[i] = Convert.ToDouble(pressure[i]);
             }
+
+            var v = new DoubleVector(arr);
+
+            PeakFinderSavitzkyGolay pfa = new PeakFinderSavitzkyGolay(v, 50, 4);
+            pfa.LocatePeaks();
+            List<float> list = new List<float>();
+            pfa.GetAllPeaks();
+            // int j = 0;
+
+            List<int> pressureMaximaIndices = new List<int>();
+            List<double> pressureMaximas = new List<double>();
+
+            for (int p = 0; p < pfa.NumberPeaks; p++)
+            {
+                Extrema peak = pfa[p];
+                if (peak.Y > 0.2)
+                {
+                    Debug.Print("Found peak at = ({0},{1})", peak.X, peak.Y);
+                    pressureMaximas.Add(peak.Y);
+                    pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
+                }
+
+            }
+            List<double> offsets = new List<double>();
+
+            for (int i = 0; i < pressureMaximas.Count;i++)
+            {
+                var num = Convert.ToInt32((pressureMaximaIndices[i] + pressureMaximaIndices[i + 1]) / 2);
+                offsets.Add(pressure[num]);
+            }
+
+
 
             List<float> airflowsAtMaximumPressures = new List<float>();
             
-            foreach(KeyValuePair<int, float> item in pressureMaximas)
-            {
-                airflowsAtMaximumPressures.Add(airflow[item.Key]);
-            }
-
+            // We have : 
+            //pressure peaks - gives mean and standard dev of peaks in summary
+            // Airflows at pressure peaks - gives mean and standard dev of airflows at pressure peaks in summary
+            // To get the airflow mid vowel, consider I'm going to consider that when pressure starts going up above 0.3 cm of H20, pressure peak is being formed.
+            //So, I'm going to get the mean of points from 20 sample after the peak to 20 samples before the 0.3 cm threshold.
+            //The mean of these values will give me the statistic airflow at mid vowel.
 
 
         }

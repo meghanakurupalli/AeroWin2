@@ -79,13 +79,17 @@ namespace MainWindowDesign
                 TokenHistoryGrid.SelectedIndex = 0;
                 TokenHistoryGrid.SelectionChanged += TokenHistoryGrid_SelectionChanged; //Trying to eliminate the play button.
                 reader.Close();
+
+                //CHange here
+
+
                 string first_file_rep_count = THWprotocols[0].TotalRepetitionCount;
                 string[] splits2 = first_file_rep_count.Split(' ');
                 var splits0 = Int32.Parse(splits2[0]);
 
                 //string splits0 = indices[0];
-                string rep_count = "_0" + "_" + splits0;
-                string prAfrep_count = "pr_af_0" + "_" + splits0;
+                string rep_count = "_"+ indices[0] + "_" + splits0;
+                string prAfrep_count = "pr_af_" + indices[0] + "_" + splits0;
                 string audioFileToBePlayed = System.IO.Path.Combine(PathForWaveFiles, DataFileName + rep_count + ".wav");
                 string pressureAirflowFileToBeDisplayed = System.IO.Path.Combine(PathForWaveFiles, DataFileName + prAfrep_count + ".csv");
 
@@ -129,8 +133,12 @@ namespace MainWindowDesign
             {
                 TokenHistoryGrid.SelectedIndex = TokenHistoryGrid.Items.Count - 1;
             }
+            if (TokenHistoryGrid.SelectedIndex < 0)
+            {
+                TokenHistoryGrid.SelectedIndex = 0;
+            }
 
-            
+
             string tot_rep_count = THWprotocols[TokenHistoryGrid.SelectedIndex].TotalRepetitionCount; //Gets repetition count and split it for audio file path.
             string[] splits = tot_rep_count.Split(' ');
             var splits0 = Int32.Parse(splits[0]);
