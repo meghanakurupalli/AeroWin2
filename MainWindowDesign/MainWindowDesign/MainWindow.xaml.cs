@@ -1,37 +1,26 @@
-﻿using System;
-using System.Configuration;
+﻿using CenterSpace.NMath.Core;
+using LiveCharts;
+using NAudio.Wave;
+using Nito.KitchenSink.CRC;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Ports;
 using System.Linq;
+using System.Media;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using LiveCharts;
-using NAudio;
-using NAudio.Wave;
-using MainWindowDesign;
-using System.Diagnostics;
 using System.Windows.Forms;
-using Nito.KitchenSink.CRC;
-using System.IO.Ports;
-using System.Timers;
-using Microsoft.Win32;
-using System.Media;
-using System.IO;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Text.RegularExpressions;
-using System.Collections;
-using System.Threading;
-using CenterSpace.NMath.Core;
+using System.Windows.Shapes;
+using FormsMessageBox = System.Windows.Forms.MessageBox;
 
 namespace MainWindowDesign
 {
@@ -1547,6 +1536,7 @@ namespace MainWindowDesign
         }
 
         //*************************************************************************  PLAY AUDIO  ***********************************************************************
+        #region Play Audio
 
         public double FirstXPos { get; private set; }
         public double FirstYPos { get; private set; }
@@ -1558,9 +1548,11 @@ namespace MainWindowDesign
         WaveFileReader wfr;
         protected bool isDragging;
 
-        bool captured = false;
-        double x_shape, x_canvas;
-        UIElement source = null;
+        bool isAudioCaptured;
+        bool isAirFlowCaptured;
+        bool isPressureCaptured;
+        double x_shape;
+        double x_canvas;
         double cursor_1_position, cursor_2_position, cursor_1_value, cursor_2_value;
         double xValueOnChart1, xValueOnChart2;
 
@@ -1690,6 +1682,7 @@ namespace MainWindowDesign
 
             return p.Y;
         }
+        #endregion
 
         public static Point ElementPointToScreenPoint(UIElement element, Point pointOnElement)
         {
@@ -1699,11 +1692,20 @@ namespace MainWindowDesign
         private void clickToShowCursors(object sender, RoutedEventArgs e)
         {
 
+            if (audioPoints == null || !audioPoints.Any()) {
+                FormsMessageBox.Show("Please select a file.");
+                return;
+            }
+
             cWin.Show();
             if (showCursor.IsChecked == true)
-            {
-                Cursor1.Visibility = Visibility.Visible;
-                Cursor2.Visibility = Visibility.Visible;
+            {                
+                AudioCursor1.Visibility = Visibility.Visible;
+                AudioCursor2.Visibility = Visibility.Visible;
+                AirFlowCursor1.Visibility = Visibility.Visible;
+                AirFlowCursor2.Visibility = Visibility.Visible;
+                PressureCursor1.Visibility = Visibility.Visible;
+                PressureCursor2.Visibility = Visibility.Visible;
                 double temp1 = Math.Round(audioPoints[463], 3);
                 double temp2 = Math.Round(audioPoints[600], 3);
                 cWin.audioCur1.Text = Convert.ToString(temp1);
@@ -1712,60 +1714,71 @@ namespace MainWindowDesign
             }
             else
             {
-                Cursor1.Visibility = Visibility.Collapsed;
-                Cursor2.Visibility = Visibility.Collapsed;
+                AudioCursor1.Visibility = Visibility.Collapsed;
+                AudioCursor2.Visibility = Visibility.Collapsed;
+                AirFlowCursor1.Visibility = Visibility.Collapsed;
+                AirFlowCursor2.Visibility = Visibility.Collapsed;
+                PressureCursor1.Visibility = Visibility.Collapsed;
+                PressureCursor2.Visibility = Visibility.Collapsed;
             }
 
 
         }
 
-        private void Cursor1_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void AudioCursor1_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            source = (UIElement)sender;
+            var source = (UIElement)sender;
             Mouse.Capture(source);
-            captured = true;
+            isAudioCaptured = true;
             x_shape = Canvas.GetLeft(source);
+            Console.WriteLine($"x_shape is {x_shape}");            
             x_canvas = e.GetPosition(LayoutRoot).X;
-        }
+            Console.WriteLine($"x_canvas is {x_canvas}");
+        }        
 
-        private void Cursor2_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            source = (UIElement)sender;
-            Mouse.Capture(source);
-            captured = true;
-            x_shape = Canvas.GetLeft(source);
-            x_canvas = e.GetPosition(LayoutRoot).X;
-        }
-
-        private void Cursor1_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void AudioCursor1_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Mouse.Capture(null);
-            captured = false;
+            isAudioCaptured = false;
+            SetCursorPosition(x_canvas,AirFlowCursor1);
+            SetCursorPosition(x_canvas, PressureCursor1);
         }
 
-        private void Cursor2_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void AudioCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            Mouse.Capture(null);
-            captured = false;
-        }
-
-        private void Cursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-
-            if (captured)
+            var source = (UIElement)sender;
+            if (isAudioCaptured)
             {
                 cursor_1_position = e.GetPosition(LayoutRoot).X;
                 x_shape += cursor_1_position - x_canvas;
                 Canvas.SetLeft(source, x_shape);
                 x_canvas = cursor_1_position;
 
-                cursor1moved();
+                AudioCursor1moved();
             }
         }
 
-        private void Cursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        private void AudioCursor2_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (captured)
+            Mouse.Capture(null);
+            isAudioCaptured = false;
+            SetCursorPosition(x_canvas, AirFlowCursor2);
+            SetCursorPosition(x_canvas, PressureCursor2);
+        }
+
+        private void AudioCursor2_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var source = (UIElement)sender;
+            Mouse.Capture(source);
+            isAudioCaptured = true;
+            x_shape = Canvas.GetLeft(source);
+            x_canvas = e.GetPosition(LayoutRoot).X;
+        }
+
+        private void AudioCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            var source = (UIElement)sender;
+            if (isAudioCaptured)
             {
                 cursor_2_position = e.GetPosition(LayoutRoot).X;
                 x_shape += cursor_2_position - x_canvas;
@@ -1773,41 +1786,113 @@ namespace MainWindowDesign
                 x_canvas = cursor_2_position;
                 //Canvas.SetTop(source, y_shape);
                 //Debug.Print("x2: " + cursor_2_position);
-                cursor2moved();
+                AudioCursor2moved();
 
             }
         }
 
-        private void PlayFile_Click(object sender, RoutedEventArgs e)
+        private void SetCursorPosition(double position,Line cursorLine)
         {
-            //string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
-            SoundPlayer s = new SoundPlayer(audioFileToBePlayed);
-            s.Load();
-            s.Play();
-            audioLine.Visibility = Visibility.Visible;
-            System.Windows.Controls.Button btn = sender as System.Windows.Controls.Button;
-            // Thread.Sleep(15);
-            Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
-            //Thread.Sleep(5000);
-            myStoryBoard.Begin(btn);
+            if (cursorLine != null) {
+                cursorLine.X1 = position;
+                cursorLine.X2 = position;
+            }            
+        }        
+
+        private void SetAudioCursor1Position(double position)
+        {
+            if (AirFlowCursor1 != null)
+            {
+                AirFlowCursor1.X1 = position;
+                AirFlowCursor1.X2 = position;
+            }
         }
+
+        private void SetAudioCursor2Position(double position)
+        {
+            if (AirFlowCursor2 != null)
+            {
+                AirFlowCursor2.X1 = position;
+                AirFlowCursor2.X2 = position;
+            }
+        }        
 
         private void DeviceChannels_Click(object sender, RoutedEventArgs e)
         {
             DeviceAndAIChannelsWindow DWin = new DeviceAndAIChannelsWindow();
             DWin.Show();
+        }       
+
+        private void AirFlowCursor1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            isAirFlowCaptured = true;
         }
+
+        private void AirFlowCursor1_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            isAirFlowCaptured = false;
+        }
+
+        private void AirFlowCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+
+        }
+
+        private void AirFlowCursor2_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            isAirFlowCaptured = false;
+        }
+
+        private void AirFlowCursor2_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            isAirFlowCaptured = true;
+        }
+
+        private void AirFlowCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+
+        }       
 
         private void DeviceChannels_Click_1(object sender, RoutedEventArgs e)
         {
 
         }
 
-        private void cursor1moved()
+        private void PressureCursor1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            isPressureCaptured = true;
+        }        
+
+        private void PressureCursor1_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            isPressureCaptured = false;
+        }
+
+        private void PressureCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+
+        }        
+
+        private void PressureCursor2_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            isPressureCaptured = true;
+        }
+
+        private void PressureCursor2_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            isPressureCaptured = false;
+        }
+
+        private void PressureCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+
+        }
+
+        private void AudioCursor1moved()
         {
             double canW = LayoutRoot.Width;
             double mul_factor = n / canW; // Gives 1.04 
-            Debug.Print("Mul factor : " + mul_factor);
+            //Debug.Print("Mul factor : " + mul_factor);
             double[] arr = new double[834];
 
             //double difference = cursor_1_position - cursor_2_position;
@@ -1833,7 +1918,7 @@ namespace MainWindowDesign
                 temp1 = 0;
             if (temp1 >= audioPoints.Count)
                 temp1 = audioPoints.Count - 1;
-            Debug.Print("temp1 : " + temp1);
+            //Debug.Print("temp1 : " + temp1);
             double temp2 = audioPoints[temp1];
             cursor_1_value = Math.Round(temp2, 3);
             cWin.audioCur1.Text = Convert.ToString(cursor_1_value);
@@ -1842,7 +1927,7 @@ namespace MainWindowDesign
 
         }
 
-        private void cursor2moved()
+        private void AudioCursor2moved()
         {
             double canW = LayoutRoot.Width;
             double mul_factor = n / canW; // Gives 1.04 
@@ -1867,28 +1952,31 @@ namespace MainWindowDesign
             if (temp < 0)
                 temp = 0;
             if (temp >= audioPoints.Count)
-                temp = audioPoints.Count;
+                temp = audioPoints.Count-1;
 
             double temp1 = audioPoints[temp];
             cursor_2_value = Math.Round(temp1, 3);
             cWin.audioCur2.Text = Convert.ToString(cursor_2_value);
             updateDifference();
-        }
-
-        private void Cursor1_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            Cursor1.Cursor = System.Windows.Input.Cursors.Cross;
-
-        }
-        private void Cursor2_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            Cursor2.Cursor = System.Windows.Input.Cursors.Cross;
-
-        }
+        }        
 
         private void updateDifference()
         {
             cWin.audioDiff.Text = Convert.ToString(cursor_1_value - cursor_2_value);
+        }
+
+        private void PlayFile_Click(object sender, RoutedEventArgs e)
+        {
+            //string path = System.IO.Path.Combine(generatedWaveFilesPath, DataFileName + ".wav");
+            SoundPlayer s = new SoundPlayer(audioFileToBePlayed);
+            s.Load();
+            s.Play();
+            audioLine.Visibility = Visibility.Visible;
+            System.Windows.Controls.Button btn = sender as System.Windows.Controls.Button;
+            // Thread.Sleep(15);
+            Storyboard myStoryBoard = btn.TryFindResource("moveLine") as Storyboard;
+            //Thread.Sleep(5000);
+            myStoryBoard.Begin(btn);
         }
     }
 }

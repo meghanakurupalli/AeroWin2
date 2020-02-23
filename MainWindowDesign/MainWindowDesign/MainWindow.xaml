@@ -148,7 +148,7 @@
                 
                 
                 <Grid Grid.Column="2" Grid.Row="0">
-                    <lvc:CartesianChart Name="CartChart" Height="150" Zoom= "Xy"
+                    <lvc:CartesianChart Name="AudioChart" Height="150" Zoom= "Xy"
                             Pan="Xy">
                         <lvc:CartesianChart.Series>
                             <!--<geared:GLineSeries Values ="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>-->
@@ -166,8 +166,8 @@
                         <Line Name="audioLine" X1="5" X2="5" Y1="0" Y2="150"  Stroke="Black" Opacity="0.8" Visibility="Hidden">
                         </Line>
 
-                        <Line x:Name="Cursor1" X1="463" X2="463" Y1="0" Y2="150" Stroke="DarkOliveGreen"  StrokeThickness="0.8" Visibility="Collapsed" Canvas.Left="1" Opacity="1" Canvas.Top="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="Cursor1_MouseLeftButtonDown" MouseLeftButtonUp="Cursor1_MouseLeftButtonUp" MouseMove="Cursor1_MouseMove" MouseEnter="Cursor1_MouseEnter" MinWidth="0" MaxWidth="500"></Line>
-                        <Line x:Name="Cursor2" X1="600" X2="600" Y1="0" Y2="150" Stroke="Blue" Visibility="Collapsed" StrokeThickness="1" Canvas.Left="1" Canvas.Top="1" Opacity="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="Cursor2_MouseLeftButtonDown" MouseLeftButtonUp="Cursor2_MouseLeftButtonUp" MouseMove="Cursor2_MouseMove" MouseEnter="Cursor2_MouseEnter"></Line >
+                        <Line x:Name="AudioCursor1" Cursor="Cross" X1="463" X2="463" Y1="0" Y2="150" Stroke="DarkOliveGreen"  StrokeThickness="0.8" Visibility="Collapsed" Canvas.Left="1" Opacity="1" Canvas.Top="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="AudioCursor1_MouseLeftButtonDown" MouseLeftButtonUp="AudioCursor1_MouseLeftButtonUp" MouseMove="AudioCursor1_MouseMove" MinWidth="0" MaxWidth="500"></Line>
+                        <Line x:Name="AudioCursor2" Cursor="Cross" X1="600" X2="600" Y1="0" Y2="150" Stroke="Blue" Visibility="Collapsed" StrokeThickness="1" Canvas.Left="1" Canvas.Top="1" Opacity="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="AudioCursor2_MouseLeftButtonDown" MouseLeftButtonUp="AudioCursor2_MouseLeftButtonUp" MouseMove="AudioCursor2_MouseMove"></Line >
 
                     </Canvas>
                 </Grid>
@@ -186,7 +186,10 @@
                             <lvc:Axis Position="RightTop"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
-                    <Canvas x:Name="airFlowCanvas" Height="150"></Canvas>
+                    <Canvas x:Name="airFlowCanvas" Height="150">
+                        <Line x:Name="AirFlowCursor1" Cursor="Cross" X1="463" X2="463" Y1="0" Y2="150" Stroke="DarkOliveGreen"  StrokeThickness="0.8" Visibility="Collapsed" Canvas.Left="1" Opacity="1" Canvas.Top="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="AirFlowCursor1_MouseLeftButtonDown" MouseLeftButtonUp="AirFlowCursor1_MouseLeftButtonUp" MouseMove="AirFlowCursor1_MouseMove" MinWidth="0" MaxWidth="500"></Line>
+                        <Line x:Name="AirFlowCursor2" Cursor="Cross" X1="600" X2="600" Y1="0" Y2="150" Stroke="Blue" Visibility="Collapsed" StrokeThickness="1" Canvas.Left="1" Canvas.Top="1" Opacity="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="AirFlowCursor2_MouseLeftButtonDown" MouseLeftButtonUp="AirFlowCursor2_MouseLeftButtonUp" MouseMove="AirFlowCursor2_MouseMove" ></Line >
+                    </Canvas>
                 </Grid>
                 <Grid Grid.Column="2" Grid.Row="2">
                     <lvc:CartesianChart x:Name="pressureChart" Height="150" DisableAnimations="True" Hoverable="False">
@@ -201,7 +204,10 @@
                             <lvc:Axis Position="RightTop"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
-                    <Canvas x:Name="pressureCanvas" Height="150"></Canvas>
+                    <Canvas x:Name="pressureCanvas" Height="150">
+                        <Line x:Name="PressureCursor1" Cursor="Cross" X1="463" X2="463" Y1="0" Y2="150" Stroke="DarkOliveGreen"  StrokeThickness="0.8" Visibility="Collapsed" Canvas.Left="1" Opacity="1" Canvas.Top="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="PressureCursor1_MouseLeftButtonDown" MouseLeftButtonUp="PressureCursor1_MouseLeftButtonUp" MouseMove="PressureCursor1_MouseMove" MinWidth="0" MaxWidth="500"></Line>
+                        <Line x:Name="PressureCursor2" Cursor="Cross" X1="600" X2="600" Y1="0" Y2="150" Stroke="Blue" Visibility="Collapsed" StrokeThickness="1" Canvas.Left="1" Canvas.Top="1" Opacity="1" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="PressureCursor2_MouseLeftButtonDown" MouseLeftButtonUp="PressureCursor2_MouseLeftButtonUp" MouseMove="PressureCursor2_MouseMove"></Line >
+                    </Canvas>
                 </Grid>
                 <Grid Grid.Column="2" Grid.Row="3" >
                     <lvc:CartesianChart x:Name="resistanceChart" Height="150">

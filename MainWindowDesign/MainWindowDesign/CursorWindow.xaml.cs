@@ -22,8 +22,8 @@ namespace MainWindowDesign
         public CursorWindow()
         {
             InitializeComponent();
-            this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
-            this.Top = SystemParameters.PrimaryScreenWidth - this.Height;
+            //this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
+            //this.Top = SystemParameters.PrimaryScreenWidth - this.Height;
         }
     }
 }
