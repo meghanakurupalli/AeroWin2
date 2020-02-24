@@ -33,7 +33,7 @@ namespace MainWindowDesign
         
 
         //public GearedValues<double> audioPoints { get; set; }//= new ChartValues<double>();
-        public ChartValues<double> audioPoints { get; set; }//= new ChartValues<double>();
+        public ChartValues<float> AudioPoints { get; set; }//= new ChartValues<double>();
                                                             // public SeriesCollection seriesCollection { get; set; }
 
         //string generatedWaveFilesPath = @"D:\GIT\AeroWin2\GeneratedWaveFiles";
@@ -98,7 +98,7 @@ namespace MainWindowDesign
             InitializeComponent();
             DataContext = this;
 
-            audioPoints = new ChartValues<double>();
+            AudioPoints = new ChartValues<float>();
 
             definition = new CRC16.Definition() { TruncatedPolynomial = 0x8005 };
             hashFunction = new CRC16(definition);
@@ -317,7 +317,7 @@ namespace MainWindowDesign
             TWin.PreviousButton.IsEnabled = true;
             TWin.NextButton.IsEnabled = true;
             seconds = 0;
-            audioPoints.Clear();
+            AudioPoints.Clear();
             TWin.ChangeIndexSelection();
 
             //Following code is for subtraction table. 
@@ -392,7 +392,7 @@ namespace MainWindowDesign
             }
             
 
-            audioPoints.Clear();
+            AudioPoints.Clear();
             float[] points2 = displaypoint.ToArray();
             float[] points3 = displaypoint.ToArray();
 
@@ -420,7 +420,7 @@ namespace MainWindowDesign
                 //pl.Points.Add(Normalize(x, points3[x]));
                 Point p = Normalize2(x, points3[x]);
                 // Debug.Print("p.Y : " + p.Y);
-                audioPoints.Add(p.Y);
+                AudioPoints.Add((float)p.Y);
 
 
             }
@@ -432,11 +432,11 @@ namespace MainWindowDesign
         /*********** NOT USING THIS METHOD *********/
         private void AudioTimer_Elapsed(object sender, ElapsedEventArgs e) 
         {
-            Debug.Print("audio points before they are cleared : " + audioPoints.Count());
-            if (audioPoints != null && audioPoints.Count > 0)
+            Debug.Print("audio points before they are cleared : " + AudioPoints.Count());
+            if (AudioPoints != null && AudioPoints.Count > 0)
             {
                 //audioPoints.Clear();
-                 audioPoints[500] = 2000;
+                 AudioPoints[500] = 2000;
                 
                // Debug.Print("audio points after they are cleared : " + audioPoints.Count());
             }
@@ -499,7 +499,7 @@ namespace MainWindowDesign
         {
 
 
-            audioPoints.Clear();
+            AudioPoints.Clear();
             StartButton.Content = "Play";
             StartButton.IsEnabled = true;
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
@@ -599,7 +599,7 @@ namespace MainWindowDesign
             
             else if(StartButton.Content.ToString()=="Play")
             {
-                audioPoints.Clear();
+                AudioPoints.Clear();
                 string tot_rep_count = THWin.THWprotocols[THWin.TokenHistoryGrid.SelectedIndex].TotalRepetitionCount; //Gets repetition count and split it for audio file path.
                 string[] splits = tot_rep_count.Split(' '); // subtracting 1 because when the repetition count is 1 of 2, the labeling is done as _0_1
                 var splits0 = Int32.Parse(splits[0]);
@@ -1543,22 +1543,16 @@ namespace MainWindowDesign
         public double FirstArrowXPos { get; private set; }
         public double FirstArrowYPos { get; private set; }
         public object MovingObject { get; private set; }
+        public bool IsAudioCaptured { get; set; }
+        public bool IsAirFlowCaptured { get; set; }
+        public bool IsPressureCaptured { get; set; }
+        public bool IsResistanceCaptured { get; set; }
+        public WaveFileReader Wfr { get; set; }
+
         //public double Cursor_1_value { get; set; }
 
         CursorWindow cWin = new CursorWindow();
-        WaveFileReader wfr;
         protected bool isDragging;
-
-        bool isAudioCaptured;
-        bool isAirFlowCaptured;
-        bool isPressureCaptured;
-        double x_shape;
-        double x_canvas;
-        double cursor_2_position, cursor_2_value;
-        double xValueOnChart2;
-
-        int n = 0;
-
         private void playaudio_Click(object sender, RoutedEventArgs e)
         {
 
@@ -1567,7 +1561,7 @@ namespace MainWindowDesign
 
         public void playAudio(string wavFilePath)
         {
-            audioPoints.Clear();
+            AudioPoints.Clear();
             int flag = 0;
             //Debug.Print("ht : "+LayoutRoot.Height);
             //playaudio.IsEnabled = false;
@@ -1578,7 +1572,7 @@ namespace MainWindowDesign
             Queue<double> screens = new Queue<double>();
             double a1 = LayoutRoot.Width;
             
-            wfr = new WaveFileReader(wavFilePath);
+            Wfr = new WaveFileReader(wavFilePath);
 
             //Debug.Print("JH" + wfr.Length);
 
@@ -1632,8 +1626,7 @@ namespace MainWindowDesign
                 p.X = x;
                 p.Y = points3[x];
                 val = Normalize(x, p.Y);
-                audioPoints.Add(val);
-                n++;
+                AudioPoints.Add((float)val);
                 //if (n >= 834)
                 //    flag = 1;
                 //if (audioPoints.Count >= 834)
@@ -1642,10 +1635,10 @@ namespace MainWindowDesign
 
                 //}
             }
-            var apoints = audioPoints.ToList();
+            var apoints = AudioPoints.ToList();
             Console.WriteLine(string.Join(",",apoints));
 
-            Console.WriteLine($"Total Aduio Points: {audioPoints.Count}");
+            Console.WriteLine($"Total Aduio Points: {AudioPoints.Count}");
 
           //  Debug.Print("n:" + n);//n is the total number of audio points shown on screen
             s.Load();
@@ -1694,10 +1687,17 @@ namespace MainWindowDesign
             return element.PointToScreen(pointOnElement);
         }
 
+        private void DeviceChannels_Click(object sender, RoutedEventArgs e)
+        {
+            DeviceAndAIChannelsWindow DWin = new DeviceAndAIChannelsWindow();
+            DWin.Show();
+        }
+
+        #region CursorMethods        
         private void clickToShowCursors(object sender, RoutedEventArgs e)
         {
 
-            if (audioPoints == null || !audioPoints.Any()) {
+            if (AudioPoints == null || !AudioPoints.Any()) {
                 FormsMessageBox.Show("Please select a file.");
                 return;
             }
@@ -1711,8 +1711,8 @@ namespace MainWindowDesign
                 AirFlowCursor2.Visibility = Visibility.Visible;
                 PressureCursor1.Visibility = Visibility.Visible;
                 PressureCursor2.Visibility = Visibility.Visible;
-                double temp1 = Math.Round(audioPoints[463], 3);
-                double temp2 = Math.Round(audioPoints[600], 3);
+                double temp1 = Math.Round(AudioPoints[463], 3);
+                double temp2 = Math.Round(AudioPoints[600], 3);
                 cWin.audioCur1.Text = Convert.ToString(temp1);
                 cWin.audioCur2.Text = Convert.ToString(temp2);
 
@@ -1726,179 +1726,119 @@ namespace MainWindowDesign
                 PressureCursor1.Visibility = Visibility.Collapsed;
                 PressureCursor2.Visibility = Visibility.Collapsed;
             }
-
-
         }
 
-        private void AudioCursor1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void AudioCursor_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var source = (UIElement)sender;
+            UIElement source = (UIElement)sender;
             Mouse.Capture(source);
-            isAudioCaptured = true;            
-        }        
+            IsAudioCaptured = true;
+        }
 
-        private void AudioCursor1_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void AudioCursor_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             Mouse.Capture(null);
-            isAudioCaptured = false;            
+            IsAudioCaptured = false;
         }
 
         private void AudioCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            var source = (UIElement)sender;
-            var maxCanvasWidth = LayoutRoot.ActualWidth;            
-            var cursor1Position = e.GetPosition(LayoutRoot).X;
-            var cursor2Position = AudioCursor2.X2;
-            if (isAudioCaptured && cursor1Position > 0 && cursor1Position < maxCanvasWidth)
-            {
-                AudioCursor1.X1 = cursor1Position;
-                AudioCursor1.X2 = cursor1Position;
-                SetCursorPosition(cursor1Position, AirFlowCursor1);
-                SetCursorPosition(cursor1Position, PressureCursor1);
-                var cursor1Value = AudioCursorMoved(cursor1Position, audioPoints);
-                var cursor2Value = AudioCursorMoved(cursor2Position, audioPoints);
-                cWin.audioCur1.Text = cursor1Value.ToString();
-                cWin.audioCur2.Text = cursor2Value.ToString();
-                updateDifference(cursor1Value, cursor2Value);
-            }
-        }
-
-        private void AudioCursor2_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            Mouse.Capture(null);
-            isAudioCaptured = false;            
-        }
-
-        private void AudioCursor2_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var source = (UIElement)sender;
-            Mouse.Capture(source);
-            isAudioCaptured = true;           
+        {           
+            double cursor1Position = e.GetPosition(LayoutRoot).X;
+            double cursor2Position = AudioCursor2.X2;
+            UpdateCursorInformation(IsAudioCaptured, cursor1Position, cursor2Position, true);
         }
 
         private void AudioCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            var source = (UIElement)sender;
-            var maxCanvasWidth = LayoutRoot.ActualWidth;
-            var cursor2Position = e.GetPosition(LayoutRoot).X;
+        {            
             var cursor1Position = AudioCursor1.X2;
-            if (isAudioCaptured && cursor2Position > 0 && cursor2Position < maxCanvasWidth)
-            {
-                AudioCursor2.X1 = cursor2Position;
-                AudioCursor2.X2 = cursor2Position;
-                SetCursorPosition(cursor2Position, AirFlowCursor2);
-                SetCursorPosition(cursor2Position, PressureCursor2);
-                var cursor1Value = AudioCursorMoved(cursor1Position, audioPoints);
-                var cursor2Value = AudioCursorMoved(cursor2Position, audioPoints);
-                cWin.audioCur1.Text = cursor1Value.ToString();
-                cWin.audioCur2.Text = cursor2Value.ToString();
-                updateDifference(cursor1Value, cursor2Value);
-            }
+            var cursor2Position = e.GetPosition(LayoutRoot).X;
+            UpdateCursorInformation(IsAudioCaptured, cursor1Position, cursor2Position, false);
+        }
+        private void AirFlowCursor_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            UIElement source = (UIElement)sender;
+            Mouse.Capture(source);
+            IsAirFlowCaptured = true;
         }
 
-        private void SetCursorPosition(double position,Line cursorLine)
+        private void AirFlowCursor_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (cursorLine != null) {
-                cursorLine.X1 = position;
-                cursorLine.X2 = position;
-            }            
-        }        
-
-        private void SetAudioCursor1Position(double position)
-        {
-            if (AirFlowCursor1 != null)
-            {
-                AirFlowCursor1.X1 = position;
-                AirFlowCursor1.X2 = position;
-            }
-        }
-
-        private void SetAudioCursor2Position(double position)
-        {
-            if (AirFlowCursor2 != null)
-            {
-                AirFlowCursor2.X1 = position;
-                AirFlowCursor2.X2 = position;
-            }
-        }        
-
-        private void DeviceChannels_Click(object sender, RoutedEventArgs e)
-        {
-            DeviceAndAIChannelsWindow DWin = new DeviceAndAIChannelsWindow();
-            DWin.Show();
-        }       
-
-        private void AirFlowCursor1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isAirFlowCaptured = true;
-        }
-
-        private void AirFlowCursor1_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isAirFlowCaptured = false;
+            Mouse.Capture(null);
+            IsAirFlowCaptured = false;
         }
 
         private void AirFlowCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-
+            double cursor1Position = e.GetPosition(LayoutRoot).X;
+            double cursor2Position = AirFlowCursor2.X2;
+            UpdateCursorInformation(IsAirFlowCaptured, cursor1Position, cursor2Position, true);            
         }
-
-        private void AirFlowCursor2_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isAirFlowCaptured = false;
-        }
-
-        private void AirFlowCursor2_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isAirFlowCaptured = true;
-        }
-
+        
         private void AirFlowCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-
+        {            
+            var cursor1Position = AirFlowCursor1.X2;
+            var cursor2Position = e.GetPosition(LayoutRoot).X;
+            UpdateCursorInformation(IsAirFlowCaptured, cursor1Position, cursor2Position, false);
         }       
 
-        private void DeviceChannels_Click_1(object sender, RoutedEventArgs e)
+        private void PressureCursor_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
-        }
-
-        private void PressureCursor1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isPressureCaptured = true;
+            UIElement source = (UIElement)sender;
+            Mouse.Capture(source);            
+            IsPressureCaptured = true;
         }        
 
-        private void PressureCursor1_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void PressureCursor_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            isPressureCaptured = false;
+            Mouse.Capture(null);
+            IsPressureCaptured = false;
         }
 
         private void PressureCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-
+        {            
+            double cursor1Position = e.GetPosition(LayoutRoot).X;
+            double cursor2Position = PressureCursor2.X2;
+            UpdateCursorInformation(IsPressureCaptured, cursor1Position, cursor2Position, true);            
         }        
 
-        private void PressureCursor2_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isPressureCaptured = true;
-        }
-
-        private void PressureCursor2_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isPressureCaptured = false;
-        }
-
         private void PressureCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {            
+            var cursor1Position = PressureCursor1.X2;
+            var cursor2Position = e.GetPosition(LayoutRoot).X;
+            UpdateCursorInformation(IsPressureCaptured, cursor1Position, cursor2Position, false);
+        }
+        private void ResistanceCursor_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
+            UIElement source = (UIElement)sender;
+            Mouse.Capture(source);
+            IsResistanceCaptured = true;
         }
 
-        private double AudioCursorMoved(double cursorPosition, ChartValues<double> chartInput)
+        private void ResistanceCursor_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            Mouse.Capture(null);
+            IsResistanceCaptured = false;
+        }
+
+        private void ResistanceCursor1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            double cursor1Position = e.GetPosition(LayoutRoot).X;
+            double cursor2Position = ResistanceCursor2.X2;
+            UpdateCursorInformation(IsResistanceCaptured, cursor1Position, cursor2Position, true);
+        }
+              
+        private void ResistanceCursor2_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            var cursor1Position = ResistanceCursor1.X2;
+            var cursor2Position = e.GetPosition(LayoutRoot).X;
+            UpdateCursorInformation(IsResistanceCaptured, cursor1Position, cursor2Position, false);
+        }
+
+        private double CursorMoved(double cursorPosition, ChartValues<float> chartInput)
         {
             var totalPoints = chartInput.Count;
-            Console.WriteLine($"totalAudioPoints: {totalPoints}");
-            double canvasWidth = LayoutRoot.ActualWidth;            
-            double mul_factor = totalPoints / canvasWidth;            
+            double canvasWidth = LayoutRoot.ActualWidth;
+            double mul_factor = totalPoints / canvasWidth;
             double expectedPositionOnChart = cursorPosition * mul_factor;
             double ceilingValue = Math.Ceiling(expectedPositionOnChart);
             double floorValue = Math.Floor(expectedPositionOnChart);
@@ -1910,54 +1850,83 @@ namespace MainWindowDesign
             else
             {
                 expectedIndexOfPoint = ceilingValue;
-            }            
+            }
             int expectedIndexOfPointInInteger = Convert.ToInt32(expectedIndexOfPoint);
             if (expectedIndexOfPointInInteger < 0)
                 expectedIndexOfPointInInteger = 0;
             if (expectedIndexOfPointInInteger >= chartInput.Count)
-                expectedIndexOfPointInInteger = chartInput.Count - 1;            
+                expectedIndexOfPointInInteger = chartInput.Count - 1;
             double pointValue = chartInput[expectedIndexOfPointInInteger];
-            var cursorValue = Math.Round(pointValue, 3);            
-            return cursorValue;            
+            var cursorValue = Math.Round(pointValue, 3);
+            return cursorValue;
         }
 
-        private void AudioCursor2moved()
+        public void UpdateCursorInformation(bool isValueCaptured, double cursor1Position, double cursor2Position, bool isCursor1Moved)
         {
-            double canW = LayoutRoot.Width;
-            double mul_factor = n / canW; // Gives 1.04 
-            Debug.Print("Mul factor : " + mul_factor);
-            //double[] arr = new double[834];
-
-            double posOnLiveChart2 = cursor_2_position * mul_factor;
-            double ceil2 = Math.Ceiling(posOnLiveChart2);
-            double floor2 = Math.Floor(posOnLiveChart2);
-
-            if ((posOnLiveChart2 - floor2) < (ceil2 - posOnLiveChart2))
+            double maxCanvasWidth = LayoutRoot.ActualWidth;
+            if (isValueCaptured && cursor1Position > 0 && cursor1Position < maxCanvasWidth && cursor2Position > 0 && cursor2Position < maxCanvasWidth)
             {
-                xValueOnChart2 = floor2;
+                if (isCursor1Moved) 
+                {
+                    SetAllCursor1Positions(cursor1Position);
+                } 
+                else 
+                {
+                    SetAllCursor2Positions(cursor2Position);
+                }                
+                UpdateValuesInCursorWindow(cursor1Position, cursor2Position);
             }
-            else
-            {
-                xValueOnChart2 = ceil2;
-            }
-            // Debug.Print("posOnLiveChart : " + posOnLiveChart + " Ceiling : " + ceil + " flooring : " + floor);
-            // Debug.Print("for value of canvas = " + cursor_1_position + " value on chart is : " + xValueOnChart + " Corresponding value is : "+audioPoints[Convert.ToInt32(xValueOnChart)]);
-            int temp = Convert.ToInt32(xValueOnChart2);
-            if (temp < 0)
-                temp = 0;
-            if (temp >= audioPoints.Count)
-                temp = audioPoints.Count-1;
-
-            double temp1 = audioPoints[temp];
-            cursor_2_value = Math.Round(temp1, 3);
-            cWin.audioCur2.Text = Convert.ToString(cursor_2_value);
-            //updateDifference();
-        }        
-
-        private void updateDifference(double cursor1Value, double cursor2Value)
-        {
-            cWin.audioDiff.Text = Convert.ToString(cursor1Value - cursor2Value);
         }
+        public void UpdateValuesInCursorWindow(double cursor1Position, double cursor2Position)
+        {
+            double audioCursor1Value = CursorMoved(cursor1Position, AudioPoints);
+            double audioCursor2Value = CursorMoved(cursor2Position, AudioPoints);
+            double airFlowCursor1Value = CursorMoved(cursor1Position, AirFlowLineSeriesValues);
+            double airFlowCursor2Value = CursorMoved(cursor2Position, AirFlowLineSeriesValues);
+            double pressureCursor1Value = CursorMoved(cursor1Position, PressureLineSeriesValues);
+            double pressureCursor2Value = CursorMoved(cursor2Position, PressureLineSeriesValues);
+            //double resistanceCursor1Value = CursorMoved(cursor1Position, null);
+            //double resistanceCursor2Value = CursorMoved(cursor2Position, null);
+            cWin.audioCur1.Text = audioCursor1Value.ToString();
+            cWin.audioCur2.Text = audioCursor2Value.ToString();
+            cWin.audioDiff.Text = Convert.ToString(audioCursor1Value - audioCursor2Value);
+            cWin.airFlowCur1.Text = airFlowCursor1Value.ToString();
+            cWin.airFlowCur2.Text = airFlowCursor2Value.ToString();
+            cWin.airflowDiff.Text = Convert.ToString(airFlowCursor1Value - airFlowCursor2Value);
+            cWin.pressureCur1.Text = pressureCursor1Value.ToString();
+            cWin.pressureCur2.Text = pressureCursor2Value.ToString();
+            cWin.pressureDiff.Text = Convert.ToString(pressureCursor1Value - pressureCursor2Value);
+            //cWin.resistanceCur1.Text = resistanceCursor1Value.ToString();
+            //cWin.resistanceCur2.Text = resistanceCursor2Value.ToString();
+            //cWin.resistanceDiff.Text = Convert.ToString(pressureCursor1Value - pressureCursor2Value);
+        }
+
+        private void SetCursorPosition(double position, Line cursorLine)
+        {
+            if (cursorLine != null)
+            {
+                cursorLine.X1 = position;
+                cursorLine.X2 = position;
+            }
+        }
+
+        public void SetAllCursor1Positions(double cursor1Position)
+        {
+            SetCursorPosition(cursor1Position, AudioCursor1);
+            SetCursorPosition(cursor1Position, AirFlowCursor1);
+            SetCursorPosition(cursor1Position, PressureCursor1);
+            SetCursorPosition(cursor1Position, ResistanceCursor1);
+        }
+
+        public void SetAllCursor2Positions(double cursor2Position)
+        {
+            SetCursorPosition(cursor2Position, AudioCursor2);
+            SetCursorPosition(cursor2Position, AirFlowCursor2);
+            SetCursorPosition(cursor2Position, PressureCursor2);
+            SetCursorPosition(cursor2Position, ResistanceCursor2);
+        }
+
+        #endregion CursorMethods
 
         private void PlayFile_Click(object sender, RoutedEventArgs e)
         {
