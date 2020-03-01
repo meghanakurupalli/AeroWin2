@@ -3,17 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace MainWindowDesign
 {
@@ -30,7 +21,7 @@ namespace MainWindowDesign
         string _dataFileName;
         string _protocolFileName;
 
-        public event EventHandler SaveButtonClicked;
+        public event EventHandler OkButtonClicked;
         string generatedProtocolFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedProtocolFilesPath"];
         public string Data_File_Name
         {
@@ -129,20 +120,13 @@ namespace MainWindowDesign
 
         }
 
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (Window window in Application.Current.Windows)
-            {
-                if (window.GetType() == typeof(MainWindow))
-                {
-                    //((MainWindow) window).StartButton.IsEnabled = true;
-                }
-            }
-            if(SaveButtonClicked !=null)
+            if(OkButtonClicked != null)
             {
                 _dataFileName = FileName.Text;
                 _protocolFileName = ProtocolFileName.Text;
-                SaveButtonClicked(this, new EventArgs());
+                OkButtonClicked(this, new EventArgs());
             }
 
             //this.DialogResult = true;

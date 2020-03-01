@@ -3,11 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"        
-        xmlns:toolkit="clr-namespace:System.Windows.Controls;assembly=WPFToolkit"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
-        xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
-        xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
         Title="Save New File" Height="350" Width="420" WindowStartupLocation="Manual" Left="0" Top="0">
     <Window.Resources>
@@ -130,7 +125,7 @@
                 <ColumnDefinition Width="5*"/>
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Background="LightGray" Content="OK" Foreground="Black" BorderBrush="Gray" Margin="5 2" x:Name="SaveButton" Click="SaveButton_Click"/>
+            <Button Grid.Column="0" Background="LightGray" Content="OK" Foreground="Black" BorderBrush="Gray" Margin="5 2" x:Name="SaveButton" Click="OkButton_Click"/>
             <Button Grid.Column="2" Background="LightGray" Content="Cancel" Foreground="Black" BorderBrush="Gray" Margin="5 2" x:Name="CancelButton" Click="CancelButton_Click">
 
             </Button>

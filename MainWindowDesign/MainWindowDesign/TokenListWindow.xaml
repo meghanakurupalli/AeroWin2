@@ -3,9 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
-        Title="TokenListWindow" Height="300" Width="500">
+        Title="TokenListWindow" 
+        Height="300" 
+        Width="500"
+        Closed="TokenListWindowClosed_Event">
     <StackPanel Height="250" VerticalAlignment="Top">
         <DataGrid Height="200" x:Name="TokenListGrid" SelectionUnit="FullRow" >
                         
