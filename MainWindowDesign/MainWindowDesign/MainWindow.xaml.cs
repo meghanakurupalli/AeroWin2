@@ -644,10 +644,8 @@ namespace MainWindowDesign
         }
 
 
-        //better get pressures directly from the files and then calculate the resisitance, put it in a csv file and just display it along with pressure and airflow when an existing file is opened.
-        public void calculateLRResistance(List<float> pressure, List<float> airflow)
+        public PeakFinderSavitzkyGolay CalculatePeaks(List<float> pressure, List<float> airflow)
         {
-            //calcuate the mean of first hundred samples and subtract them form the whole file
             float pressureOffset = 0;
             float airflowOffset = 0;
             for (int i = 0; i < 100; i++)
@@ -673,10 +671,125 @@ namespace MainWindowDesign
             var v = new DoubleVector(arr);
 
             PeakFinderSavitzkyGolay pfa = new PeakFinderSavitzkyGolay(v, 50, 4);
+            //pfa.LocatePeaks();
+            List<float> list = new List<float>();
+            //pfa.GetAllPeaks();
+            return pfa;
+        }
+
+
+        //better get pressures directly from the files and then calculate the resisitance, put it in a csv file and just display it along with pressure and airflow when an existing file is opened.
+        
+        public void calculateVPResistance(List<float> pressure, List<float> airflow, List<float> NCPressures, List<float> NCAirflows, List<float> NCResistances)
+        {
+            
+            var pfa = CalculatePeaks(pressure, airflow);
+            List<float> list = new List<float>();
+            //pfa.GetAllPeaks();
+            List<double> pressureMaximas = new List<double>();
+            List<int> pressureMaximaIndices = new List<int>();
+            int flag1 = 0;
+            int flag2 = 0;
+
+            try
+            {
+                for (int p = 0; p < pfa.NumberPeaks; p++)
+                {
+                    Extrema peak = pfa[p];
+                    if (peak.Y > 0.2)
+                    {
+                        Debug.Print("Found peak at = ({0},{1})", peak.X, peak.Y);
+                        pressureMaximas.Add(peak.Y);
+                        pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
+                    }
+
+                }
+
+                List<int> indicesofStartofPeaks = new List<int>();
+                List<int> indicesofEndofPeaks = new List<int>();
+                
+
+                for (int i = 0; i < pressureMaximas.Count - 1; i++)
+                {
+                    int midPressurePeaksIndex = Convert.ToInt32((pressureMaximaIndices[i] + pressureMaximaIndices[i + 1]) / 2);
+                    int k = 0;
+                    for (int j = midPressurePeaksIndex; j < pressureMaximaIndices[k + 1]; j++)
+                    {
+                        if (pressure[j] >= 0.1 && flag1 == 0)// look into start of pressure peak after the new sensor has come. 0.1 is just a place holder.
+                        {
+                            indicesofStartofPeaks.Add(j);
+                            flag1 = 1;
+                        }
+                    }
+                    flag1 = 0;
+                }
+
+                for (int i = 0; i < pressureMaximas.Count - 1; i++)
+                {
+                    int midPressurePeaksIndex = Convert.ToInt32((pressureMaximaIndices[i] + pressureMaximaIndices[i + 1]) / 2);
+                    int k = 0;
+                    for (int j = midPressurePeaksIndex; j < pressureMaximaIndices[k + 1]; j++)
+                    {
+                        if (pressure[j] <= 0.1 && flag2 == 0)// look into start of pressure peak after the new sensor has come. 0.1 is just a place holder.
+                        {
+                            indicesofEndofPeaks.Add(j);
+                            flag2 = 1;
+                        }
+                    }
+                    flag2 = 0;
+                }
+                int count = 0;
+                float airflowValue;
+
+                List<float> initialResistances = new List<float>();
+                for(int i = 0; i < pressure.Count; i++)
+                {
+                    try
+                    {
+                        initialResistances.Add(pressure[i] / airflow[i]);
+                    }
+                    catch(DivideByZeroException)
+                    {
+                        initialResistances.Add(9999);
+                    }
+                    
+                }
+
+                double resistancesToBeSubtracted;
+                List<double> finalResistances = new List<double>();
+                for(int i = indicesofStartofPeaks[count]; i < indicesofEndofPeaks[count];i++)
+                { 
+                    if(count < indicesofStartofPeaks.Count)
+                    {
+                        //get airflows here
+                        //get pressures here
+                        airflowValue = airflow[i];
+                        float closest = NCAirflows.Aggregate((x, y) => Math.Abs(x - airflowValue) < Math.Abs(y - airflowValue) ? x : y);
+                        int indexOfClosestElement = NCAirflows.IndexOf(closest);
+                        resistancesToBeSubtracted = NCResistances[indexOfClosestElement];
+                        finalResistances.Add(initialResistances[i] - resistancesToBeSubtracted);
+
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
+                System.Windows.Forms.MessageBox.Show("Bad VP token");
+            }
+        }
+        
+        
+        public void calculateLRResistance(List<float> pressure, List<float> airflow)
+        {
+            //calcuate the mean of first hundred samples and subtract them form the whole file
+            var pfa = CalculatePeaks(pressure, airflow);
             pfa.LocatePeaks();
             List<float> list = new List<float>();
             pfa.GetAllPeaks();
             // int j = 0;
+            int flag1 = 0;
+            int flag2 = 0;
 
             List<int> pressureMaximaIndices = new List<int>();
             List<double> pressureMaximas = new List<double>();
@@ -725,13 +838,13 @@ namespace MainWindowDesign
                     int k = 0;
                     for (int j = midPressurePeaksIndex; j < pressureMaximaIndices[k + 1]; j++)
                     {
-                        if (pressure[j] >= 0.1 && flag == 0)// look into start of pressure peak after the new sensor has come. 0.1 is just a place holder.
+                        if (pressure[j] >= 0.1 && flag1 == 0)// look into start of pressure peak after the new sensor has come. 0.1 is just a place holder.
                         {
                             indicesofStartofPeaks.Add(j);
-                            flag = 1;
+                            flag1 = 1;
                         }
                     }
-                    flag = 0;
+                    flag1 = 0;
                 }
 
                 List<float> resistancesForStatisticCalculations = new List<float>();
