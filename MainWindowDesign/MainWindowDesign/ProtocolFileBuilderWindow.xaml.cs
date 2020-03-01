@@ -37,8 +37,8 @@ namespace MainWindowDesign
         String protocolItem;
         int protocolIndex;
         //List<protocol> protocols = new List<protocol>();
-        ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
-        ObservableCollection<protocol> newCollection = new ObservableCollection<protocol>();
+        ObservableCollection<Protocol> protocols = new ObservableCollection<Protocol>();
+        ObservableCollection<Protocol> newCollection = new ObservableCollection<Protocol>();
 
         public int CountOfProtocolFile
         {
@@ -129,7 +129,7 @@ namespace MainWindowDesign
         {
             int flag = 0;
             int i = 0;
-            protocol idk = new protocol();
+            Protocol idk = new Protocol();
             
             try
             {
@@ -143,7 +143,7 @@ namespace MainWindowDesign
                         // ProtocolList.Items.Add(protocol);
                                                 
                         
-                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
+                        protocols.Add(new Protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
 
                         break;
 
@@ -162,13 +162,13 @@ namespace MainWindowDesign
                         else
                         {
                           
-                            protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
+                            protocols.Add(new Protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
 
                         }
                         break;
 
                     case "LR":
-                        protocols.Add(new protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
+                        protocols.Add(new Protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
                         break;
 
                     default:
@@ -294,7 +294,7 @@ namespace MainWindowDesign
         {
             string ProtocolFileName;
             string ProtocolFileName_ext = "temp";
-            ObservableCollection<protocol> tempcollection = new ObservableCollection<protocol>();
+            ObservableCollection<Protocol> tempcollection = new ObservableCollection<Protocol>();
             OpenFileDialog openFileDialog = new OpenFileDialog()
             {
                 Filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*",
@@ -341,7 +341,7 @@ namespace MainWindowDesign
                 //var temp1 = splitRepititionCountString[0]+" of ";
                 //var temp2 = splitRepititionCountString[2];
 
-                protocols.Add(new protocol { TokenType = splitline[0], Utterance = splitline[1], Rate = splitline[2], Intensity = splitline[3], TotalRepetitionCount = splitline[4] });
+                protocols.Add(new Protocol { TokenType = splitline[0], Utterance = splitline[1], Rate = splitline[2], Intensity = splitline[3], TotalRepetitionCount = splitline[4] });
                 i++;
             }
 
@@ -411,7 +411,7 @@ namespace MainWindowDesign
         
     }
 
-    public class protocol : INotifyPropertyChanged
+    public class Protocol : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

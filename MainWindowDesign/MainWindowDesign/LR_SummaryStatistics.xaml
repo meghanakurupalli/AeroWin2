@@ -86,14 +86,14 @@
                 <Label Grid.Row="2" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Air Pressure" FontWeight="DemiBold" FontSize="15"></Label>
                 <Label Grid.Row="3" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Resistance" FontWeight="DemiBold" FontSize="15"></Label>
 
-                <Label Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="airFlowReleaseMean"></Label>
-                <Label Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="airFlowReleaseStdDev"></Label>
-                <Label Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="airFlowMidVowelMean"></Label>
-                <Label Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="airFlowMidVowelStdDev"></Label>
-                <Label Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="airPressureMean"></Label>
-                <Label Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="airPressureStdDev"></Label>
-                <Label Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="ResistanceMean"></Label>
-                <Label Grid.Row="4" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="-" FontSize="15" x:Name="ResistanceStdDev"></Label>
+                <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airFlowReleaseMean"></TextBlock>
+                <TextBlock Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airFlowReleaseStdDev"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airFlowMidVowelMean"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airFlowMidVowelStdDev"></TextBlock>
+                <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airPressureMean"></TextBlock>
+                <TextBlock Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airPressureStdDev"></TextBlock>
+                <TextBlock Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="ResistanceMean"></TextBlock>
+                <TextBlock Grid.Row="4" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="ResistanceStdDev"></TextBlock>
             </Grid>
             <Grid Margin="0 2 0 0" Height="45">
                 <Rectangle Fill="#dcdcdc" Margin="4 2 4 2"></Rectangle>

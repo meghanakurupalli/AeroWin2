@@ -39,10 +39,12 @@ namespace MainWindowDesign
         public string THPrAf { get; set; }
         List<string> indices = new List<string>();
 
+
+        int flag = 0;
        
 
 
-        public ObservableCollection<protocol> THWprotocols = new ObservableCollection<protocol>();
+        public ObservableCollection<Protocol> THWprotocols = new ObservableCollection<Protocol>();
         bool _isPrevButtonClicked = false;
         bool _isNextButtonClicked = false;
 
@@ -67,7 +69,7 @@ namespace MainWindowDesign
                 while (!reader.EndOfStream)
                 {
                     var splits = reader.ReadLine().Split(',');
-                    THWprotocols.Add(new protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = splits[4] });
+                    THWprotocols.Add(new Protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = splits[4] });
                     indices.Add(splits[5]);
 
                     // Didn't yet edit in this window. Just gave something arbitrary.
@@ -84,14 +86,18 @@ namespace MainWindowDesign
 
 
                 string first_file_rep_count = THWprotocols[0].TotalRepetitionCount;
+                string tokenType = THWprotocols[0].TokenType;
                 string[] splits2 = first_file_rep_count.Split(' ');
                 var splits0 = Int32.Parse(splits2[0]);
 
                 //string splits0 = indices[0];
                 string rep_count = "_"+ indices[0] + "_" + splits0;
                 string prAfrep_count = "pr_af_" + indices[0] + "_" + splits0;
+                string resistancerepCount = "res_" + indices[0] + "_" + splits0;
+
                 string audioFileToBePlayed = System.IO.Path.Combine(PathForWaveFiles, DataFileName + rep_count + ".wav");
                 string pressureAirflowFileToBeDisplayed = System.IO.Path.Combine(PathForWaveFiles, DataFileName + prAfrep_count + ".csv");
+                //string resistanceFileToBeDisplayed = System.IO.Path.Combine(PathForWaveFiles, DataFileName + resistancerepCount + ".csv");
 
                 //create a condition in such a way that whenever something is updated in the tokenhistory window, mainwindow is notified and audio and the other file are displayed.
 
@@ -99,7 +105,7 @@ namespace MainWindowDesign
                 THPrAf = pressureAirflowFileToBeDisplayed;
 
                 mWin.playAudio(audioFileToBePlayed);
-                mWin.displayPressureandAirflow(pressureAirflowFileToBeDisplayed);
+                mWin.displayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
                 //data_File_Name = DataFileName;
                 //path_For_Wave_Files = PathForWaveFiles;
 
@@ -138,6 +144,7 @@ namespace MainWindowDesign
                 TokenHistoryGrid.SelectedIndex = 0;
             }
 
+            //Getting an error here.
 
             string tot_rep_count = THWprotocols[TokenHistoryGrid.SelectedIndex].TotalRepetitionCount; //Gets repetition count and split it for audio file path.
             string[] splits = tot_rep_count.Split(' ');
@@ -151,7 +158,7 @@ namespace MainWindowDesign
             Debug.Print("audioFileToBePlayed : "+ audioFileToBePlayed+ " pressureAirflowFileToBeDisplayed : "+ pressureAirflowFileToBeDisplayed);
 
             mWin.playAudio(audioFileToBePlayed);
-            mWin.displayPressureandAirflow(pressureAirflowFileToBeDisplayed);
+            mWin.displayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
 
             
 
@@ -161,6 +168,7 @@ namespace MainWindowDesign
 
         private void THWPreviousButton_Click(object sender, RoutedEventArgs e)
         {
+            flag = 1; 
             if(prevBtnClicked!=null)
             {
                 _isPrevButtonClicked = true;
@@ -182,6 +190,7 @@ namespace MainWindowDesign
 
         private void THWNextButton_Click(object sender, RoutedEventArgs e)
         {
+            flag = 1;
             if(nextBtnClicked!=null)
             {
                 _isNextButtonClicked = true;
@@ -189,9 +198,9 @@ namespace MainWindowDesign
             }
             
             int now = TokenHistoryGrid.SelectedIndex;
-            if (now == TokenHistoryGrid.Items.Count-1)
+            if (now == TokenHistoryGrid.Items.Count-2)
             {
-                TokenHistoryGrid.SelectedIndex = TokenHistoryGrid.Items.Count - 1;
+                TokenHistoryGrid.SelectedIndex = TokenHistoryGrid.Items.Count - 2;
             }
             else
             {

@@ -135,7 +135,7 @@ namespace MainWindowDesign
             {
                 if (window.GetType() == typeof(MainWindow))
                 {
-                    ((MainWindow) window).StartButton.IsEnabled = true;
+                    //((MainWindow) window).StartButton.IsEnabled = true;
                 }
             }
             if(SaveButtonClicked !=null)

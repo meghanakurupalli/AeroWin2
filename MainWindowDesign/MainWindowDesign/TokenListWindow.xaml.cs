@@ -27,7 +27,7 @@ namespace MainWindowDesign
     {
         //string _protocolFileNameTWin;
         string generatedProtocolFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedProtocolFilesPath"];
-        public ObservableCollection<protocol> protocols = new ObservableCollection<protocol>();
+        public ObservableCollection<Protocol> protocols = new ObservableCollection<Protocol>();
 
         public bool isStartButtonClicked = false;
         
@@ -60,7 +60,7 @@ namespace MainWindowDesign
             {
                 var splits = reader.ReadLine().Split(',');
                 var temp1 = string.Concat(noOfDoneRepCount, " of ", splits[4]);
-                protocols.Add(new protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = temp1 });
+                protocols.Add(new Protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = temp1 });
 
             }
             protocols.RemoveAt(0);
@@ -89,7 +89,7 @@ namespace MainWindowDesign
             {
                 var splits = reader.ReadLine().Split(',');
                 var temp1 = string.Concat(noOfDoneRepCount, " of ", splits[4]);
-                protocols.Add(new protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = temp1 });
+                protocols.Add(new Protocol() { TokenType = splits[0], Utterance = splits[1], Rate = splits[2], Intensity = splits[3], TotalRepetitionCount = temp1 });
 
             }
             protocols.RemoveAt(0);
@@ -164,6 +164,17 @@ namespace MainWindowDesign
                 TokenListGrid.SelectedIndex = TokenListGrid.Items.Count - 2;
             }
 
+
+            checkForVPTokenType(protocols[TokenListGrid.SelectedIndex].TokenType);
+        }
+
+        private void checkForVPTokenType(string tokenType)
+        {
+            
+            if (tokenType == "VP")
+            {
+                //SHow the window with NC tokens
+            }
         }
 
         private void OnTimedEvent(object sender, ElapsedEventArgs e)
@@ -183,23 +194,7 @@ namespace MainWindowDesign
             //throw new NotImplementedException();
         }
 
-        public void sayThisHappens()
-        {
-            if (i < TokenListGrid.Items.Count - 1)
-            {
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                new Action(() =>
-                {
-                    TokenListGrid.SelectedIndex = i;
-                    i++;
-                }));
-            }
-            else
-            {
-                i = 0;
-            }
-                
-        }
+        
 
         public void SelectionUpdater(int num)
         {
