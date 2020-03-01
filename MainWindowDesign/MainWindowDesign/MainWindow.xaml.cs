@@ -643,7 +643,7 @@ namespace MainWindowDesign
 
         //better get pressures directly from the files and then calculate the resisitance, put it in a csv file and just display it along with pressure and airflow when an existing file is opened.
         
-        public void calculateVPResistance(List<float> pressure, List<float> airflow, List<float> NCPressures, List<float> NCAirflows, List<float> NCResistances)
+        public void calculateVPResistance(List<float> pressure, List<float> airflow, List<float> NCPressures, List<float> NCAirflows, List<float> NCResistances, string filepath)
         {
             
             var pfa = CalculatePeaks(pressure, airflow);
@@ -735,6 +735,14 @@ namespace MainWindowDesign
                     }
                 }
 
+                List<string> pressuresAirflowsandResistances = File.ReadAllLines(filepath).ToList();
+                for (int i = 0; i < pressuresAirflowsandResistances.Count; i++)
+                {
+                    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + finalResistances[i];
+                }
+
+                File.WriteAllLines(filepath, pressuresAirflowsandResistances);
+
             }
             catch (Exception)
             {
@@ -743,7 +751,7 @@ namespace MainWindowDesign
         }
         
         
-        public void calculateLRResistance(List<float> pressure, List<float> airflow)
+        public void calculateLRResistance(List<float> pressure, List<float> airflow, string filepath)
         {
             //calcuate the mean of first hundred samples and subtract them form the whole file
             var pfa = CalculatePeaks(pressure, airflow);
@@ -861,22 +869,74 @@ namespace MainWindowDesign
                     sumOfAirflowsMidVowel = sumOfAirflowsMidVowel + airflow[indicesOfMidPointsBetweenThePressurePeaks[i]];
                 }
                 float meanOfAirflowsAtRelease = airflowsAtRelease.Sum() / airflowsAtRelease.Count();
+                double SDofAirflowsAtRelease;
+                double temp = 0;
+                for (int i = 0; i < airflowsAtRelease.Count; i++)
+                {
+                    temp += Math.Pow((airflowsAtRelease[i] - meanOfAirflowsAtRelease), 2);
+                }
+                temp = temp / airflowsAtRelease.Count;
+                SDofAirflowsAtRelease = Math.Sqrt(temp);
 
+                
+                
                 float meanOfAirflowsAtMidVowel = sumOfAirflowsMidVowel / indicesOfMidPointsBetweenThePressurePeaks.Count();
+                temp = 0;
+                double SDofAirflowsMidVowel;
+                for (int i = 0; i < indicesOfMidPointsBetweenThePressurePeaks.Count; i++)
+                {
+                    temp += Math.Pow((airflow[indicesOfMidPointsBetweenThePressurePeaks[i]] - meanOfAirflowsAtMidVowel),2);
+                }
+                temp = temp / indicesOfMidPointsBetweenThePressurePeaks.Count;
+                SDofAirflowsMidVowel = Math.Sqrt(temp);
+
+
 
                 float meanOfAirPressureAtPeaks = (float)pressureMaximas.Sum() / pressureMaximas.Count;
-
+                double SDofPressureAtPeaks;
+                temp = 0;
+                for(int i = 0; i < pressureMaximas.Count; i++)
+                {
+                    temp += Math.Pow((pressureMaximas[i] - meanOfAirPressureAtPeaks), 2); 
+                }
+                temp = temp / pressureMaximas.Count;
+                SDofPressureAtPeaks = Math.Sqrt(temp);
+                
+                
                 float meanOfResistances = resistancesForStatisticCalculations.Sum() / resistancesForStatisticCalculations.Count;
-
+                double SDofResistances;
+                temp = 0;
+                for(int i = 0; i < resistancesForStatisticCalculations.Count; i++)
+                {
+                    temp += Math.Pow((resistancesForStatisticCalculations[i] - meanOfResistances), 2);
+                }
+                temp = temp / resistancesForStatisticCalculations.Count;
+                SDofResistances = Math.Sqrt(temp);
+                
+                
+                
                 LR_SummaryStatistics LRsum_stats = new LR_SummaryStatistics();
                 LRsum_stats.airFlowReleaseMean.Text = Convert.ToString(meanOfAirflowsAtRelease);
                 LRsum_stats.airFlowMidVowelMean.Text = Convert.ToString(meanOfAirflowsAtMidVowel);
                 LRsum_stats.airPressureMean.Text = Convert.ToString(meanOfAirPressureAtPeaks);
                 LRsum_stats.ResistanceMean.Text = Convert.ToString(meanOfResistances);
 
+                LRsum_stats.airFlowReleaseStdDev.Text = Convert.ToString(SDofAirflowsAtRelease);
+                LRsum_stats.airFlowMidVowelStdDev.Text = Convert.ToString(SDofAirflowsMidVowel);
+                LRsum_stats.airPressureStdDev.Text = Convert.ToString(SDofPressureAtPeaks);
+                LRsum_stats.ResistanceStdDev.Text = Convert.ToString(SDofResistances);
+
                 LRsum_stats.Owner = this;
                 LRsum_stats.Topmost = true;
                 LRsum_stats.Show();
+
+                List<string> pressuresAirflowsandResistances = File.ReadAllLines(filepath).ToList();
+                for (int i = 0; i < pressuresAirflowsandResistances.Count; i++)
+                {
+                    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + resistances[i];
+                }
+
+                File.WriteAllLines(filepath, pressuresAirflowsandResistances);
 
                 // Didn't test this yet, and still have to claculate the standard deviation values
             }
@@ -957,23 +1017,27 @@ namespace MainWindowDesign
             checkButtonFlag1 = 0;
             checkButtonFlag2 = 0;  //These two values make sure that the 
 
-            //string selectedTokenType = TWin.protocols[TWin.TokenListGrid.SelectedIndex].TokenType.ToString();
-            //if(selectedTokenType == "LR")
-            //{
-            //    calculateLRResistance(allPressures, allAirflows);
-            //}
+            string selectedTokenType = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType.ToString();
+            if (selectedTokenType == "LR")
+            {
+                calculateLRResistance(allPressures, allAirflows, filePathForPrandAf);
+            }
 
-            //else if(selectedTokenType == "VP")
-            //{
-            //    //CalculateVPResistance
-            //}
+            else if (selectedTokenType == "VP")
+            {
+                //Get file for NC, i.e., assuming its is subtraction table, extract pressures, airflows and resistances into different lists.
+                List<float> NCPressures = new List<float>();
+                List<float> NCAirflows = new List<float>();
+                List<float> NCResistances = new List<float>();
+                calculateVPResistance(allPressures, allAirflows, NCPressures, NCAirflows, NCResistances, filePathForPrandAf);
+            }
 
-            //else if(selectedTokenType=="NC")
-            //{
-            //    //CalculateNCResistance
-            //    calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
-            //}
-            calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
+            else if (selectedTokenType == "NC")
+            {
+                //CalculateNCResistance
+                calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
+            }
+            //calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
 
         }
 
