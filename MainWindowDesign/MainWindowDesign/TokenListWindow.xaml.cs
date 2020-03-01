@@ -35,7 +35,7 @@ namespace MainWindowDesign
                 PreviousButton.IsEnabled = false;
             }
             string temp = str;
-            path = System.IO.Path.Combine(generatedProtocolFilesPath, temp + ".csv");
+            path = Path.Combine(generatedProtocolFilesPath, temp + ".csv");
             var reader = new StreamReader(File.OpenRead(path));
             while (!reader.EndOfStream)
             {
@@ -52,24 +52,13 @@ namespace MainWindowDesign
            
         }
 
-
+        public event EventHandler TokenListWindowCloseEvent;
         private bool tempChar = false;
         static int i;
         static int saveme = 1;
-
-        public int givesCurrentRepCount
-        {
-            get { return GivesCurrentRepCount; }
-            set { GivesCurrentRepCount = value; }
-        }
-
-        public int GivesCurrentRepCount { get; set; } = 1;
-        public int GivesCurrent_TotalRepCount { get => GivesCurrent_TotalRepCount1; set => GivesCurrent_TotalRepCount1 = value; }
-        public int GivesCurrent_TotalRepCount1 { get => GivesCurrent_TotalRepCount2; set => GivesCurrent_TotalRepCount2 = value; }
-        public int GivesCurrent_TotalRepCount2 { get => GivesCurrent_TotalRepCount3; set => GivesCurrent_TotalRepCount3 = value; }
-        public int GivesCurrent_TotalRepCount3 { get => GivesCurrent_TotalRepCount4; set => GivesCurrent_TotalRepCount4 = value; }
-        public int GivesCurrent_TotalRepCount4 { get; set; } = 0;
-
+        public int CurrentRepetitionCount { get; set; } = 1;
+        public int CurrentTotalRepetitionCount { get; set ; }
+       
         public void ChangeIndexSelection()
         {
             
@@ -77,13 +66,13 @@ namespace MainWindowDesign
             var currentProtocol = protocols[TokenListGrid.SelectedIndex];
             var temp = currentProtocol.TotalRepetitionCount.Split(' ');
             var currentProtocolRepetitionCount = Int32.Parse(temp[2]);
-            GivesCurrent_TotalRepCount = currentProtocolRepetitionCount; // Repetition count of current protocol. eg: VP, pa-pa-pa, 2  ==> gives 2. 
+            CurrentTotalRepetitionCount = currentProtocolRepetitionCount; // Repetition count of current protocol. eg: VP, pa-pa-pa, 2  ==> gives 2. 
             TokenListGrid.ItemsSource = protocols;
             if (saveme < currentProtocolRepetitionCount)
             {
                 
                 saveme++;
-                GivesCurrentRepCount = saveme; 
+                CurrentRepetitionCount = saveme; 
                 var temp2 = string.Concat(saveme, " of ", currentProtocolRepetitionCount);
                 currentProtocol.TotalRepetitionCount = temp2;
                 Debug.Print("temp2 : " + temp2);
@@ -97,7 +86,7 @@ namespace MainWindowDesign
                 {
                     TokenListGrid.SelectedIndex = nextIndex;
                     saveme = 1;
-                    GivesCurrentRepCount = saveme;
+                    CurrentRepetitionCount = saveme;
                 }
                 //TokenListGrid.ItemsSource = protocols;
             }
@@ -128,7 +117,7 @@ namespace MainWindowDesign
         private void PreviousButton_Click(object sender, RoutedEventArgs e)
         {
             saveme = 1;
-            GivesCurrentRepCount = 1;
+            CurrentRepetitionCount = 1;
             int currentIndex = TokenListGrid.SelectedIndex;
             
             if(currentIndex == 0)
@@ -147,7 +136,7 @@ namespace MainWindowDesign
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
             saveme = 1;
-            GivesCurrentRepCount = 1;
+            CurrentRepetitionCount = 1;
             int currentIndex = TokenListGrid.SelectedIndex;
 
             if (currentIndex == protocols.Count - 1)
@@ -165,7 +154,7 @@ namespace MainWindowDesign
 
         private void TokenListWindowClosed_Event(object sender, EventArgs e)
         {
-
+            TokenListWindowCloseEvent?.Invoke(sender, e);
         }
     }
 

@@ -29,12 +29,18 @@
         <StackPanel>
             <Menu IsMainMenu="True" >
                 <MenuItem Header="_File">
-                    <MenuItem x:Name="NewFileButton" Header="_New" Click="NewFileButton_Click">
+                    <MenuItem x:Name="NewFileButton" Header="_New" Click="NewFileButton_Click"
+                              IsEnabled="{Binding IsTokenListWindowClosed}">
                         <MenuItem.Icon>
                             <materialDesign:PackIcon Kind="FilePlus" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Open" x:Name="OpenExistingFileButton" Click="OpenExistingFileButton_Click">
+                    <MenuItem 
+                        Header="Open" 
+                        x:Name="OpenExistingFileButton" 
+                        Click="OpenExistingFileButton_Click"
+                        IsEnabled="{Binding IsTokenListWindowClosed}"
+                        >
                         <MenuItem.Icon>
                             <materialDesign:PackIcon Kind="FileFind" />
                         </MenuItem.Icon>

@@ -3,61 +3,40 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace MainWindowDesign
 {
-    /// <summary>
-    /// Interaction logic for TokenHistoryWIndow.xaml
-    /// </summary>
-    public class GetterSetter
-    {
-        public string dataFileName { get; set; }
-    }
-    public partial class TokenHistoryWindow : Window
+    public partial class TokenHistoryWindow
     {
         public TokenHistoryWindow()
         {
             InitializeComponent();
         }
+
+        public TokenHistoryWindow(MainWindow mainWindow)
+        {
+            mWin = mainWindow;
+            data_File_Name = mainWindow.DataFileName;
+            path_For_Wave_Files = mainWindow.pathForwavFiles;
+            token_History_File = mainWindow.openExtFile_THFName;
+            InitializeTokenHistoryWindow(token_History_File, data_File_Name, path_For_Wave_Files);
+        }
+
         private MainWindow mWin;
         string data_File_Name;
         string path_For_Wave_Files;
         string token_History_File;
-
         public string THaudio { get; set; }
         public string THPrAf { get; set; }
         List<string> indices = new List<string>();
-
-
         int flag = 0;
-       
-
-
         public ObservableCollection<Protocol> THWprotocols = new ObservableCollection<Protocol>();
         bool _isPrevButtonClicked = false;
         bool _isNextButtonClicked = false;
 
-        public TokenHistoryWindow(MainWindow mainWindow)
-        {
-            this.mWin = mainWindow;
-            data_File_Name = mainWindow.DataFileName;
-            path_For_Wave_Files = mainWindow.pathForwavFiles;
-            token_History_File = mainWindow.openExtFile_THFName;
-            tokenHistoryWindow(token_History_File, data_File_Name, path_For_Wave_Files);
-        }
-
-        public void tokenHistoryWindow(string TokenHistoryFile, string DataFileName, string PathForWaveFiles)
+        public void InitializeTokenHistoryWindow(string TokenHistoryFile, string DataFileName, string PathForWaveFiles)
         {
             //string temp = str;
             // path = System.IO.Path.Combine(generatedProtocolFilesPath, temp + ".csv");
@@ -105,7 +84,7 @@ namespace MainWindowDesign
                 THPrAf = pressureAirflowFileToBeDisplayed;
 
                 mWin.playAudio(audioFileToBePlayed);
-                mWin.displayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
+                mWin.DisplayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
                 //data_File_Name = DataFileName;
                 //path_For_Wave_Files = PathForWaveFiles;
 
@@ -115,8 +94,6 @@ namespace MainWindowDesign
             {
                 MessageBox.Show("Token history file not found!", "File not found");
             }
-            
-
         }
 
         private void TokenHistoryGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -158,7 +135,7 @@ namespace MainWindowDesign
             Debug.Print("audioFileToBePlayed : "+ audioFileToBePlayed+ " pressureAirflowFileToBeDisplayed : "+ pressureAirflowFileToBeDisplayed);
 
             mWin.playAudio(audioFileToBePlayed);
-            mWin.displayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
+            mWin.DisplayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
 
             
 
