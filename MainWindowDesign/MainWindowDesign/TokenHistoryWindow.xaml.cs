@@ -194,4 +194,16 @@ namespace MainWindowDesign
             set { _isPrevButtonClicked = value; }
         }
     }
+
+    public class RecordedProtocolHistory
+    {
+
+        public int SelectedIndex { get; set; }
+        public string TokenType { get; set; }
+        public string Utterance { get; set; }
+        public string Rate { get; set; }
+        public string Intensity { get; set; }
+        public string TotalRepetitionCount { get; set; }
+        
+    }
 }

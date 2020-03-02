@@ -1,5 +1,6 @@
 ﻿using CenterSpace.NMath.Core;
 using LiveCharts;
+using MainWIndowDesign;
 using NAudio.Wave;
 using Nito.KitchenSink.CRC;
 using System;
@@ -21,6 +22,7 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using FormsMessageBox = System.Windows.Forms.MessageBox;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MainWindowDesign
 {
@@ -54,7 +56,8 @@ namespace MainWindowDesign
 
         private bool _isTokenListWindowClosed;
 
-        public bool IsTokenListWindowClosed { 
+        public bool IsTokenListWindowClosed
+        {
             get => _isTokenListWindowClosed;
             set
             {
@@ -62,6 +65,10 @@ namespace MainWindowDesign
                 RaisePropertyChanged("IsTokenListWindowClosed");
             }
         }
+
+        public bool IsVPAlertAlreadyShown { get; set; }
+
+        private RecordedProtocolHistory SelectedNCTokenForVPCalculation { get; set; }
 
         public ChartValues<float> PressureLineSeriesValues { get; set; } = new ChartValues<float>();
         public ChartValues<float> AirFlowLineSeriesValues { get; set; } = new ChartValues<float>();
@@ -85,7 +92,8 @@ namespace MainWindowDesign
         double time = 0;
         //ObservableCollection<protocol> protocols;
         TokenHistoryWindow THWin;
-        public List<Protocol> TokenHistory { get; set; }
+        private SelectNCToken SelectNCTokenWindow { get; set; }
+        public List<RecordedProtocolHistory> TokenHistory { get; set; }
 
         List<float> pressures2 = new List<float>(); //Intermediately adds pressure values so that first value of this list can be added to livecharts once a limit is reached.
         List<float> airflows = new List<float>(); //Intermediately adds airflows values so that first value of this list can be added to livecharts once a limit is reached.
@@ -189,7 +197,7 @@ namespace MainWindowDesign
 
         private void InitializeTokenHistory()
         {
-            TokenHistory = new List<Protocol>();
+            TokenHistory = new List<RecordedProtocolHistory>();
         }
 
         public float[] getCoefficients()
@@ -215,7 +223,7 @@ namespace MainWindowDesign
         List<byte> AudioData;
         string FilePath;
 
-        private void StartRecording(double time)
+        private bool StartAudioRecordingAndCheckIfWeCanProceedRecordingFurther(double time)
         {
             _tokenListWindow.PreviousButton.IsEnabled = false;
             _tokenListWindow.NextButton.IsEnabled = false;
@@ -232,6 +240,33 @@ namespace MainWindowDesign
 
             int TWinSelectedIndex = _tokenListWindow.TokenListGrid.SelectedIndex;
             int TWinCurrentRepCount = _tokenListWindow.CurrentRepetitionCount;
+
+            var checkIfVPToken = IsCurrentTokenAVPToken(_tokenListWindow.protocols[TWinSelectedIndex]);
+            if (checkIfVPToken)
+            {
+                var canVPRecord = ManageVPTokenBeRecorded(_tokenListWindow.protocols[TWinSelectedIndex], TokenHistory);
+                if (canVPRecord)
+                {
+                    var ncTokenHistory = TokenHistory.FindAll(x => x.TokenType == "NC");
+                    ShowTokenHistoryForVPRecording(ncTokenHistory);
+                    // Need to get the selection from the SelectNCToken
+                    FilePath = System.IO.Path.Combine(pathForwavFiles, DataFileName + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount + ".wav");
+                    if (File.Exists(FilePath))
+                    {
+                        File.Delete(FilePath);
+                    }
+                    //wfw = new WaveFileWriter(path, wi.WaveFormat);
+                    //Debug.Print("DataFileName : " + DataFileName);
+                    displaypoint = new Queue<float>();
+
+                    wi.StartRecording();
+
+                    this.time = time;
+                    return true;
+                }
+                return false;
+            }
+
             Debug.Print("na_moham : " + TWinCurrentRepCount);
             Debug.Print("File Name created : " + DataFileName + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount);
             FilePath = System.IO.Path.Combine(pathForwavFiles, DataFileName + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount + ".wav");
@@ -246,6 +281,7 @@ namespace MainWindowDesign
             wi.StartRecording();
 
             this.time = time;
+            return true;
             //audioTimer.Elapsed += AudioTimer_Elapsed;
             //audioTimer.Start();
             //TWinSelectedIndex = 0;
@@ -279,25 +315,26 @@ namespace MainWindowDesign
                     && x.Rate == _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Rate
                     && x.Intensity == _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Intensity
                     && x.TotalRepetitionCount == _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TotalRepetitionCount
+                    && x.SelectedIndex == _tokenListWindow.TokenListGrid.SelectedIndex
             );
+
+            var recordedProtocolHistory = new RecordedProtocolHistory
+            {
+                TokenType = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType,
+                Utterance = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Utterance,
+                Rate = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Rate,
+                Intensity = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Intensity,
+                TotalRepetitionCount = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TotalRepetitionCount,
+                SelectedIndex = _tokenListWindow.TokenListGrid.SelectedIndex
+            };
 
             if (indexOfMatchedToken < 0)
             {
-                var protocol = new Protocol
-                {
-                    TokenType = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType,
-                    Utterance = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Utterance,
-                    Rate = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Rate,
-                    Intensity = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Intensity,
-                    TotalRepetitionCount = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TotalRepetitionCount
-                };
-
-                TokenHistory.Add(protocol);
+                TokenHistory.Add(recordedProtocolHistory);
             }
             else
             {
-                TokenHistory[indexOfMatchedToken] =
-                    _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex];
+                TokenHistory[indexOfMatchedToken] = recordedProtocolHistory;
             }
             _tokenListWindow.PreviousButton.IsEnabled = true;
             _tokenListWindow.NextButton.IsEnabled = true;
@@ -307,7 +344,64 @@ namespace MainWindowDesign
         }
 
 
-        private void SaveTokenHistoryToAFile(List<Protocol> tokenHistory, string fileLocation)
+        private bool IsCurrentTokenAVPToken(Protocol currentProtocol)
+        {
+            if (currentProtocol.TokenType == "VP")
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ManageVPTokenBeRecorded(Protocol currentProtocol, List<RecordedProtocolHistory> tokenHistoryAsOfNow)
+        {
+            if (currentProtocol != null)
+            {
+                if (currentProtocol.TokenType == "VP")
+                {
+                    if (tokenHistoryAsOfNow == null || !tokenHistoryAsOfNow.Any())
+                    {
+                        MessageBox.Show("No Tokens are recorded. Cannot record VP.");
+                        IsVPAlertAlreadyShown = true;
+                        return false;
+                    }
+                    var isNCTokenAvailable = tokenHistoryAsOfNow.Any(x => x.TokenType == "NC");
+                    if (!isNCTokenAvailable)
+                    {
+                        MessageBox.Show("No NC tokens are recorded. Cannot record VP.");
+                        IsVPAlertAlreadyShown = true;
+                        return false;
+                    }
+                    return true;
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        private void ShowTokenHistoryForVPRecording(List<RecordedProtocolHistory> ncTokenHistory)
+        {
+            InitializeSelectNCTokenWindow(ncTokenHistory);
+        }
+
+        private void InitializeSelectNCTokenWindow(List<RecordedProtocolHistory> tokenHistory)
+        {
+            SelectNCTokenWindow = new SelectNCToken(tokenHistory);
+            SelectNCTokenWindow.NCTokenForVPCalculationIsSelected += HandleSelectedNCTokenFoVPCalculation;
+            SelectNCTokenWindow.Topmost = true;
+            SelectNCTokenWindow.Owner = this;
+            SelectNCTokenWindow.Show();
+        }
+
+        private void HandleSelectedNCTokenFoVPCalculation(object sender, SelectedNCTokenArgs args)
+        {
+            SelectedNCTokenForVPCalculation = args.RecordedNCToken;
+            SelectNCTokenWindow.Close();
+        }
+
+        private void SaveTokenHistoryToAFile(List<RecordedProtocolHistory> tokenHistory, string fileLocation)
         {
             if (File.Exists(fileLocation))
             {
@@ -315,7 +409,7 @@ namespace MainWindowDesign
             }
             foreach (var token in tokenHistory)
             {
-                var historyValue = token.TokenType + "," + token.Utterance + "," + token.Rate + "," + token.Intensity + "," + token.TotalRepetitionCount;
+                var historyValue = token.TokenType + "," + token.Utterance + "," + token.Rate + "," + token.Intensity + "," + token.TotalRepetitionCount + "," + token.SelectedIndex;
                 using (StreamWriter stream = File.AppendText(fileLocation))
                 {
                     stream.WriteLine(historyValue);
@@ -535,7 +629,7 @@ namespace MainWindowDesign
             pWin.Show();
         }
 
-        private void startRecordingData()
+        private bool startRecordingDataAndCheckToProceedRecording()
         {
             after5sec = DateTime.UtcNow.AddSeconds(5);
             try
@@ -546,11 +640,12 @@ namespace MainWindowDesign
                 string pathToProtocolFileCount = System.IO.Path.Combine(generatedProtocolFilesPath, txtFileContentGivesProtocolFileName + ".csv");
                 File.ReadAllLines(pathToProtocolFileCount);
                 time = 5;
-                StartRecording(time);
+                return StartAudioRecordingAndCheckIfWeCanProceedRecordingFurther(time);
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show("Exception : " + e);
+                MessageBox.Show("Exception : " + e);
+                return false;
             }
 
         }
@@ -652,7 +747,7 @@ namespace MainWindowDesign
 
         //better get pressures directly from the files and then calculate the resisitance, put it in a csv file and just display it along with pressure and airflow when an existing file is opened.
 
-        
+
         public void calculateVPResistance(List<float> pressure, List<float> airflow, List<float> NCPressures, List<float> NCAirflows, List<float> NCResistances, string filepath)
         {
 
@@ -887,14 +982,14 @@ namespace MainWindowDesign
                 temp = temp / airflowsAtRelease.Count;
                 SDofAirflowsAtRelease = Math.Sqrt(temp);
 
-                
-                
+
+
                 float meanOfAirflowsAtMidVowel = sumOfAirflowsMidVowel / indicesOfMidPointsBetweenThePressurePeaks.Count();
                 temp = 0;
                 double SDofAirflowsMidVowel;
                 for (int i = 0; i < indicesOfMidPointsBetweenThePressurePeaks.Count; i++)
                 {
-                    temp += Math.Pow((airflow[indicesOfMidPointsBetweenThePressurePeaks[i]] - meanOfAirflowsAtMidVowel),2);
+                    temp += Math.Pow((airflow[indicesOfMidPointsBetweenThePressurePeaks[i]] - meanOfAirflowsAtMidVowel), 2);
                 }
                 temp = temp / indicesOfMidPointsBetweenThePressurePeaks.Count;
                 SDofAirflowsMidVowel = Math.Sqrt(temp);
@@ -904,26 +999,26 @@ namespace MainWindowDesign
                 float meanOfAirPressureAtPeaks = (float)pressureMaximas.Sum() / pressureMaximas.Count;
                 double SDofPressureAtPeaks;
                 temp = 0;
-                for(int i = 0; i < pressureMaximas.Count; i++)
+                for (int i = 0; i < pressureMaximas.Count; i++)
                 {
-                    temp += Math.Pow((pressureMaximas[i] - meanOfAirPressureAtPeaks), 2); 
+                    temp += Math.Pow((pressureMaximas[i] - meanOfAirPressureAtPeaks), 2);
                 }
                 temp = temp / pressureMaximas.Count;
                 SDofPressureAtPeaks = Math.Sqrt(temp);
-                
-                
+
+
                 float meanOfResistances = resistancesForStatisticCalculations.Sum() / resistancesForStatisticCalculations.Count;
                 double SDofResistances;
                 temp = 0;
-                for(int i = 0; i < resistancesForStatisticCalculations.Count; i++)
+                for (int i = 0; i < resistancesForStatisticCalculations.Count; i++)
                 {
                     temp += Math.Pow((resistancesForStatisticCalculations[i] - meanOfResistances), 2);
                 }
                 temp = temp / resistancesForStatisticCalculations.Count;
                 SDofResistances = Math.Sqrt(temp);
-                
-                
-                
+
+
+
                 LR_SummaryStatistics LRsum_stats = new LR_SummaryStatistics();
                 LRsum_stats.airFlowReleaseMean.Text = Convert.ToString(meanOfAirflowsAtRelease);
                 LRsum_stats.airFlowMidVowelMean.Text = Convert.ToString(meanOfAirflowsAtMidVowel);
@@ -1000,7 +1095,7 @@ namespace MainWindowDesign
 
         string filePathForPrandAf;
 
-        private void ClosingMethod(StringBuilder stringbuilder, List<float> allPressures, List<float> allAirflows) //Calls after the 5-second interval.
+        private void ClosingMethod(StringBuilder stringbuilder) //Calls after the 5-second interval.
         {
             int TWinSelectedIndex = 0;
             int TWinCurrentRepCount = 0;
@@ -1017,8 +1112,6 @@ namespace MainWindowDesign
             {
                 File.Delete(filePathForPrandAf);
             }
-
-            port.Write("sp");
             //var myFile = File.Create(FilePath);
             File.WriteAllText(filePathForPrandAf, stringbuilder.ToString());
             //string str = stringbuilder.
@@ -1026,26 +1119,26 @@ namespace MainWindowDesign
             checkButtonFlag1 = 0;
             checkButtonFlag2 = 0;  //These two values make sure that the 
 
-            string selectedTokenType = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType.ToString();
-            if (selectedTokenType == "LR")
-            {
-                calculateLRResistance(allPressures, allAirflows, filePathForPrandAf);
-            }
+            //string selectedTokenType = _tokenListWindow.protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType;
+            //if (selectedTokenType == "LR")
+            //{
+            //    calculateLRResistance(allPressures, allAirflows, filePathForPrandAf);
+            //}
 
-            else if (selectedTokenType == "VP")
-            {
-                //Get file for NC, i.e., assuming its is subtraction table, extract pressures, airflows and resistances into different lists.
-                List<float> NCPressures = new List<float>();
-                List<float> NCAirflows = new List<float>();
-                List<float> NCResistances = new List<float>();
-                calculateVPResistance(allPressures, allAirflows, NCPressures, NCAirflows, NCResistances, filePathForPrandAf);
-            }
+            //else if (selectedTokenType == "VP")
+            //{
+            //    //Get file for NC, i.e., assuming its is subtraction table, extract pressures, airflows and resistances into different lists.
+            //    List<float> NCPressures = new List<float>();
+            //    List<float> NCAirflows = new List<float>();
+            //    List<float> NCResistances = new List<float>();
+            //    calculateVPResistance(allPressures, allAirflows, NCPressures, NCAirflows, NCResistances, filePathForPrandAf);
+            //}
 
-            else if (selectedTokenType == "NC")
-            {
-                //CalculateNCResistance
-                calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
-            }
+            //else if (selectedTokenType == "NC")
+            //{
+            //    //CalculateNCResistance
+            //    calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
+            //}
             //calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
 
         }
@@ -1055,7 +1148,7 @@ namespace MainWindowDesign
             // pressures2 = new List<float>();
             List<float> listofAllPressures = new List<float>();
             List<float> listofAllAirflows = new List<float>();
-
+            bool canRecordingBeContinued = true;
 
             while (true)
             {
@@ -1135,7 +1228,7 @@ namespace MainWindowDesign
                                         AirFlowLineSeriesValues.Clear();
                                         //StartButton.Content = "Start";
                                         //StartButton_Click(null, null);
-                                        startRecordingData();
+                                        startRecordingDataAndCheckToProceedRecording();
                                     });
                                     //Have to call closing method
 
@@ -1161,11 +1254,10 @@ namespace MainWindowDesign
                                     if (DateTime.UtcNow.Subtract(after5sec).TotalMilliseconds > 0)
                                     {
                                         Debug.Print("dateTime.UtcNow : " + DateTime.UtcNow);
-                                        ClosingMethod(csv, listofAllPressures, listofAllAirflows);
+                                        ClosingMethod(csv);
                                     }
 
                                 }
-
                             }
                             break;
                         case PacketType.TemperatureOnly:
@@ -1928,6 +2020,7 @@ namespace MainWindowDesign
 
             handlers(this, new PropertyChangedEventArgs(propertyName));
         }
+
 
         double Normalize(Int32 x, double y)
         {

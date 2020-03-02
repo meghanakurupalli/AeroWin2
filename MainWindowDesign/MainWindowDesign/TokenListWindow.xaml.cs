@@ -9,7 +9,7 @@ namespace MainWindowDesign
     /// <summary>
     /// Interaction logic for TokenListWindow.xaml
     /// </summary>
-    public partial class TokenListWindow : Window
+    public partial class TokenListWindow
     {
         //string _protocolFileNameTWin;
         string generatedProtocolFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedProtocolFilesPath"];

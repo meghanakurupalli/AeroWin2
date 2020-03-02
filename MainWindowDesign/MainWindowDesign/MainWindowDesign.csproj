@@ -117,6 +117,9 @@
     <Compile Include="SaveFileWindow.xaml.cs">
       <DependentUpon>SaveFileWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SelectNCToken.xaml.cs">
+      <DependentUpon>SelectNCToken.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TokenHistoryWindow.xaml.cs">
       <DependentUpon>TokenHistoryWindow.xaml</DependentUpon>
     </Compile>
@@ -161,6 +164,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SaveFileWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SelectNCToken.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
