@@ -63,25 +63,6 @@ namespace MainWindowDesign
 
         private void ProtocolFileBrowse_Click(object sender, RoutedEventArgs e)
         {
-
-            if(ProtocolFileName.Text.ToString() != null)
-            {
-                var filePath = System.IO.Path.Combine(generatedProtocolFilesPath + ProtocolFileName.Text.ToString() + ".csv");
-                if(!File.Exists(filePath))
-                {
-                    MessageBox.Show("This protocol file does not exist. Try choosing from existing ones or create a new one in Tools > Protocol File Builder.", "File doesn't exist", MessageBoxButton.OK, MessageBoxImage.Asterisk);
-                }
-
-            }
-            else if(ProtocolFileName.Text.ToString() == null )
-            {
-                string filter = "CSV file (*.csv)|*.csv| All Files (*.*)|*.*";
-                openFileDialog.Filter = filter;
-                openFileDialog.InitialDirectory = generatedProtocolFilesPath;
-
-            }
-
-
             //save.FileName = "Protocol.csv";
 
             //save.Filter = filter;
@@ -105,8 +86,6 @@ namespace MainWindowDesign
             //    mwin.FileNameFromSFW = DataFileName;
 
             //}
-
-
 
             if (openFileDialog.ShowDialog()==true)
             {
