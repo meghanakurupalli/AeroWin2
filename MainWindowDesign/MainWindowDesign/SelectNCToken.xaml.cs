@@ -49,10 +49,14 @@ namespace MainWIndowDesign
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedNCToken = RecordedNCTokens[SelectNCTokenGrid.SelectedIndex];
-            SelectedNCTokenArgs = new SelectedNCTokenArgs();
-            SelectedNCTokenArgs.RecordedNCToken = selectedNCToken;
-            NCTokenForVPCalculationIsSelected?.Invoke(sender, SelectedNCTokenArgs);
+            if (SelectNCTokenGrid.SelectedIndex < RecordedNCTokens.Count)
+            {
+                var selectedNCToken = RecordedNCTokens[SelectNCTokenGrid.SelectedIndex];
+                SelectedNCTokenArgs = new SelectedNCTokenArgs();
+                SelectedNCTokenArgs.RecordedNCToken = selectedNCToken;
+                NCTokenForVPCalculationIsSelected?.Invoke(sender, SelectedNCTokenArgs);
+            }
+            
         }
     }
 

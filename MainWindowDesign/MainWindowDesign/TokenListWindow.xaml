@@ -7,7 +7,7 @@
         Title="TokenListWindow" 
         Height="300" 
         Width="500"
-        Closed="TokenListWindowClosed_Event">
+        Closed="TokenListWindowClosed_Event" ResizeMode="NoResize">
     <StackPanel Height="250" VerticalAlignment="Top">
         <DataGrid Height="200" x:Name="TokenListGrid" SelectionUnit="FullRow" >
                         
