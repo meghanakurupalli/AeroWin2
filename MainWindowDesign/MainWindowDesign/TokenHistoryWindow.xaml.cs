@@ -101,6 +101,7 @@ namespace MainWindowDesign
             //MessageBox.Show("Yayy");
 
             //throw new NotImplementedException();
+
             displayMethod();
         }
 

@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MainWIndowDesign"
         mc:Ignorable="d"
-        Title="VPSummaryStatisticsWindow" Height="300" Width="500" ResizeMode="NoResize">
-    <Border Padding="5">
+        Title="VPSummaryStatisticsWindow" Height="190" Width="350" ResizeMode="NoResize">
+    <Border Padding="3">
         <StackPanel Orientation="Vertical">
 
             <!--<StackPanel Orientation="Horizontal">
@@ -39,9 +39,9 @@
                 
             </Grid>-->
 
-            <Grid Height="50">
+            <Grid Height="30">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.5*" />
+                    <ColumnDefinition Width="1.7*" />
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
@@ -50,13 +50,13 @@
                 <Rectangle Grid.Row="0" Grid.Column="1" Fill="#D3D3D3" Margin="2 2 2 2"></Rectangle>
                 <Rectangle Grid.Row="0" Grid.Column="2" Fill="#D3D3D3" Margin="2 2 4 2"></Rectangle>
 
-                <Label Grid.Row="0" Grid.Column="0" Content="Statistic" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="DemiBold"></Label>
-                <Label Grid.Row="0" Grid.Column="1" Content="Mean" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="DemiBold"></Label>
-                <Label Grid.Row="0" Grid.Column="2" Content="Std.Dev" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="DemiBold"></Label>
+                <Label Grid.Row="0" Grid.Column="0" Content="Statistic" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="DemiBold"></Label>
+                <Label Grid.Row="0" Grid.Column="1" Content="Mean" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="DemiBold"></Label>
+                <Label Grid.Row="0" Grid.Column="2" Content="Std.Dev" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="DemiBold"></Label>
             </Grid >
-            <Grid Height =" 160" Margin="0 2 0 0">
+            <Grid Height =" 120" Margin="0 1 0 0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1.7*"/>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
@@ -64,35 +64,35 @@
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="1*"/>
-                    
+
                 </Grid.RowDefinitions>
                 <Rectangle Grid.Row="0" Grid.Column="0" Fill="#DcdcdC" Margin="4 2 2 2"></Rectangle>
                 <Rectangle Grid.Row="1" Grid.Column="0" Fill="#DcdcdC" Margin="4 2 2 2"></Rectangle>
                 <Rectangle Grid.Row="2" Grid.Column="0" Fill="#DcdcdC" Margin="4 2 2 2"></Rectangle>
-                
+
 
                 <Rectangle Grid.Row="0" Grid.Column="1" Fill="#f5f5f5" Margin="2 2 2 2"></Rectangle>
                 <Rectangle Grid.Row="1" Grid.Column="1" Fill="#f5f5f5" Margin="2 2 2 2"></Rectangle>
                 <Rectangle Grid.Row="2" Grid.Column="1" Fill="#f5f5f5" Margin="2 2 2 2"></Rectangle>
-                
 
-                <Rectangle Grid.Row="0" Grid.Column="2" Fill="#f5f5f5" Margin="2 2 4 2"></Rectangle>
-                <Rectangle Grid.Row="1" Grid.Column="2" Fill="#f5f5f5" Margin="2 2 4 2"></Rectangle>
-                <Rectangle Grid.Row="2" Grid.Column="2" Fill="#f5f5f5" Margin="2 2 4 2"></Rectangle>
-                
 
-                <Label Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Air Pressure(Peaks)" FontWeight="DemiBold" FontSize="15"></Label>
-                <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Air Flow(at PressurePeaks)" FontWeight="DemiBold" FontSize="15"></Label>
-                <Label Grid.Row="2" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Resistance" FontWeight="DemiBold" FontSize="15"></Label>
-                
+                <Rectangle Grid.Row="0" Grid.Column="3" Fill="#f5f5f5" Margin="2 2 4 2"></Rectangle>
+                <Rectangle Grid.Row="1" Grid.Column="3" Fill="#f5f5f5" Margin="2 2 4 2"></Rectangle>
+                <Rectangle Grid.Row="2" Grid.Column="3" Fill="#f5f5f5" Margin="2 2 4 2"></Rectangle>
 
-                <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airPressureMean"></TextBlock>
-                <TextBlock Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airPressureSD"></TextBlock>
-                <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airFlowMean"></TextBlock>
-                <TextBlock Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="airFlowSD"></TextBlock>
-                <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="resistanceMean"></TextBlock>
-                <TextBlock Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="15" Name="resistanceSD"></TextBlock>
-                
+
+                <Label Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Air Pressure(Peaks)" FontWeight="DemiBold" FontSize="12" Margin="3,6,3.333,6"></Label>
+                <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Air Flow(at PressurePeaks)" FontWeight="DemiBold" FontSize="12" Margin="0,6,0.333,6"></Label>
+                <Label Grid.Row="2" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Resistance" FontWeight="DemiBold" FontSize="12" Margin="32,6,32.333,6"></Label>
+
+
+                <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="12" Name="airPressureMean" Margin="44.667,10,26.036,10"></TextBlock>
+                <TextBlock Grid.Row="0" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="12" Name="airPressureSD" Margin="44.667,10"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="12" Name="airFlowMean" Margin="44.667,10,26.036,10"></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="12" Name="airFlowSD" Margin="44.667,10"></TextBlock>
+                <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="12" Name="resistanceMean" Margin="44.667,10,26.036,10"></TextBlock>
+                <TextBlock Grid.Row="2" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Text="-" FontSize="12" Name="resistanceSD" Margin="44.667,10"></TextBlock>
+
             </Grid>
             <Grid Margin="0 2 0 0" Height="45">
                 <Rectangle Fill="#dcdcdc" Margin="4 2 4 2"></Rectangle>

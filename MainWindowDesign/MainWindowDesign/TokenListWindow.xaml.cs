@@ -17,7 +17,7 @@ namespace MainWindowDesign
 
         string path;
         string noOfDoneRepCount = "1";
-
+        
         public TokenListWindow()
         {
 
@@ -25,8 +25,12 @@ namespace MainWindowDesign
             //mwin = new MainWindow();
         }
 
+        
+
+
         public TokenListWindow(string str)
-        {            
+        {
+            
             InitializeComponent();
             Debug.Print("Selected Index here : " + TokenListGrid.SelectedIndex);
             //TokenListGrid.SelectedIndex = 0;
@@ -61,8 +65,10 @@ namespace MainWindowDesign
        
         public void ChangeIndexSelection()
         {
-            
+           
+
             var countOfProtocols = TokenListGrid.Items.Count;
+            
             var currentProtocol = protocols[TokenListGrid.SelectedIndex];
             var temp = currentProtocol.TotalRepetitionCount.Split(' ');
             var currentProtocolRepetitionCount = Int32.Parse(temp[2]);
@@ -82,9 +88,11 @@ namespace MainWindowDesign
             else
             {
                 int nextIndex = TokenListGrid.SelectedIndex + 1;
+                
                 if (nextIndex <= countOfProtocols - 2)
                 {
                     TokenListGrid.SelectedIndex = nextIndex;
+                    
                     saveme = 1;
                     CurrentRepetitionCount = saveme;
                 }

@@ -17,6 +17,7 @@ namespace MainWIndowDesign
         }
 
         private List<RecordedProtocolHistory> recordedNCTokens;
+        public bool isNCTokenSelectedForSubtractionTable;
         public List<RecordedProtocolHistory> RecordedNCTokens
         {
             get { return recordedNCTokens;}
@@ -28,6 +29,7 @@ namespace MainWIndowDesign
         }
 
         private SelectedNCTokenArgs SelectedNCTokenArgs { get; set; }
+       
 
         public event EventHandler<SelectedNCTokenArgs> NCTokenForVPCalculationIsSelected;
 
@@ -51,10 +53,19 @@ namespace MainWIndowDesign
         {
             if (SelectNCTokenGrid.SelectedIndex < RecordedNCTokens.Count)
             {
-                var selectedNCToken = RecordedNCTokens[SelectNCTokenGrid.SelectedIndex];
-                SelectedNCTokenArgs = new SelectedNCTokenArgs();
-                SelectedNCTokenArgs.RecordedNCToken = selectedNCToken;
-                NCTokenForVPCalculationIsSelected?.Invoke(sender, SelectedNCTokenArgs);
+                try
+                {
+                    var selectedNCToken = RecordedNCTokens[SelectNCTokenGrid.SelectedIndex];
+                    SelectedNCTokenArgs = new SelectedNCTokenArgs();
+                    SelectedNCTokenArgs.RecordedNCToken = selectedNCToken;
+                    NCTokenForVPCalculationIsSelected?.Invoke(sender, SelectedNCTokenArgs);
+                }
+                catch (Exception exception)
+                {
+                    MessageBox.Show(
+                        "You cannot proceed to record a VP token without selecting an NC token for subtraction table", "Cannot record VP token!",MessageBoxButton.OK);
+                }
+                
             }
             
         }

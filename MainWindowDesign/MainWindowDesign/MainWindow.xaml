@@ -25,8 +25,11 @@
             </DoubleAnimation>
         </Storyboard>
     </Window.Resources>
+
     <Border Margin="10 10 10 10">
+
         <StackPanel>
+
             <Menu IsMainMenu="True" >
                 <MenuItem Header="_File">
                     <MenuItem x:Name="NewFileButton" Header="_New" Click="NewFileButton_Click"
