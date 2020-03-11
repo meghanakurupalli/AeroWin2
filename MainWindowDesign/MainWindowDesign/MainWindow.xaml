@@ -14,7 +14,7 @@
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        Title="AeroWin RT" Height="1000" Width="1200" WindowState="Maximized">
+        Title="AeroWin RT" Height="1000" Width="1200" WindowState="Maximized" Closing="MainWindow_OnClosing">
     <Window.Resources>
         <Storyboard x:Key="moveLine" Name="forMovingtheLine">
             <DoubleAnimation Storyboard.TargetName="audioLine" Storyboard.TargetProperty="X1" From="5.0" To="780" Duration="0:0:5">
@@ -164,7 +164,7 @@
                                             ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX >
-                            <lvc:Axis ShowLabels="False" />
+                            <lvc:Axis ShowLabels="False" MaxValue="835" />
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
@@ -181,13 +181,13 @@
                 
                 
                 <Grid Grid.Column="2" Grid.Row="1" >
-                    <lvc:CartesianChart x:Name="airFlowChart" Height="150" DisableAnimations="True" Hoverable="False">
+                    <lvc:CartesianChart x:Name="airFlowChart" Height="150" DisableAnimations="True" Hoverable="False" >
                         <lvc:CartesianChart.Series>
                             <lvc:LineSeries Values="{Binding AirFlowLineSeriesValues}"
-                                ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
+                                ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                         </lvc:CartesianChart.Series>
-                        <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False"/>
+                        <lvc:CartesianChart.AxisX >
+                            <lvc:Axis ShowLabels="False" MaxValue="210"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
@@ -205,7 +205,7 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False"/>
+                            <lvc:Axis ShowLabels="False" MaxValue="210"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
@@ -223,7 +223,7 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False"/>
+                            <lvc:Axis ShowLabels="False" MaxValue="210"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>

@@ -144,6 +144,7 @@ namespace MainWindowDesign
                                                 
                         
                         protocols.Add(new Protocol() { TokenType = TokenTypeVal, Utterance = UtteranceVal, Rate = RateVal, Intensity = IntensityVal, TotalRepetitionCount = RepetitionCountVal });
+                        
 
                         break;
 
@@ -274,15 +275,31 @@ namespace MainWindowDesign
                 writer.WriteLine(header);
                 var csv = new StringBuilder();
 
-                
+                List<Protocol> tempo = new List<Protocol>();
 
-                for(int i = 0; i < protocols.Count; i++)
+                for (int i = 0; i < protocols.Count; i++)
                 {
-                    string protocol = protocols[i].TokenType + "," + protocols[i].Utterance + "," + protocols[i].Rate + "," + protocols[i].Intensity + "," +  protocols[i].TotalRepetitionCount;
-                    writer.WriteLine(protocol);
+                    tempo.Add(new Protocol());
+                }
+                for (int i = 0; i < protocols.Count; i++)
+                {
+                    tempo[i].TokenType = protocols[i].TokenType;
+                    tempo[i].Utterance = protocols[i].Utterance;
+                    tempo[i].Rate = protocols[i].Rate;
+                    tempo[i].Intensity = protocols[i].Intensity;
+                    tempo[i].TotalRepetitionCount = protocols[i].TotalRepetitionCount;
                 }
 
-               
+                List<Protocol> sortedList = tempo.OrderBy(o => o.TokenType).ToList();
+
+                for (int i = 0; i < protocols.Count; i++)
+                {
+                    string protocol = sortedList[i].TokenType + "," + sortedList[i].Utterance + "," + sortedList[i].Rate + "," + sortedList[i].Intensity + "," + sortedList[i].TotalRepetitionCount;
+                    writer.WriteLine(protocol);
+
+                }
+
+
                 writer.Close();
                 
             }

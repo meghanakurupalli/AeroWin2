@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Select an NC Token for Subtraction Table" Height="300" Width="320" WindowStyle="None">
+        Title="Select an NC Token for Subtraction Table" Height="300" Width="320" WindowStyle="None" WindowStartupLocation="Manual">
     <StackPanel Height="250" VerticalAlignment="Top">
         <DataGrid Height="200" 
                   x:Name="SelectNCTokenGrid" 

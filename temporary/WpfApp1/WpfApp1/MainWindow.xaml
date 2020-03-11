@@ -20,30 +20,19 @@
     </Window.Resources>
     
     <Border Padding="20">
-        <Grid >
-            <lvc:CartesianChart Name ="idkchart" Series="{Binding Seriescollection}" DisableAnimations="True"   Height="160">
-                <lvc:CartesianChart.AxisY>
-                    <lvc:Axis Position="RightTop"></lvc:Axis>
-                </lvc:CartesianChart.AxisY>
-                
-            </lvc:CartesianChart>
-            
-            <!--<Line HorizontalAlignment="Center" Margin="311,110,481,114" Focusable="True"/>-->
-
-
-            <Canvas Background="Transparent" Height="160">
-                <Line Name="audioLine" X1="5" X2="5" Y1="0" Y2="136"  Stroke="Black" Opacity="0.8">
-                </Line>
-                
-            </Canvas>
-            <Button Content="Go!!" HorizontalAlignment="Left" Margin="10,291,0,0" VerticalAlignment="Top" Width="65" x:Name="btn">
-                <Button.Triggers>
-                    <EventTrigger RoutedEvent="Button.Click">
-                        <BeginStoryboard  Storyboard="{StaticResource moveLine}">
-                        </BeginStoryboard>
-                    </EventTrigger>
-                </Button.Triggers>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" Click="UpdateAllOnClick">
+                Move All
             </Button>
+            <lvc:CartesianChart Grid.Row="1" Series="{Binding SeriesCollection}">
+                <lvc:CartesianChart.AxisX >
+                    <lvc:Axis MinValue="0" MaxValue="1000"></lvc:Axis>
+                </lvc:CartesianChart.AxisX>
+            </lvc:CartesianChart>
         </Grid>
     </Border>
 </Window>

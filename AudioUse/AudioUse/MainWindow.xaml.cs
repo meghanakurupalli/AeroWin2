@@ -18,7 +18,9 @@ using System.Windows.Shapes;
 using LiveCharts;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
+using System.Threading;
 using LiveCharts.Wpf;
 using NAudio.Utils;
 
@@ -33,6 +35,7 @@ namespace AudioUse
 
         //public GearedValues<double> audioPoints { get; set; }//= new ChartValues<double>();
         public ChartValues<double> audioPoints { get; set; }//= new ChartValues<double>();
+        public ChartValues<double> someData { get; set; }
         // public SeriesCollection seriesCollection { get; set; }
 
         string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
@@ -53,6 +56,7 @@ namespace AudioUse
 
             // audioPoints = new GearedValues<double>();
             audioPoints = new ChartValues<double>();
+            //audioPoints.
             time = 5.0;
 
             //for (int i = 0; i < 2; i++)
@@ -70,6 +74,12 @@ namespace AudioUse
             //sWin.Show();
             //fileName = sWin.FileName.Text.ToString();
             showColumnChart();
+            someData = new ChartValues<double>();
+            for (int i = 0; i < 865; i++)
+            {
+                audioPoints.Add(0);
+            }
+
 
         }
 
@@ -131,6 +141,7 @@ namespace AudioUse
 
 
         static int o = 0;
+        static  int count = 0;
         void StartRecording(double time)
         {
             //if(time ==0)
@@ -184,7 +195,7 @@ namespace AudioUse
             wfw.Flush();
             //wfw = null;
             Debug.Print("o val before entering if : " + o);
-            if (o <= 5)
+            if (o < 1)
             {
                 Debug.Print("o val after entering if : " + o);
                 newTime = DateTime.UtcNow.AddSeconds(5);

@@ -11,13 +11,16 @@ namespace MainWIndowDesign
     /// </summary>
     public partial class SelectNCToken: INotifyPropertyChanged
     {
+
         public SelectNCToken()
         {
             InitializeComponent();
+
+            this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
         }
 
         private List<RecordedProtocolHistory> recordedNCTokens;
-        public bool isNCTokenSelectedForSubtractionTable;
+        public bool isNCTokenSelectedForSubtractionTable { get; set; }
         public List<RecordedProtocolHistory> RecordedNCTokens
         {
             get { return recordedNCTokens;}
@@ -47,6 +50,7 @@ namespace MainWIndowDesign
             InitializeComponent();
             RecordedNCTokens = recordedNCTokens;
             SelectNCTokenGrid.DataContext = this;
+            this.Left = SystemParameters.PrimaryScreenWidth - this.Width-20;
         }
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)
@@ -59,6 +63,7 @@ namespace MainWIndowDesign
                     SelectedNCTokenArgs = new SelectedNCTokenArgs();
                     SelectedNCTokenArgs.RecordedNCToken = selectedNCToken;
                     NCTokenForVPCalculationIsSelected?.Invoke(sender, SelectedNCTokenArgs);
+                    isNCTokenSelectedForSubtractionTable = true;
                 }
                 catch (Exception exception)
                 {
