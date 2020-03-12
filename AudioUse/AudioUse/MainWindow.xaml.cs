@@ -75,11 +75,12 @@ namespace AudioUse
             //fileName = sWin.FileName.Text.ToString();
             showColumnChart();
             someData = new ChartValues<double>();
-            for (int i = 0; i < 865; i++)
+            StreamReader sr = new StreamReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\uhij\uhijpr_af_0_1.csv");
+            while (!sr.EndOfStream)
             {
-                audioPoints.Add(0);
+                var splits = sr.ReadLine().Split(',');
+                someData.Add(double.Parse(splits[0]));
             }
-
 
         }
 

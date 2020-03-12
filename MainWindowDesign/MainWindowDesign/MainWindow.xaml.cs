@@ -1,6 +1,6 @@
 ﻿using CenterSpace.NMath.Core;
 using LiveCharts;
-using MainWIndowDesign;
+using MainWindowDesign;
 using NAudio.Wave;
 using Nito.KitchenSink.CRC;
 using System;
@@ -131,6 +131,7 @@ namespace MainWindowDesign
             Microsoft.Win32.SaveFileDialog dialog = new Microsoft.Win32.SaveFileDialog();
 
             //StartButton_Click(null, null);
+            
 
 
         }
@@ -187,7 +188,7 @@ namespace MainWindowDesign
             }
             catch (Exception)
             {
-                FormsMessageBox.Show("Equipment not connected!", "Please meake sure that the equipment is connecetd and you have given the right port number.", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                FormsMessageBox.Show(@"Equipment not connected!", @"Please make sure that the equipment is connected and you have given the right port number.", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 //FormsMessageBox.Show(Exception);
             }
         }
@@ -206,7 +207,7 @@ namespace MainWindowDesign
             TokenHistory = new List<RecordedProtocolHistory>();
         }
 
-        public float[] getCoefficients()
+        public float[] GetCoefficients()
         {
             string[] lines = File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");
 
@@ -296,10 +297,7 @@ namespace MainWindowDesign
 
             this.time = time;
             return true;
-            //audioTimer.Elapsed += AudioTimer_Elapsed;
-            //audioTimer.Start();
-            //TWinSelectedIndex = 0;
-            //TWinCurrentRepCount = 0;
+            
 
         }
         StringBuilder csv = new StringBuilder();
@@ -563,7 +561,7 @@ namespace MainWindowDesign
                     float[] points2 = displaypoint.ToArray();
                     float[] points3 = displaypoint.ToArray();
 
-                    coefficients = getCoefficients();
+                    coefficients = GetCoefficients();
                     for (int i = 0; i < 5; i++)
                     {
                         a[i] = coefficients[i];
@@ -816,8 +814,8 @@ namespace MainWindowDesign
 
             //pressures don't cross +/- 0.02
 
-            //pressure = pressure.Select(x => x - pressureOffset).ToList();
-            //airflow = airflow.Select(x => x - airflowOffset).ToList();
+            pressure = pressure.Select(x => x - pressureOffset).ToList();
+            airflow = airflow.Select(x => x - airflowOffset).ToList();
 
             double[] arr = new double[pressure.Count];
             for (int i = 0; i < pressure.Count; i++)
@@ -827,7 +825,7 @@ namespace MainWindowDesign
 
             var v = new DoubleVector(arr);
 
-            PeakFinderSavitzkyGolay pfa = new PeakFinderSavitzkyGolay(v, 50, 4);
+            PeakFinderSavitzkyGolay pfa = new PeakFinderSavitzkyGolay(v, 8, 4);
             //pfa.LocatePeaks();
             List<float> list = new List<float>();
             //pfa.GetAllPeaks();
@@ -844,12 +842,14 @@ namespace MainWindowDesign
             
             var pfa = CalculatePeaks(pressure, airflow);
             pfa.LocatePeaks();
-            List<float> list = new List<float>();
+           // List<double> list = new List<float>();
             pfa.GetAllPeaks();
             List<double> pressureMaximas = new List<double>();
             List<int> pressureMaximaIndices = new List<int>();
             int flag1 = 0;
             int flag2 = 0;
+            List<double> initialPressurePeaks = new List<double>();
+            List<int> initialPressurePeakIndices = new List<int>();
 
 
             try
@@ -860,11 +860,23 @@ namespace MainWindowDesign
                     if (peak.Y > 0.2)
                     {
                         Debug.Print("Found peak at = ({0},{1})", peak.X, peak.Y);
-                        pressureMaximas.Add(peak.Y);
-                        pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
+                        //pressureMaximas.Add(peak.Y);
+                        //pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
+                        initialPressurePeaks.Add(peak.Y);
+                        initialPressurePeakIndices.Add(Convert.ToInt32(peak.X));
                     }
 
                 }
+
+                for (int i = 0; i < initialPressurePeaks.Count-1; i++)
+                {
+                    if (initialPressurePeakIndices[i + 1] - initialPressurePeakIndices[i] < 100)
+                    {
+                        initialPressurePeakIndices.RemoveAt(i);
+                        initialPressurePeaks.RemoveAt(i);
+                    }
+                }
+
 
                 List<int> indicesofStartofPeaks = new List<int>();
                 List<int> indicesofEndofPeaks = new List<int>();
@@ -1091,21 +1103,40 @@ namespace MainWindowDesign
 
             List<int> pressureMaximaIndices = new List<int>();
             List<double> pressureMaximas = new List<double>();
+            List<int> initialPressurePeakIndices = new List<int>();
+            List<double> initialPressurePeaks = new List<double>();
             
 
             try
             {
-                for (int p = 0; p < pfa.NumberPeaks; p++)// Change back to zero
+                for (int p = 0; p < pfa.NumberPeaks; p++)
                 {
                     Extrema peak = pfa[p];
-                    if (peak.Y > 0.2)
+                    if (peak.Y > 0.8)
                     {
                         Debug.Print("Found peak at = ({0},{1})", peak.X, peak.Y);
-                        pressureMaximas.Add(peak.Y);
-                        pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
+                        //pressureMaximas.Add(peak.Y);
+                        //pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
+                        initialPressurePeaks.Add(peak.Y);
+                        initialPressurePeakIndices.Add(Convert.ToInt32(peak.X));
                     }
 
                 }
+
+                for (int i = 0; i < initialPressurePeaks.Count - 1; i++)
+                {
+                    if (initialPressurePeakIndices[i + 1] - initialPressurePeakIndices[i] < 100)
+                    {
+                        initialPressurePeakIndices[i] = 99999;
+                        initialPressurePeaks[i] = 99999;
+                    }
+                }
+
+                initialPressurePeakIndices.RemoveAll(x => x == 99999);
+                initialPressurePeaks.RemoveAll(x => x == 99999);
+
+                pressureMaximaIndices = initialPressurePeakIndices.ToList();
+                pressureMaximas = initialPressurePeaks.ToList();
 
                 if (pressureMaximas.Count >= 3)
                 {
@@ -1118,7 +1149,7 @@ namespace MainWindowDesign
                     }
 
                     List<double> pressureMeans = new List<double>();
-                    for (int i = 1; i < pressureMaximas.Count - 2; i++)// Have to change to i = 1
+                    for (int i = 1; i < pressureMaximas.Count - 2; i++)// Have to change to i = 1 /////-3
                     {
                         //double d = pressureMaximas[1];
                         pressureMeans.Add((pressureMaximas[i] + pressureMaximas[i + 1]) / 2);
@@ -2632,6 +2663,13 @@ namespace MainWindowDesign
             //       IsTokenListWindowClosed = true;
             //   }
             //}
+        }
+
+        private void ChannelRanges_OnClick(object sender, RoutedEventArgs e)
+        {
+            ChannelRangesWindow channelRanges = new ChannelRangesWindow();
+            channelRanges.Show();
+            //throw new NotImplementedException();
         }
     }
 }

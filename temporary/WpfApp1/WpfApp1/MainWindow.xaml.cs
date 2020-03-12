@@ -18,6 +18,7 @@ using CenterSpace.NMath.Core;
 using System.IO;
 using System.Diagnostics;
 using LiveCharts.Defaults;
+using WpfApp1;
 
 namespace liveChartsExample
 {
@@ -30,12 +31,25 @@ namespace liveChartsExample
         public SeriesCollection Seriescollection { get; set; }
         public LineSeries LineSeries { get; set; }
         public VisualElementsCollection Visuals { get; set; }
+        public int? minYValue { get; set; }
+        public int? maxYValue { get; set; }
         Vector vector = new Vector();
         double[] arr;
 
         public MainWindow()
         {
             InitializeComponent();
+            minYValue = null;
+            maxYValue = null;
+
+            
+            //testwindow twin = new testwindow();
+            //minYValue = twin.minValue;
+            //maxYValue = twin.maxValue;
+            //DataContext = this;
+
+            #region CodeForLineSeriesStuff
+
             //    ChartValues<double> charts = new ChartValues<double> { 30, 30, 69, 0089, -57 };
             //    Seriescollection = new SeriesCollection
             //    {
@@ -178,19 +192,22 @@ namespace liveChartsExample
 
             //    DataContext = this;
 
+            #endregion
+
+
             SeriesCollection = new SeriesCollection
             {
                 new ScatterSeries
                 {
                     Values = new ChartValues<ScatterPoint>
                     {
-                        new ScatterPoint(5, 5, 20),
-                        new ScatterPoint(3, 4, 80),
-                        new ScatterPoint(7, 2, 20),
-                        new ScatterPoint(2, 6, 60),
-                        new ScatterPoint(8, 2, 70)
+                        new ScatterPoint(5, 5, 0.1),
+                        new ScatterPoint(3, 4, 1),
+                        new ScatterPoint(7, 2, 1),
+                        new ScatterPoint(2, 6, 1),
+                        new ScatterPoint(8, 2, 1)
                     },
-                    MinPointShapeDiameter = 15,
+                    MinPointShapeDiameter = 5,
                     MaxPointShapeDiameter = 45
                 },
                 new ScatterSeries
@@ -228,7 +245,7 @@ namespace liveChartsExample
         }
     }
 
-
+    
 }
 
 

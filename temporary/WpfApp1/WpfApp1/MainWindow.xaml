@@ -30,8 +30,12 @@
             </Button>
             <lvc:CartesianChart Grid.Row="1" Series="{Binding SeriesCollection}">
                 <lvc:CartesianChart.AxisX >
-                    <lvc:Axis MinValue="0" MaxValue="1000"></lvc:Axis>
+                    <lvc:Axis MinValue="{Binding minXValue}" MaxValue="{Binding maxXValue}"></lvc:Axis>
                 </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY >
+                    <lvc:Axis MinValue="{Binding minYValue}" MaxValue="{Binding maxYValue}"></lvc:Axis>
+                </lvc:CartesianChart.AxisY>
+
             </lvc:CartesianChart>
         </Grid>
     </Border>

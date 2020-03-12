@@ -7,7 +7,7 @@
         xmlns:DVC="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"
         
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="1000">
     <Grid>
 
         <Canvas x:Name="waveCanvas" HorizontalAlignment="Left" Height="70" 
@@ -16,7 +16,7 @@
         <!--<Button Name="btnDownloadFile" Content="Download" HorizontalAlignment="Left" Margin="30,294,0,0" VerticalAlignment="Top" Width="75" Click="DownloadFile_Click"/>-->
         <!--<lvc:CartesianChart Series="{Binding PolylineCollection}" Margin="10,209,68,10" />-->
         <lvc:CartesianChart Name="CartChart"
-            Margin="30,96,0,180" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
+            Margin="30,96,0,275" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
                             Pan="Xy" >
             <!--<lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding SeriesCollection}" ScalesXAt="0"/>
@@ -36,7 +36,7 @@
         </lvc:CartesianChart>
 
         <lvc:CartesianChart Name="CartChart1"
-                            Margin="30,244,0,32" HorizontalAlignment="Left" Width="722" Zoom= "Xy"
+                            Margin="30,171,0,32" HorizontalAlignment="Left" Width="870" Zoom= "Xy"
                             Pan="Xy" >
             <!--<lvc:CartesianChart.Series>
                 <lvc:LineSeries Values="{Binding SeriesCollection}" ScalesXAt="0"/>

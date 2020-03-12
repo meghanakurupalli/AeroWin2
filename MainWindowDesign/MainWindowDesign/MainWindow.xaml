@@ -60,6 +60,7 @@
                     <MenuItem Header="Subtraction Token"/>
                     <MenuItem Header="Device and AI Channels" Name ="DeviceChannels" Click="DeviceChannels_Click"/>
                     <MenuItem Header="Peak Detection"/>
+                    <MenuItem Header="Set Channel Ranges" Name ="ChannelRanges" Click="ChannelRanges_OnClick"></MenuItem>
                 </MenuItem>
 
                 <MenuItem Header="Cursors" Click="clickToShowCursors">

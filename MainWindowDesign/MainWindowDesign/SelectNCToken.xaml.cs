@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 
-namespace MainWIndowDesign
+namespace MainWindowDesign
 {
     /// <summary>
     /// Interaction logic for SelectNCToken.xaml
