@@ -15,8 +15,6 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="TokenType" Binding="{Binding TokenType}" />
                 <DataGridTextColumn Header="Utterance" Binding="{Binding Utterance}" />
-                <!--<DataGridTextColumn Header="Rate" Binding="{Binding Rate}" />
-                <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}" />-->
                 <DataGridTextColumn Header="TotalRepetitionCount" Binding="{Binding TotalRepetitionCount}" />
             </DataGrid.Columns>
 
