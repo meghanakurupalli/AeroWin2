@@ -206,7 +206,7 @@ namespace MainWindowDesign
 
         public float[] GetCoefficients()
         {
-            string[] lines = File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");
+            string[] lines = File.ReadAllLines(@"D:\GIT\AeroWin2\MainWindowDesign\MainWindowDesign\Resources\coefficients.txt");
 
             string[] coefficients = new string[10];
             float[] coefficients1 = new float[10];
