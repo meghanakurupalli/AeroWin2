@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
@@ -17,6 +18,8 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using LiveCharts.Defaults;
+using MainWIndowDesign;
 using FormsMessageBox = System.Windows.Forms.MessageBox;
 using MessageBox = System.Windows.MessageBox;
 
@@ -52,6 +55,9 @@ namespace MainWindowDesign
 
         private bool _isTokenListWindowClosed;
         private bool isSelectNCTokenShown;
+        private DoubleVector peterSavitzkyCoefficients = new DoubleVector();
+        private int filterWidthLeft;
+        private int filterWidthRight;
 
         public bool IsTokenListWindowClosed
         {
@@ -69,6 +75,34 @@ namespace MainWindowDesign
         public ChartValues<float> PressureLineSeriesValues { get; set; } = new ChartValues<float>();
         public ChartValues<float> AirFlowLineSeriesValues { get; set; } = new ChartValues<float>();
         public ChartValues<double> ResistanceLineSeriesValues { get; set; } = new ChartValues<double>();
+        
+        public double? _PressureXAxisMax;
+        public double? _AirflowXAxisMax;
+        public double? PressureXAxisMax
+        {
+            get => _PressureXAxisMax;
+            set
+            {
+                _PressureXAxisMax = value;
+                OnPropertyChanged("PressureXAxisMax");
+            }
+        }
+
+        public double? AirflowXAxisMax
+        {
+            get => _AirflowXAxisMax;
+            set
+            {
+                _AirflowXAxisMax = value;
+                OnPropertyChanged("AirflowXAxisMax");
+            }
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
 
         private readonly int QUEUE_THRESHOLD = 8;
         SerialPort port = null;
@@ -91,7 +125,10 @@ namespace MainWindowDesign
         DateTime after5sec;
         public string SaveFileLocationOfTokenHistoryFile { get; set; }
 
-        private LR_SummaryStatistics lrsum;
+        //private LR_SummaryStatistics lrsum =  new LR_SummaryStatistics();
+        private VPSummaryStatisticsWindow vpsum = new VPSummaryStatisticsWindow();
+
+        private SummaryStatisticsWindow _summaryStatisticsWindow = new SummaryStatisticsWindow();
         private TokenListWindow _tokenListWindow;
         List<byte> AudioData = new List<byte>() { 0x00 };
         public string FilePath { get; private set; }
@@ -111,11 +148,14 @@ namespace MainWindowDesign
             definition = new CRC16.Definition() { TruncatedPolynomial = 0x8005 };
             hashFunction = new CRC16(definition);
             hashFunction.Initialize();
+            PressureXAxisMax = 210;
+            AirflowXAxisMax = 210;
+
         }
 
         private void SaveFileWindow_SaveClicked(object sender, EventArgs e)
         {
-            port = new SerialPort("COM7", 117000, Parity.None, 8, StopBits.One);
+            port = new SerialPort("COM3", 117000, Parity.None, 8, StopBits.One);
 
             try
             {
@@ -206,7 +246,7 @@ namespace MainWindowDesign
 
         public float[] GetCoefficients()
         {
-            string[] lines = File.ReadAllLines(@"D:\GIT\AeroWin2\MainWindowDesign\MainWindowDesign\Resources\coefficients.txt");
+            string[] lines = File.ReadAllLines(@"C:\Users\megha\Scripts\AeroWin2\MainWindowDesign\MainWindowDesign\Resources\coefficients.txt");
 
             string[] coefficients = new string[10];
             float[] coefficients1 = new float[10];
@@ -566,6 +606,7 @@ namespace MainWindowDesign
             AudioPoints.Clear();
             List<float> pressure = new List<float>();
             List<float> airflow = new List<float>();
+            List<float> resistance = new List<float>();
             using (var reader = new StreamReader(pressureAirflowFileToBeDisplayed))
             {
 
@@ -576,7 +617,7 @@ namespace MainWindowDesign
 
                     pressure.Add(float.Parse(values[0]));
                     airflow.Add(float.Parse(values[1]));
-
+                    resistance.Add(float.Parse(values[2]));
 
                 }
 
@@ -584,26 +625,14 @@ namespace MainWindowDesign
                 {
                     PressureLineSeriesValues.Add(pressure[i]);
                     AirFlowLineSeriesValues.Add(airflow[i]);
+                    ResistanceLineSeriesValues.Add(resistance[i]);
                 }
             }
             //calculateLRResistance(pressure, airflow);
         }
 
-
-        public PeakFinderSavitzkyGolay CalculatePeaks(List<float> pressure, List<float> airflow)
+        private (List<float>, List<float>) DemeanSignal(List<float> pressure, List<float> airflow)
         {
-            //List<float> pressure = new List<float>();
-            //using (var rd = new StreamReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\idkol\idkolpr_af_0_2.csv"))
-            //{
-            //    while (!rd.EndOfStream)
-            //    {
-            //        var splits = rd.ReadLine().Split(',');
-            //        pressure.Add(float.Parse(splits[0]));
-            //        //column2.Add(splits[1]);
-            //    }
-            //}
-
-
             float pressureOffset = 0;
             float airflowOffset = 0;
             for (int i = 0; i < 100; i++)
@@ -619,11 +648,15 @@ namespace MainWindowDesign
 
             pressure = pressure.Select(x => x - pressureOffset).ToList();
             airflow = airflow.Select(x => x - airflowOffset).ToList();
+            return (pressure, airflow);
+        }
 
-            double[] arr = new double[pressure.Count];
-            for (int i = 0; i < pressure.Count; i++)
+        public PeakFinderSavitzkyGolay CalculatePeaks(List<float> demeanedPressure, List<float> demeanedAirflow)
+        {
+            double[] arr = new double[demeanedPressure.Count];
+            for (int i = 0; i < demeanedPressure.Count; i++)
             {
-                arr[i] = Convert.ToDouble(pressure[i]);
+                arr[i] = Convert.ToDouble(demeanedPressure[i]);
             }
 
             var v = new DoubleVector(arr);
@@ -639,9 +672,11 @@ namespace MainWindowDesign
         //better get pressures directly from the files and then calculate the resisitance, put it in a csv file and just display it along with pressure and airflow when an existing file is opened.
 
 
-        public void calculateVPResistance(List<float> pressure, List<float> airflow, List<float> NCPressures, List<float> NCAirflows, List<float> NCResistances, string filepath)
+        public (List<double>, List<string> ) calculateVPResistance(List<float>demeanedPressures, List<float> demeanedAirflows, List<float> NCPressures, List<float> NCAirflows, List<float> NCResistances, string filepath)
         {
-            var pfa = CalculatePeaks(pressure, airflow);
+            
+            var pfa = CalculatePeaks(demeanedPressures,demeanedAirflows);
+            
             pfa.LocatePeaks();
             // List<double> list = new List<float>();
             pfa.GetAllPeaks();
@@ -651,6 +686,8 @@ namespace MainWindowDesign
             int flag2 = 0;
             List<double> initialPressurePeaks = new List<double>();
             List<int> initialPressurePeakIndices = new List<int>();
+            List<double> finalResistances = new List<double>();
+            List<string> summaryStats = new List<string>();
 
 
             try
@@ -709,7 +746,7 @@ namespace MainWindowDesign
                 {
                     for (int i = midPressurePeaksIndices[r]; i < pressureMaximaIndices[r + 1]; i++)
                     {
-                        if (pressure[i] >= 0.1 && flag1 == 0)
+                        if (demeanedPressures[i] >= 0.1 && flag1 == 0)
                         {
                             indicesofStartofPeaks.Add(i);
                             flag1 = 1;
@@ -724,7 +761,7 @@ namespace MainWindowDesign
                 {
                     for (int i = pressureMaximaIndices[q]; i < midPressurePeaksIndices[q]; i++)
                     {
-                        if (pressure[i] <= 0.1 && flag2 == 0)
+                        if (demeanedPressures[i] <= 0.1 && flag2 == 0)
                         {
                             indicesofEndofPeaks.Add(i);
                             flag2 = 1;
@@ -753,7 +790,7 @@ namespace MainWindowDesign
                 float airflowValue;
 
                 List<float> initialResistances = new List<float>();
-                for (int i = 0; i < pressure.Count; i++)
+                for (int i = 0; i < demeanedPressures.Count; i++)
                 {
                     initialResistances.Add(0);
                 }
@@ -775,7 +812,7 @@ namespace MainWindowDesign
                     {
                         try
                         {
-                            initialResistances.Add(pressure[i] / airflow[i]);
+                            initialResistances.Add(demeanedPressures[i] / demeanedAirflows[i]);
                         }
                         catch (DivideByZeroException)
                         {
@@ -787,8 +824,8 @@ namespace MainWindowDesign
                 }
 
                 double resistancesToBeSubtracted;
-                List<double> finalResistances = new List<double>();
-                for (int i = 0; i < pressure.Count; i++)
+                
+                for (int i = 0; i < demeanedPressures.Count; i++)
                 {
                     finalResistances.Add(0);
                 }
@@ -799,7 +836,7 @@ namespace MainWindowDesign
                     {
                         //get airflows here
                         //get pressures here
-                        airflowValue = airflow[i];
+                        airflowValue = demeanedAirflows[i];
                         float closest = NCAirflows.Aggregate((x, y) => Math.Abs(x - airflowValue) < Math.Abs(y - airflowValue) ? x : y);
                         int indexOfClosestElement = NCAirflows.IndexOf(closest);
                         resistancesToBeSubtracted = NCResistances[indexOfClosestElement];
@@ -816,7 +853,7 @@ namespace MainWindowDesign
                 double sum = 0;
                 for (int i = 0; i < pressureMaximaIndices.Count; i++)
                 {
-                    sum = sum + airflow[pressureMaximaIndices[i]];
+                    sum = sum + demeanedAirflows[pressureMaximaIndices[i]];
                 }
 
                 meanofairflowsatpeakpressures = sum / pressureMaximaIndices.Count;
@@ -836,7 +873,7 @@ namespace MainWindowDesign
                 sum = 0;
                 for (int i = 0; i < pressureMaximaIndices.Count; i++)
                 {
-                    sum = sum + Math.Pow((airflow[pressureMaximaIndices[i]] - meanofairflowsatpeakpressures), 2);
+                    sum = sum + Math.Pow((demeanedAirflows[pressureMaximaIndices[i]] - meanofairflowsatpeakpressures), 2);
                 }
 
                 sdofairflowsatpressurepeaks = Math.Sqrt(sum / pressureMaximaIndices.Count);
@@ -847,58 +884,70 @@ namespace MainWindowDesign
                     sum = sum + Math.Pow((resistancesforStatisticsCalculations[i] - meanofresistances), 2);
                 }
                 var sdofresistance = Math.Sqrt(sum / resistancesforStatisticsCalculations.Count);
+                
 
-                Action action = () =>
+                
+                summaryStats.Add(Math.Round(meanofPressuresatpeaks, 3).ToString(CultureInfo.InvariantCulture));
+                summaryStats.Add(Math.Round(sdofpressurepeaks, 3).ToString(CultureInfo.InvariantCulture));
+                summaryStats.Add(Math.Round(meanofairflowsatpeakpressures, 3).ToString(CultureInfo.InvariantCulture));
+                summaryStats.Add(Math.Round(sdofairflowsatpressurepeaks, 3).ToString(CultureInfo.InvariantCulture));
+                summaryStats.Add(Math.Round(meanofresistances, 3).ToString(CultureInfo.InvariantCulture));
+                summaryStats.Add(Math.Round(sdofresistance, 3).ToString(CultureInfo.InvariantCulture));
+                void VPSumamryStatistics()
                 {
-                    VPSummaryStatisticsWindow vpsum = new VPSummaryStatisticsWindow();
-                    vpsum.airPressureMean.Text = Convert.ToString(meanofPressuresatpeaks);
-                    vpsum.airPressureSD.Text = Convert.ToString(sdofpressurepeaks);
-                    vpsum.airFlowMean.Text = Convert.ToString(meanofairflowsatpeakpressures);
-                    vpsum.airFlowSD.Text = Convert.ToString(sdofairflowsatpressurepeaks);
-                    vpsum.resistanceMean.Text = Convert.ToString(meanofresistances);
-                    vpsum.resistanceSD.Text = Convert.ToString(sdofresistance);
 
-                    vpsum.Owner = this;
-                    vpsum.Topmost = true;
-                    vpsum.Show();
-                    //window.ShowDialog();
-                };
-                Dispatcher.BeginInvoke(action);
+                    _summaryStatisticsWindow.PopulateSummaryStatisticses.Clear();
+                    _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() { Statistic = "Air Pressure(Peaks)", StatisticMean = (float)meanofPressuresatpeaks, StatisticSD = (float)sdofpressurepeaks});
+                    _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() { Statistic = "Air flow(at Pressure Peaks)", StatisticMean = (float)meanofairflowsatpeakpressures, StatisticSD = (float)sdofairflowsatpressurepeaks });
+                    _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() { Statistic = "Resistance", StatisticMean = (float)meanofresistances, StatisticSD = (float)sdofresistance });
 
+                    _summaryStatisticsWindow.SummaryStatisticsGrid.ItemsSource = _summaryStatisticsWindow.PopulateSummaryStatisticses;
 
-
-                List<string> pressuresAirflowsandResistances = File.ReadAllLines(filepath).ToList();
-                for (int i = 0; i < pressuresAirflowsandResistances.Count; i++)
-                {
-                    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + finalResistances[i];
+                    _summaryStatisticsWindow.Show();
+                    _summaryStatisticsWindow.Topmost = true;
+                    _summaryStatisticsWindow.Owner = this;
                 }
 
-                File.WriteAllLines(filepath, pressuresAirflowsandResistances);
+                Dispatcher.BeginInvoke((Action)VPSumamryStatistics);
+                
+
+
+                //List<string> pressuresAirflowsandResistances = File.ReadAllLines(filepath).ToList();
+                //for (int i = 0; i < pressuresAirflowsandResistances.Count; i++)
+                //{
+                //    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + finalResistances[i];
+                //}
+
+                //for(int i = 0; i < summaryStats.Count; i++)
+                //{
+                //    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + summaryStats[i];
+                //}
+
+                //File.WriteAllLines(filepath, pressuresAirflowsandResistances);
 
             }
             catch (Exception)
             {
+                finalResistances.Clear();
+                summaryStats.Clear();
                 FormsMessageBox.Show("Bad VP token");
             }
+
+            return (finalResistances, summaryStats);
         }
 
-        public void CalculateLrResistance(List<float> pressure, List<float> airflow, string filepath)
+        
+
+        public (List<double>, List<string>) CalculateLrResistance(List<float> filteredPressures, List<float> filteredAirflows, string filepath)
         {
-            //calcuate the mean of first hundred samples and subtract them form the whole file
-            //List<float> pressure = new List<float>();
-            //using (var rd = new StreamReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\idkol\idkolpr_af_0_2.csv"))
-            //{
-            //    while (!rd.EndOfStream)
-            //    {
-            //        var splits = rd.ReadLine().Split(',');
-            //        pressure.Add(float.Parse(splits[0]));
-            //        //column2.Add(splits[1]);
-            //    }
-            //}
-            var pfa = CalculatePeaks(pressure, airflow);
-            pfa.LocatePeaks();
+            
+          
+            var pfa = CalculatePeaks(filteredPressures, filteredAirflows);
+            
+            PeakFinderSavitzkyGolay peakFinderSavitzky = pfa;
+            peakFinderSavitzky.LocatePeaks();
             List<float> list = new List<float>();
-            pfa.GetAllPeaks();
+            peakFinderSavitzky.GetAllPeaks();
             // int j = 0;
             int flag1 = 0;
             int flag2 = 0;
@@ -907,16 +956,18 @@ namespace MainWindowDesign
             List<double> pressureMaximas = new List<double>();
             List<int> initialPressurePeakIndices = new List<int>();
             List<double> initialPressurePeaks = new List<double>();
+            List<double> resistances = new List<double>();
+            List<string> summaryStats = new List<string>();
 
 
             try
             {
-                for (int p = 0; p < pfa.NumberPeaks; p++)
+                for (int p = 0; p < peakFinderSavitzky.NumberPeaks; p++)
                 {
-                    Extrema peak = pfa[p];
+                    Extrema peak = peakFinderSavitzky[p];
                     if (peak.Y > 0.8)
                     {
-                        Debug.Print("Found peak at = ({0},{1})", peak.X, peak.Y);
+                        Console.WriteLine("Found peak at = ({0},{1})", peak.X, peak.Y);
                         //pressureMaximas.Add(peak.Y);
                         //pressureMaximaIndices.Add(Convert.ToInt32(peak.X));
                         initialPressurePeaks.Add(peak.Y);
@@ -925,17 +976,24 @@ namespace MainWindowDesign
 
                 }
 
-                for (int i = 0; i < initialPressurePeaks.Count - 1; i++)
+                //for (int i = 0; i < initialPressurePeaks.Count - 1; i++)
+                //{
+                //    if (initialPressurePeakIndices[i + 1] - initialPressurePeakIndices[i] < 80)
+                //    {
+                //        initialPressurePeakIndices[i] = 99999;
+                //        initialPressurePeaks[i] = 99999;
+                //    }
+                //}
+
+                for (int i = initialPressurePeaks.Count - 1; i > 0; i--)
                 {
-                    if (initialPressurePeakIndices[i + 1] - initialPressurePeakIndices[i] < 100)
+                    if (initialPressurePeakIndices[i] - initialPressurePeakIndices[i - 1] < 80)
                     {
-                        initialPressurePeakIndices[i] = 99999;
-                        initialPressurePeaks[i] = 99999;
+                        initialPressurePeakIndices.RemoveAt(i - 1);
+                        initialPressurePeaks.RemoveAt(i-1);
                     }
                 }
 
-                initialPressurePeakIndices.RemoveAll(x => x == 99999);
-                initialPressurePeaks.RemoveAll(x => x == 99999);
 
                 pressureMaximaIndices = initialPressurePeakIndices.ToList();
                 pressureMaximas = initialPressurePeaks.ToList();
@@ -947,7 +1005,7 @@ namespace MainWindowDesign
                     for (int i = 1; i < pressureMaximas.Count - 2; i++)
                     {
                         var num = Convert.ToInt32((pressureMaximaIndices[i] + pressureMaximaIndices[i + 1]) / 2);
-                        offsets.Add(pressure[num]);
+                        offsets.Add(filteredPressures[num]);
                     }
 
                     List<double> pressureMeans = new List<double>();
@@ -958,8 +1016,8 @@ namespace MainWindowDesign
                     }
 
                     int pressureMaximaCount = 1; // Have to change to pressureMaximaCount = 1
-                    List<double> resistances = new List<double>();
-                    for (int i = 0; i < pressure.Count; i++)
+                    
+                    for (int i = 0; i < filteredPressures.Count; i++)
                     {
                         resistances.Add(0);
                     }
@@ -985,7 +1043,7 @@ namespace MainWindowDesign
                     {
                         for (int i = midPressurePeaksIndices[k]; i < pressureMaximaIndices[k + 2]; i++)
                         {
-                            if (pressure[i] >= 0.1 && flag1 == 0)// look into start of pressure peak after the new sensor has come. 0.1 is just a place holder.
+                            if (filteredPressures[i] >= 0.1 && flag1 == 0)// look into start of pressure peak after the new sensor has come. 0.1 is just a place holder.
                             {
                                 indicesofStartofPeaks.Add(i);
                                 flag1 = 1;
@@ -1009,13 +1067,13 @@ namespace MainWindowDesign
                         float resistanceVal = 0;
                         for (number = pressureMaximaIndices[r]; number < indicesofStartofPeaks[r - 1]; number++)
                         {
-                            if (airflow[number] == 0)
+                            if (filteredAirflows[number] == 0)
                             {
                                 resistanceVal = 99999;
                             }
                             else
                             {
-                                resistanceVal = (float)(pressureMeans[j] - offsets[j]) / airflow[number];
+                                resistanceVal = (float)(pressureMeans[j] - offsets[j]) / filteredAirflows[number];
 
                             }
                             resistances[number] = resistanceVal;
@@ -1026,7 +1084,7 @@ namespace MainWindowDesign
                         pressureMaximaCount++;
                     }
 
-                    this.Dispatcher.Invoke(() =>
+                    Dispatcher.Invoke(() =>
                     {
                         for (int i = 0; i < resistances.Count; i += 6)
                         {
@@ -1039,7 +1097,7 @@ namespace MainWindowDesign
 
                     for (int i = 0; i < pressureMaximaIndices.Count; i++)
                     {
-                        airflowsAtRelease.Add(airflow[pressureMaximaIndices[i]]);
+                        airflowsAtRelease.Add(filteredAirflows[pressureMaximaIndices[i]]);
                     }
 
 
@@ -1056,7 +1114,7 @@ namespace MainWindowDesign
                     float sumOfAirflowsMidVowel = 0;
                     for (int i = 0; i < midPressurePeaksIndices.Count; i++)
                     {
-                        sumOfAirflowsMidVowel = sumOfAirflowsMidVowel + airflow[midPressurePeaksIndices[i]];
+                        sumOfAirflowsMidVowel = sumOfAirflowsMidVowel + filteredAirflows[midPressurePeaksIndices[i]];
                     }
                     float meanOfAirflowsAtRelease = airflowsAtRelease.Sum() / airflowsAtRelease.Count();
                     double SDofAirflowsAtRelease;
@@ -1075,7 +1133,7 @@ namespace MainWindowDesign
                     double SDofAirflowsMidVowel;
                     for (int i = 0; i < midPressurePeaksIndices.Count; i++)
                     {
-                        temp += Math.Pow((airflow[midPressurePeaksIndices[i]] - meanOfAirflowsAtMidVowel), 2);
+                        temp += Math.Pow((filteredAirflows[midPressurePeaksIndices[i]] - meanOfAirflowsAtMidVowel), 2);
                     }
                     temp = temp / midPressurePeaksIndices.Count;
                     SDofAirflowsMidVowel = Math.Sqrt(temp);
@@ -1102,52 +1160,66 @@ namespace MainWindowDesign
                     temp = temp / resistancesForStatisticCalculations.Count;
                     var SDofResistances = Math.Sqrt(temp);
 
-
-                    Action action = () =>
+                    summaryStats.Add(Math.Round(meanOfAirflowsAtRelease, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(SDofAirflowsAtRelease, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(meanOfAirflowsAtMidVowel, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(SDofAirflowsMidVowel, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(meanOfAirPressureAtPeaks, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(SDofPressureAtPeaks, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(meanOfResistances, 3).ToString(CultureInfo.InvariantCulture));
+                    summaryStats.Add(Math.Round(SDofResistances, 3).ToString(CultureInfo.InvariantCulture));
+                    void LRSumamryStatistics()
                     {
-                        LR_SummaryStatistics lrsum = new LR_SummaryStatistics();
-                        lrsum.airFlowReleaseMean.Text = Convert.ToString(meanOfAirflowsAtRelease);
-                        lrsum.airFlowMidVowelMean.Text = Convert.ToString(meanOfAirflowsAtMidVowel);
-                        lrsum.airPressureMean.Text = Convert.ToString(meanOfAirPressureAtPeaks);
-                        lrsum.ResistanceMean.Text = Convert.ToString(meanOfResistances);
+                        _summaryStatisticsWindow.PopulateSummaryStatisticses.Clear();
+                        _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() {Statistic = "Air flow(Release)", StatisticMean = meanOfAirflowsAtRelease, StatisticSD = (float) SDofAirflowsAtRelease});
+                        _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() {Statistic = "Air flow(Mid Vowel)", StatisticMean = meanOfAirflowsAtMidVowel, StatisticSD = (float) SDofAirflowsMidVowel});
+                        _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() {Statistic = "Air pressure", StatisticMean = meanOfAirPressureAtPeaks, StatisticSD = (float) SDofPressureAtPeaks});
+                        _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() {Statistic = "Resistance", StatisticMean = meanOfResistances, StatisticSD = (float) SDofResistances});
 
-                        lrsum.airFlowReleaseStdDev.Text = Convert.ToString(SDofAirflowsAtRelease);
-                        lrsum.airFlowMidVowelStdDev.Text = Convert.ToString(SDofAirflowsMidVowel);
-                        lrsum.airPressureStdDev.Text = Convert.ToString(SDofPressureAtPeaks);
-                        lrsum.ResistanceStdDev.Text = Convert.ToString(SDofResistances);
+                        _summaryStatisticsWindow.SummaryStatisticsGrid.ItemsSource = _summaryStatisticsWindow.PopulateSummaryStatisticses;
 
-                        lrsum.Owner = this;
-                        lrsum.Topmost = true;
-                        lrsum.Show();
-                        //window.ShowDialog();
-                    };
-                    Dispatcher.BeginInvoke(action);
-
-
-
-                    List<string> pressuresAirflowsandResistances = File.ReadAllLines(filepath).ToList();
-                    for (int i = 0; i < pressuresAirflowsandResistances.Count; i++)
-                    {
-                        pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + resistances[i];
+                        _summaryStatisticsWindow.Show();
+                        _summaryStatisticsWindow.Topmost = true;
+                        _summaryStatisticsWindow.Owner = this;
                     }
 
-                    File.WriteAllLines(filepath, pressuresAirflowsandResistances);
+                    Dispatcher.BeginInvoke((Action) LRSumamryStatistics);
+
+                    //List<string> pressuresAirflowsandResistances = File.ReadAllLines(filepath).ToList();
+                    //for (int i = 0; i < pressuresAirflowsandResistances.Count - 1; i++)
+                    //{
+                    //    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + resistances[i];
+                    //}
+
+                    //for (int i = 0; i < 8; i++)
+                    //{
+                    //    pressuresAirflowsandResistances[i] = pressuresAirflowsandResistances[i] + "," + summaryStats[i];
+                    //}
+
+                    //File.WriteAllLines(filepath, pressuresAirflowsandResistances);
+                    
                 }
 
                 else
                 {
+                    //throw;
+                    resistances.Clear();
+                    summaryStats.Clear();
                     FormsMessageBox.Show(@"Bad LR token!", @"Bad LR token. Try recording it again.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
+                
 
                 // Didn't test this yet, and still have to claculate the standard deviation values
             }
 
             catch (Exception e)
             {
+                resistances.Clear();
+                summaryStats.Clear();
                 FormsMessageBox.Show("Bad LR token!", "Bad LR token. Try recording it again.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
+            
+            return (resistances, summaryStats); // These could be null.
             // We have : 
             //pressure peaks - gives mean and standard dev of peaks in summary
             // Airflows at pressure peaks - gives mean and standard dev of airflows at pressure peaks in summary
@@ -1178,6 +1250,20 @@ namespace MainWindowDesign
                     ResistanceLineSeriesValues.Add(NCResistances[i]);
                 }
             });
+
+            void NCSumamryStatistics()
+            {
+                _summaryStatisticsWindow.PopulateSummaryStatisticses.Clear();
+                _summaryStatisticsWindow.PopulateSummaryStatisticses.Add(new PopulateSummaryStatistics() { Statistic = "-" });
+
+                _summaryStatisticsWindow.SummaryStatisticsGrid.ItemsSource = _summaryStatisticsWindow.PopulateSummaryStatisticses;
+
+                _summaryStatisticsWindow.Show();
+                _summaryStatisticsWindow.Topmost = true;
+                _summaryStatisticsWindow.Owner = this;
+            }
+
+            Dispatcher.BeginInvoke((Action)NCSumamryStatistics);
             File.WriteAllLines(filePath, pressuresAirflowsandResistances);
 
         }
@@ -1197,40 +1283,93 @@ namespace MainWindowDesign
             return retVal;
         }
 
-        private void ClosingMethod(StringBuilder stringbuilder, List<float> allPressures, List<float> allAirflows) //Calls after the 5-second interval.
+        private void ClosingMethod(List<float> allPressures, List<float> allAirflows) //Calls after the 5-second interval.
         {
             int TWinSelectedIndex = 0;
             int TWinCurrentRepCount = 0;
             string selectedTokenType = null;
+            StringBuilder stringBuilder = new StringBuilder();
             Dispatcher?.Invoke(() =>
             {
                 TWinSelectedIndex = _tokenListWindow.TokenListGrid.SelectedIndex;
                 TWinCurrentRepCount = _tokenListWindow.CurrentRepetitionCount;
                 selectedTokenType = _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType;
             });
+            List<double> resistances = new List<double>();
+            List<string> summaryStats = new List<string>();
+            List<float> filteredPressures = new List<float>();
+            List<float> filteredAirflows = new List<float>();
+            List<float> demeanedPressures = new List<float>();
+            List<float> demeanedAirflows = new List<float>();
 
-            // Debug.Print("na_moham : " + TWinCurrentRepCount);
-            //Debug.Print("File Name created : " + DataFileName + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount);
-            FilePathForPrandAf = System.IO.Path.Combine(pathForwavFiles, DataFileName + "pr_af" + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount + ".csv");
-            if (File.Exists(FilePathForPrandAf))
-            {
-                File.Delete(FilePathForPrandAf);
-            }
-            //var myFile = File.Create(FilePath);
-            File.WriteAllText(FilePathForPrandAf, stringbuilder.ToString());
-
-            //string str = stringbuilder.
-            stringbuilder.Clear();
+            var demeanedSignals = DemeanSignal(allPressures, allAirflows);
+            demeanedPressures = demeanedSignals.Item1;
+            demeanedAirflows = demeanedSignals.Item2;
+           
             csv.Clear();
             checkButtonFlag1 = 0;
             checkButtonFlag2 = 0;  //These two values make sure that the 
             //var ncTokenHistory = TokenHistory.FindAll(x => x.TokenType == "NC");
             //ShowTokenHistoryForVPRecording(ncTokenHistory);
 
-            //
+            // Building Savitzky Golay filter here because we are showing filtered values only after the token is recorded. 
+            double[] arr = new double[allPressures.Count];
+
+            MovingWindowFilter filter =
+                new MovingWindowFilter(filterWidthLeft,filterWidthRight, peterSavitzkyCoefficients);
+
+            for (int i = 0; i < demeanedPressures.Count; i++)
+            {
+                arr[i] = Convert.ToDouble(demeanedPressures[i]);
+            }
+
+            var v = new DoubleVector(arr);
+            DoubleVector filteredPressureVector = filter.Filter(v);
+            var prs = filteredPressureVector.ToList();
+            filteredPressures = prs.Select(i => (float)i).ToList();
+
+
+            for (int i = 0; i < demeanedAirflows.Count; i++)
+            {
+                arr[i] = Convert.ToDouble(demeanedAirflows[i]);
+            }
+            
+            v = new DoubleVector(arr);
+            DoubleVector filteredAirflowVector = filter.Filter(v);
+            var airfs = filteredAirflowVector.ToList();
+            filteredAirflows = airfs.Select(i => (float)i).ToList();
+
+
+            PressureLineSeriesValues.Clear();
+            AirFlowLineSeriesValues.Clear();
+
+
+            PressureXAxisMax = 1200;
+            AirflowXAxisMax = 1200;
+            Dispatcher.Invoke(() =>
+            {
+                
+                
+                foreach (var item in filteredPressures)
+                {
+                    PressureLineSeriesValues.Add(item);
+                }
+            });
+
+            Dispatcher.Invoke(() =>
+            {
+                foreach (var VARIABLE in filteredAirflows)
+                {
+                    AirFlowLineSeriesValues.Add(VARIABLE);
+                }
+            });
+            
+
             if (selectedTokenType == "LR")
             {
-                CalculateLrResistance(allPressures, allAirflows, FilePathForPrandAf);
+                var reisistancesAndSummaryStatistics = CalculateLrResistance(filteredPressures, filteredAirflows, FilePathForPrandAf);
+                resistances = reisistancesAndSummaryStatistics.Item1;
+                summaryStats = reisistancesAndSummaryStatistics.Item2;
             }
 
             else if (selectedTokenType == "VP")
@@ -1256,7 +1395,9 @@ namespace MainWindowDesign
                             NCResistances.Add(float.Parse(splitstring[2]));
                         }
                     }
-                    calculateVPResistance(allPressures, allAirflows, NCPressures, NCAirflows, NCResistances, FilePathForPrandAf);
+                    var resistancesandSummarystats = calculateVPResistance(filteredPressures, filteredAirflows, NCPressures, NCAirflows, NCResistances, FilePathForPrandAf);
+                    resistances = resistancesandSummarystats.Item1;
+                    summaryStats = resistancesandSummarystats.Item2;
                 }
                 catch(Exception ex)
                 {
@@ -1264,21 +1405,69 @@ namespace MainWindowDesign
                     MessageBox.Show("Cannot find subtraction table");
                     throw;
                 }
-
-                //Get file for NC, i.e., assuming its is subtraction table, extract pressures, airflows and resistances into different lists.
-                //List<float> NCPressures = new List<float>();
-                //List<float> NCAirflows = new List<float>();
-                //List<float> NCResistances = new List<float>();
-
             }
 
             else if (selectedTokenType == "NC")
             {
                 //CalculateNCResistance
-                calculateNCResistance(allPressures, allAirflows, FilePathForPrandAf);
+                calculateNCResistance(filteredPressures,filteredAirflows, FilePathForPrandAf);
             }
+
+
             //calculateNCResistance(allPressures, allAirflows, filePathForPrandAf);
+
+            if (selectedTokenType != "NC")
+            {
+                FilePathForPrandAf = System.IO.Path.Combine(pathForwavFiles, DataFileName + "pr_af" + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount + ".csv");
+                if (File.Exists(FilePathForPrandAf))
+                {
+                    File.Delete(FilePathForPrandAf);
+                }
+
+                if (resistances.Count > 0 && summaryStats.Count > 0)
+                {
+                    for (int i = 0; i < summaryStats.Count; i++)
+                    {
+                        var line = string.Format("{0},{1},{2},{3}", filteredPressures[i], filteredAirflows[i], resistances[i], summaryStats[i]);
+                        stringBuilder.AppendLine(line);
+                    }
+
+                    for (int i = summaryStats.Count; i < allPressures.Count; i++)
+                    {
+                        var line = string.Format("{0},{1},{2}", filteredPressures[i], filteredAirflows[i], resistances[i]);
+                        stringBuilder.AppendLine(line);
+                    }
+
+                    File.WriteAllText(FilePathForPrandAf, stringBuilder.ToString());
+                    stringBuilder.Clear();
+                }
+                else
+                {
+                    for (int i = 0; i < allPressures.Count; i++)
+                    {
+                        var line = string.Format("{0},{1}", filteredPressures[i], filteredAirflows[i]);
+                        stringBuilder.AppendLine(line);
+                    }
+                    File.WriteAllText(FilePathForPrandAf, stringBuilder.ToString());
+                    stringBuilder.Clear();
+                }
+            }
+            
+            
         }
+
+        private (DoubleVector,int,int) GenerateSavitzkyGolayCoefficients()
+        {
+            int nLeft = 4;
+            int nRight = 4;
+            int n = 4;
+            DoubleVector peterSavitzkySmoothingCoefficients =
+                MovingWindowFilter.SavitzkyGolayCoefficients(nLeft, nRight, n);
+            return (peterSavitzkySmoothingCoefficients,nLeft,nRight);
+        }
+
+        // ReSharper disable once InconsistentNaming
+        
 
 
         private void dataCollectionThread()
@@ -1291,21 +1480,8 @@ namespace MainWindowDesign
 
             while (true)
             {
-                float[] temparr = new float[14];
-                float pint1 = 0;
-                float pint2 = 0;
-                float pcomp_FS = 0;
                 float pcomp = 0;
-
-                float afint1 = 0;
-                float afint2 = 0;
-                float afcomp_FS = 0;
-                float afcomp = 0;
-                float af = 0;
                 float af_in_cc = 0;
-                float prs = 0;
-
-
 
                 if (decodedPackets.Count > 0)
                 {
@@ -1326,39 +1502,21 @@ namespace MainWindowDesign
                                 RawValuePackets.Enqueue(rawValuePacket);
                                 foreach (var item in rawValuePacket.PresB)
                                 {
-
-                                    //pint1 = item - (float)((temparray2[19] * Math.Pow(rawValuePacket.TempB, 3)) + (temparray2[18] * Math.Pow(rawValuePacket.TempB, 2)) + (temparray2[17] * rawValuePacket.TempB) + temparray2[16]);
-                                    //pint2 = pint1 / (float)(temparray2[23] * Math.Pow(rawValuePacket.TempB, 3) + temparray2[22] * Math.Pow(rawValuePacket.TempB, 2) + temparray2[21] * rawValuePacket.TempB + temparray2[20]);
-                                    //pcomp_FS = (float)(temparray2[27] * Math.Pow(pint2, 3) + temparray2[26] * Math.Pow(pint2, 2) + temparray2[25] * pint2 + temparray2[24]);
-                                    //pcomp = pcomp_FS * temparray2[14] + temparray2[15];
-                                    ////prs = pcomp * (float)2.53746 - (float)24.4539;
-                                    ////pcomp = (float) (pcomp * 1.01972 - 118);
                                     pcomp = (float)((item - 30584.2) / 1251.79);
-
                                     pressures2.Add(pcomp);
 
                                 }
                                 foreach (var item in rawValuePacket.PresA)
                                 //Channel for airflow
                                 {
-
-                                    //afint1 = item - (float)((temparray2[5] * Math.Pow(rawValuePacket.TempA, 3)) + (temparray2[4] * Math.Pow(rawValuePacket.TempA, 2)) + (temparray2[3] * rawValuePacket.TempA) + temparray2[2]);
-                                    //afint2 = afint1 / (float)(temparray2[9] * Math.Pow(rawValuePacket.TempA, 3) + temparray2[8] * Math.Pow(rawValuePacket.TempA, 2) + temparray2[7] * rawValuePacket.TempA + temparray2[6]);
-                                    //afcomp_FS = (float)(temparray2[13] * Math.Pow(afint2, 3) + temparray2[12] * Math.Pow(afint2, 2) + temparray2[11] * afint2 + temparray2[10]);
-                                    //afcomp = afcomp_FS * temparray2[0] + temparray2[1];
-                                    ////af = afcomp; //- (float)0.07945;
-                                    ////This equation is for calibrating the airflow. Obtained by taking a graph of pressure against airflow.
-                                    ////af_in_cc = (float)4543.25 * afcomp - (float)364.758;
                                     af_in_cc = (float)(((item - 291273.1) / 234.06) * 16.667);
                                     airflows.Add(af_in_cc);
-
-                                    //no_of_times++;
-                                    //airFlowLineSeriesValues.Add(afcomp);
-
                                 }
 
                                 if (rawValuePacket.buttonData == 7 && checkButtonFlag1 == 0)
                                 {
+                                    PressureXAxisMax = 210;
+                                    AirflowXAxisMax = 210;
                                     checkButtonFlag2 = 1;
                                     checkButtonFlag1 = 1;
                                     //after5sec = DateTime.UtcNow.AddSeconds(5);
@@ -1385,10 +1543,10 @@ namespace MainWindowDesign
                                 if (checkButtonFlag1 == 1 && checksIfweCanProceedRecordingWithAudio)
                                 {
                                     //var newLine = string.Format("{0},{1}", pcomp, af_in_cc);
-                                    var newLine = string.Format("{0},{1}", pcomp, af_in_cc);
+                                    //var newLine = string.Format("{0},{1}", pcomp, af_in_cc);
                                     listofAllPressures.Add(pcomp);
                                     listofAllAirflows.Add(af_in_cc);
-                                    csv.AppendLine(newLine);
+                                  //  csv.AppendLine(newLine);
                                 }
                                 //Have to do csv.clear() somewhere..
                                 if (pressures2.Count > 5 && airflows.Count > 5 && checkButtonFlag2 == 1 && checksIfweCanProceedRecordingWithAudio)
@@ -1406,7 +1564,7 @@ namespace MainWindowDesign
                                     {
                                         Console.WriteLine("UtcNow : " + DateTime.UtcNow + " after5sec : " + after5sec);
                                         Debug.Print("dateTime.UtcNow : " + DateTime.UtcNow);
-                                        ClosingMethod(csv, listofAllPressures, listofAllAirflows);
+                                        ClosingMethod(listofAllPressures, listofAllAirflows);
                                         listofAllPressures.Clear();
                                         listofAllAirflows.Clear();
                                     }
@@ -1420,9 +1578,13 @@ namespace MainWindowDesign
                         case PacketType.CalibrationInfo:
 
                             var calibrationvalues = new calibrationValues(packet);
-                            temparr = new float[28];
+                            var temparr = new float[28];
                             temparr = calibrationvalues.returnArrayA;
                             temparray2 = temparr;
+                            var filterdata = GenerateSavitzkyGolayCoefficients();
+                            peterSavitzkyCoefficients = filterdata.Item1;
+                            filterWidthLeft = filterdata.Item2;
+                            filterWidthRight = filterdata.Item3;
                             port.Write("go");
                             break;
 
@@ -2145,7 +2307,7 @@ namespace MainWindowDesign
 
         public double[] getCoefficients2()
         {
-            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\megha\Scripts\AeroWin2\MainWindowDesign\MainWindowDesign\Resources\coefficients.txt");
 
 
             string[] coefficients = new string[10];

@@ -35,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Extreme.Numerics, Version=7.0.11.0, Culture=neutral, PublicKeyToken=9e513770f58567b2, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extreme.Numerics.7.0.11\lib\net46\Extreme.Numerics.dll</HintPath>
+    </Reference>
     <Reference Include="LiveCharts, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
       <HintPath>..\packages\LiveCharts.0.9.7\lib\net45\LiveCharts.dll</HintPath>
     </Reference>

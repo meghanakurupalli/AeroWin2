@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
-        Title="LR Summary Statistics" Height="190" Width="400" ResizeMode="NoResize">
+        Title="LR Summary Statistics" Height="196" Width="400" ResizeMode="NoResize">
     <Border Padding="5">
         <StackPanel Orientation="Vertical">
 

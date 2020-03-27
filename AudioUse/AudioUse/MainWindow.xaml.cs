@@ -65,7 +65,7 @@ namespace AudioUse
             //}
 
             newTime = oldTime.AddSeconds(5);
-            StartRecording(time);
+            //StartRecording(time);
 
 
 
@@ -75,7 +75,7 @@ namespace AudioUse
             //fileName = sWin.FileName.Text.ToString();
             showColumnChart();
             someData = new ChartValues<double>();
-            StreamReader sr = new StreamReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\uhij\uhijpr_af_0_1.csv");
+            StreamReader sr = new StreamReader(@"C:\Users\megha\Scripts\AeroWin2\GeneratedFiles\GeneratedWaveFiles\boolol\boololpr_af_0_1.csv");
             while (!sr.EndOfStream)
             {
                 var splits = sr.ReadLine().Split(',');
@@ -157,7 +157,7 @@ namespace AudioUse
             wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
 
-            wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record"+o+".wav", wi.WaveFormat);
+            //wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record"+o+".wav", wi.WaveFormat);
             //wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
 
 
@@ -231,7 +231,7 @@ namespace AudioUse
             seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
 
 
-            wfw.Write(e.Buffer, 0, e.BytesRecorded);
+            //wfw.Write(e.Buffer, 0, e.BytesRecorded);
             byteList.AddRange(e.Buffer);
            // Debug.Print("Each time Buffer : " + e.Buffer + " Bytes Recorded : " + e.BytesRecorded);
 

@@ -33,7 +33,7 @@
                     <lvc:Axis MinValue="{Binding minXValue}" MaxValue="{Binding maxXValue}"></lvc:Axis>
                 </lvc:CartesianChart.AxisX>
                 <lvc:CartesianChart.AxisY >
-                    <lvc:Axis MinValue="{Binding minYValue}" MaxValue="{Binding maxYValue}"></lvc:Axis>
+                    <lvc:Axis MinValue="{Binding minYValue}" MaxValue="{Binding MaxYValue}"></lvc:Axis>
                 </lvc:CartesianChart.AxisY>
 
             </lvc:CartesianChart>

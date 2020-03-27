@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,27 +27,48 @@ namespace liveChartsExample
     /// Interaction logic for MainWindow.xaml
     /// </summary>
 
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public SeriesCollection Seriescollection { get; set; }
         public LineSeries LineSeries { get; set; }
         public VisualElementsCollection Visuals { get; set; }
         public int? minYValue { get; set; }
-        public int? maxYValue { get; set; }
+        public int? _maxYValue;
+
+        public int? MaxYValue
+        {
+            get
+            {
+                return _maxYValue;
+            }
+            set
+            {
+                _maxYValue = value;
+                OnPropertyChanged("MaxYValue");
+            }
+        }
+
+
         Vector vector = new Vector();
         double[] arr;
+        
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         public MainWindow()
         {
             InitializeComponent();
             minYValue = null;
-            maxYValue = null;
+            MaxYValue = null;
 
-            
-            //testwindow twin = new testwindow();
-            //minYValue = twin.minValue;
-            //maxYValue = twin.maxValue;
-            //DataContext = this;
+
+            testwindow twin = new testwindow();
+            minYValue = twin.minValue;
+            MaxYValue = twin.maxValue;
+            DataContext = this;
 
             #region CodeForLineSeriesStuff
 
@@ -233,6 +255,7 @@ namespace liveChartsExample
         private void UpdateAllOnClick(object sender, RoutedEventArgs e)
         {
             var r = new Random();
+            MaxYValue = 500;
             foreach (var series in SeriesCollection)
             {
                 foreach (var bubble in series.Values.Cast<ScatterPoint>())

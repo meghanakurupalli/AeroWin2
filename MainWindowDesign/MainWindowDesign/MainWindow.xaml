@@ -188,7 +188,7 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX >
-                            <lvc:Axis ShowLabels="False" MaxValue="210"/>
+                            <lvc:Axis ShowLabels="False" MaxValue="{Binding AirflowXAxisMax}"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
@@ -206,7 +206,7 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False" MaxValue="210"/>
+                            <lvc:Axis ShowLabels="False" MaxValue="{Binding PressureXAxisMax}"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
@@ -224,7 +224,7 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False" MaxValue="210"/>
+                            <lvc:Axis ShowLabels="False" MaxValue="1200"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop"></lvc:Axis>
