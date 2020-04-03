@@ -22,6 +22,7 @@ namespace MainWindowDesign
     {
         public List<double?> ChannelRanges { get; set; }
         private List<string> Texts;
+        public event EventHandler OkButtonClicked;
         public ChannelRangesWindow()
         {
             InitializeComponent();
@@ -35,6 +36,7 @@ namespace MainWindowDesign
             ResistanceMin.Text = null;
             ResistanceMax.Text = null;
         }
+
 
         private void ChannelRangesOK_OnClick(object sender, RoutedEventArgs e)
         {
@@ -52,35 +54,87 @@ namespace MainWindowDesign
             };
 
             
-                try
-                {
+            try
+            {
 
-                    foreach (var VARIABLE in Texts)
+                foreach (var VARIABLE in Texts)
+                {
+                    if (VARIABLE == "")
                     {
-                        if (VARIABLE == "")
-                        {
-                            ChannelRanges.Add(null);
-                        }
-                        else
-                        {
-                            var temp = double.Parse(VARIABLE);
-                            ChannelRanges.Add(temp);
-                        }
+                        ChannelRanges.Add(null);
                     }
-
-                    this.Close();
-
-                }
-                catch (Exception exception)
-                {
-                    MessageBox.Show("Invalid Input Values. Try again!", "Invalid Input!", MessageBoxButton.OK,
-                        MessageBoxImage.Exclamation);
+                    else
+                    {
+                        var temp = double.Parse(VARIABLE);
+                        ChannelRanges.Add(temp);
+                    }
                 }
 
+                OkButtonClicked?.Invoke(this, new EventArgs());
+                Close();
                 
-            
+            }
+            catch (Exception exception) 
+            {
+                MessageBox.Show("Invalid Input Values. Try again!", "Invalid Input!", MessageBoxButton.OK,
+                    MessageBoxImage.Exclamation);
+            }
+
+            //return ChannelRanges;
         }
 
         
+
+        private void AudioChannelRange_OnUnchecked(object sender, RoutedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            AudioMin.IsEnabled = true;
+            AudioMax.IsEnabled = true;
+        }
+
+        private void AirflowChannelRange_OnUnchecked(object sender, RoutedEventArgs e)
+        {
+            AirflowMin.IsEnabled = true;
+            AirflowMax.IsEnabled = true;
+            //throw new NotImplementedException();
+        }
+
+        private void PressureChannelRange_OnUnchecked(object sender, RoutedEventArgs e)
+        {
+            PressureMin.IsEnabled = true;
+            PressureMax.IsEnabled = true;
+            //throw new NotImplementedException();
+        }
+
+        private void ResistanceChannelRange_OnUnchecked(object sender, RoutedEventArgs e)
+        {
+            ResistanceMin.IsEnabled = true;
+            ResistanceMax.IsEnabled = true;
+            //throw new NotImplementedException();
+        }
+
+        private void AudioChannelRange_OnChecked(object sender, RoutedEventArgs e)
+        {
+            AudioMin.IsEnabled = false;
+            AudioMax.IsEnabled = false;
+        }
+
+        private void AirflowChannelRange_OnChecked(object sender, RoutedEventArgs e)
+        {
+            AirflowMin.IsEnabled = false;
+            AirflowMax.IsEnabled = false;
+        }
+
+        private void PressureChannelRange_OnChecked(object sender, RoutedEventArgs e)
+        {
+            PressureMin.IsEnabled = false;
+            PressureMax.IsEnabled = false;
+        }
+
+        private void ResistanceChannelRange_OnChecked(object sender, RoutedEventArgs e)
+        {
+            ResistanceMin.IsEnabled = false;
+            ResistanceMax.IsEnabled = false;
+        }
     }
 }

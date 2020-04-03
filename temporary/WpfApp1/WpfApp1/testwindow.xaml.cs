@@ -29,7 +29,7 @@ namespace WpfApp1
         {
             InitializeComponent();
             minValue = 0;
-            maxValue = 300;
+            maxValue = 10;
         }
     }
 }

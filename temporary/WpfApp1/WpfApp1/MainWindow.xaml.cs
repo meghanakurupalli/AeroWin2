@@ -224,28 +224,56 @@ namespace liveChartsExample
                     Values = new ChartValues<ScatterPoint>
                     {
                         new ScatterPoint(5, 5, 0.1),
-                        new ScatterPoint(3, 4, 1),
-                        new ScatterPoint(7, 2, 1),
-                        new ScatterPoint(2, 6, 1),
-                        new ScatterPoint(8, 2, 1)
+                        new ScatterPoint(6, 5, 0.1),
+                        new ScatterPoint(7, 5, 0.1),
+                        new ScatterPoint(8, 5, 0.1),
+                        new ScatterPoint(9, 5, 0.1),
+                        new ScatterPoint(10, 5, 0.1),
+                        new ScatterPoint(11, 5, 0.1),
+                        new ScatterPoint(12, 5, 0.1),
+                        new ScatterPoint(13, 5, 0.1),
+                        new ScatterPoint(14, 5, 0.1),
+                        new ScatterPoint(15, 5, 0.1),
+                        new ScatterPoint(16, 5, 0.1),new ScatterPoint(5, 5, 0.1),
+                        new ScatterPoint(17, 5, 0.1),
+                        new ScatterPoint(18, 5, 0.1),
+                        new ScatterPoint(19, 5, 0.1),
+                        new ScatterPoint(20, 5, 0.1),
+                        new ScatterPoint(21, 5, 0.1),
+                        new ScatterPoint(35, 5, 0.1),
+                        new ScatterPoint(36, 5, 0.1),new ScatterPoint(5, 5, 0.1),
+                        new ScatterPoint(37, 5, 0.1),
+                        new ScatterPoint(38, 5, 0.1),
+                        new ScatterPoint(39, 5, 0.1),
+                        new ScatterPoint(40, 5, 0.1),
+                        new ScatterPoint(41, 5, 0.1),
+                        new ScatterPoint(42, 5, 0.1),
+                        new ScatterPoint(43, 5, 0.1),
+                        new ScatterPoint(44, 5, 0.1),
+                        new ScatterPoint(45, 5, 0.1),
+                        new ScatterPoint(46, 5, 0.1),
+                        new ScatterPoint(47, 4, 0.1),
+                        new ScatterPoint(48, 2, 0.1),
+                        new ScatterPoint(49, 6, 0.1),
+                        new ScatterPoint(50, 2, 0.1)
                     },
-                    MinPointShapeDiameter = 5,
-                    MaxPointShapeDiameter = 45
+
+                   
                 },
-                new ScatterSeries
-                {
-                    Values = new ChartValues<ScatterPoint>
-                    {
-                        new ScatterPoint(7, 5, 1),
-                        new ScatterPoint(2, 2, 1),
-                        new ScatterPoint(1, 1, 1),
-                        new ScatterPoint(6, 3, 1),
-                        new ScatterPoint(8, 8, 1)
-                    },
-                    PointGeometry = DefaultGeometries.Triangle,
-                    MinPointShapeDiameter = 15,
-                    MaxPointShapeDiameter = 45
-                }
+                //new ScatterSeries
+                //{
+                //    Values = new ChartValues<ScatterPoint>
+                //    {
+                //        new ScatterPoint(7, 5, 1),
+                //        new ScatterPoint(2, 2, 1),
+                //        new ScatterPoint(1, 1, 1),
+                //        new ScatterPoint(6, 3, 1),
+                //        new ScatterPoint(8, 8, 1)
+                //    },
+                //    PointGeometry = DefaultGeometries.Triangle,
+                //    MinPointShapeDiameter = 15,
+                //    MaxPointShapeDiameter = 45
+                //}
             };
 
             DataContext = this;

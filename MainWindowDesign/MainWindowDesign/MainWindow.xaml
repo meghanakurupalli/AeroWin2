@@ -165,10 +165,10 @@
                                             ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX >
-                            <lvc:Axis ShowLabels="False" MaxValue="835" />
+                            <lvc:Axis ShowLabels="False" MaxValue="835"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
-                            <lvc:Axis Position="RightTop"></lvc:Axis>
+                            <lvc:Axis Position="RightTop" MinValue="{Binding AudioYAxisMin}" MaxValue="{Binding AudioYAxisMax}"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
                     <Canvas x:Name="LayoutRoot" Background="Transparent" ClipToBounds="True" Height="150" Width="775" HorizontalAlignment="Left">
@@ -191,7 +191,7 @@
                             <lvc:Axis ShowLabels="False" MaxValue="{Binding AirflowXAxisMax}"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
-                            <lvc:Axis Position="RightTop"></lvc:Axis>
+                            <lvc:Axis Position="RightTop" MinValue="{Binding AirflowYAxisMin}" MaxValue="{Binding AirflowYAxisMax}"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
                     <Canvas x:Name="airFlowCanvas" Height="150">
@@ -209,7 +209,7 @@
                             <lvc:Axis ShowLabels="False" MaxValue="{Binding PressureXAxisMax}"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
-                            <lvc:Axis Position="RightTop"></lvc:Axis>
+                            <lvc:Axis Position="RightTop" MinValue="{Binding PressureYAxisMin}" MaxValue="{Binding PressureYAxisMax}"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
                     <Canvas x:Name="pressureCanvas" Height="150">
@@ -218,16 +218,16 @@
                     </Canvas>
                 </Grid>
                 <Grid Grid.Column="2" Grid.Row="3" >
-                    <lvc:CartesianChart x:Name="resistanceChart" Height="150" DisableAnimations="True" Hoverable="False">
-                        <lvc:CartesianChart.Series>
+                    <lvc:CartesianChart x:Name="resistanceChart" Height="150" DisableAnimations="True" Hoverable="False" Series="{Binding ScatterLineSeriesValues}" >
+                        <!--<lvc:CartesianChart.Series>
                             <lvc:LineSeries Values="{Binding ResistanceLineSeriesValues}"
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
-                        </lvc:CartesianChart.Series>
+                        </lvc:CartesianChart.Series>-->
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False" MaxValue="1200"/>
+                            <lvc:Axis ShowLabels="False" MinValue="0" MaxValue="1200"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
-                            <lvc:Axis Position="RightTop"></lvc:Axis>
+                            <lvc:Axis Position="RightTop" MinValue="{Binding ResistanceYAxisMin}" MaxValue="{Binding ResistanceYAxisMax}"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
                     <Canvas x:Name="resistanceCanvas" Height="150">

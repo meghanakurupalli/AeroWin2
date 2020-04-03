@@ -83,8 +83,9 @@ namespace MainWindowDesign
                 THaudio = audioFileToBePlayed;
                 THPrAf = pressureAirflowFileToBeDisplayed;
 
+                mWin.pathForPlayingAudioFile = audioFileToBePlayed;
                 mWin.playAudio(audioFileToBePlayed);
-                mWin.DisplayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
+                mWin.DisplayPressureAirflowResistance(pressureAirflowFileToBeDisplayed, tokenType);
                 //data_File_Name = DataFileName;
                 //path_For_Wave_Files = PathForWaveFiles;
 
@@ -125,6 +126,7 @@ namespace MainWindowDesign
             //Getting an error here.
 
             string tot_rep_count = THWprotocols[TokenHistoryGrid.SelectedIndex].TotalRepetitionCount; //Gets repetition count and split it for audio file path.
+            string tokenType = THWprotocols[TokenHistoryGrid.SelectedIndex].TokenType;
             string[] splits = tot_rep_count.Split(' ');
             var splits0 = Int32.Parse(splits[0]);
            
@@ -136,7 +138,7 @@ namespace MainWindowDesign
             Debug.Print("audioFileToBePlayed : "+ audioFileToBePlayed+ " pressureAirflowFileToBeDisplayed : "+ pressureAirflowFileToBeDisplayed);
 
             mWin.playAudio(audioFileToBePlayed);
-            mWin.DisplayPressureAirflowResistance(pressureAirflowFileToBeDisplayed);
+            mWin.DisplayPressureAirflowResistance(pressureAirflowFileToBeDisplayed, tokenType);
 
             
 

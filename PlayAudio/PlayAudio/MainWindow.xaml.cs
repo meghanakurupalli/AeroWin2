@@ -26,8 +26,8 @@ namespace play_audio
     {
         // public ChartValues<Polyline> PolylineCollection;
         string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
-        public ChartValues<double> audioPoints { get; set; }
-       
+        public ChartValues<float> audioPoints { get; set; } = new ChartValues<float>();
+
         public double FirstXPos { get; private set; }
         public double FirstYPos { get; private set; }
         public double FirstArrowXPos { get; private set; }
@@ -36,9 +36,7 @@ namespace play_audio
 
         public MainWindow()
         {
-            InitializeComponent();
-            audioPoints = new ChartValues<double>();
-           
+            InitializeComponent();  
             //cWin.Owner = this;
             playaudio.IsEnabled = true;
             DataContext = this;
@@ -66,7 +64,7 @@ namespace play_audio
 
         public double[] getCoefficients()
         {
-            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\megha\Scripts\AeroWin2\PlayAudio\coefficients.txt");
 
 
             string[] coefficients = new string[10];
@@ -104,13 +102,13 @@ namespace play_audio
             //Debug.Print("Lay : " + a1);
             //var wout = new WaveOut();
 
-            wfr = new WaveFileReader(@"D:\GIT\AeroWin2\GeneratedWaveFiles\finalchecko5\finalchecko5_0_1.wav");
+            wfr = new WaveFileReader(@"C:\Users\megha\Scripts\AeroWin2\GeneratedFiles\GeneratedWaveFiles\dccd\dccd_0_1.wav");
 
             //Debug.Print("JH" + wfr.Length);
 
-            SoundPlayer s = new SoundPlayer(@"D:\GIT\AeroWin2\GeneratedWaveFiles\finalchecko5\finalchecko5_0_1.wav");
+            SoundPlayer s = new SoundPlayer(@"C:\Users\megha\Scripts\AeroWin2\GeneratedFiles\GeneratedWaveFiles\dccd\dccd_0_1.wav");
 
-            byte[] allBytes = File.ReadAllBytes(@"D:\GIT\AeroWin2\GeneratedWaveFiles\finalchecko5\finalchecko5_0_1.wav");
+            byte[] allBytes = File.ReadAllBytes(@"C:\Users\megha\Scripts\AeroWin2\GeneratedFiles\GeneratedWaveFiles\dccd\dccd_0_1.wav");
 
            // Array.Copy(allBytes, 44, partOfallBytes, 44, 20000);
             //Array.Copy(allBytes, 0, partOfallBytes, 0, 44);
@@ -188,21 +186,21 @@ namespace play_audio
                 p.X = x;
                 p.Y = points3[x];
                 val = Normalize(x, p.Y);
-                audioPoints.Add(val);
+                audioPoints.Add((float)val);
                 n++;
                 //if (n >= 834)
                 //    flag = 1;
-                if (audioPoints.Count >= 834)
-                {
-                    flag = 1;
+                //if (audioPoints.Count >= 834)
+                //{
+                //    flag = 1;
                     
-                }
+                //}
             }
             
             Debug.Print("n:" + n);//n is the total number of audio points shown on screen
-            s.Load();
+            //s.Load();
             
-            s.Play();
+            //s.Play();
             if(flag==1)
             {
                
