@@ -219,6 +219,8 @@ namespace MainWindowDesign
         List<float> pressures2 = new List<float>(); //Intermediately adds pressure values so that first value of this list can be added to livecharts once a limit is reached.
         List<float> airflows = new List<float>(); //Intermediately adds airflows values so that first value of this list can be added to livecharts once a limit is reached.
         int checkButtonFlag1, checkButtonFlag2;
+        public bool VPTokenCheck { get; set;}
+        
         DateTime after5sec;
         public string SaveFileLocationOfTokenHistoryFile { get; set; }
 
@@ -230,7 +232,6 @@ namespace MainWindowDesign
         List<byte> AudioData = new List<byte>() { 0x00 };
         public string FilePath { get; private set; }
         public string openExtFile_THFName;
-        string audioFileToBePlayed;
         public string FilePathForPrandAf { get; private set; }
         public bool IsNCTokenForVPResistanceSelected { get; set; }
 
@@ -299,7 +300,7 @@ namespace MainWindowDesign
 
                 }
 
-                var backgroundThread = new Thread(dataCollectionThread) {IsBackground = true};
+                var backgroundThread = new Thread(DataCollectionThread) {IsBackground = true};
                 backgroundThread.Start();
 
                 port.DataReceived += SerialDataReceived;
@@ -350,21 +351,20 @@ namespace MainWindowDesign
             var currentProtocol = e.Protocol;
             if (currentProtocol.TokenType == "VP")
             {
-                checkButtonFlag1 = 1;
+                VPTokenCheck = false;
                 if (IsNCTokenForVPResistanceSelected == false)
                 {
                     ManageVPTokenRecording(currentProtocol, TokenHistory);
                 }
                 else
                 {
-                    checkButtonFlag1 = 0;
+                    VPTokenCheck = true;
                 }
             }
             else
             {
-                checkButtonFlag1 = 0;
+                VPTokenCheck = true;
             }
-           
         }
 
         private void InitializeTokenHistory()
@@ -518,7 +518,7 @@ namespace MainWindowDesign
             SelectedNCTokenForVPCalculation = args.RecordedNCToken;
             SelectNCTokenWindow.Close();
             IsNCTokenForVPResistanceSelected = true;
-            checkButtonFlag1 = 0;
+            VPTokenCheck = true;
         }
 
         private void SaveTokenHistoryToAFile(List<RecordedProtocolHistory> tokenHistory, string fileLocation)
@@ -1857,14 +1857,14 @@ namespace MainWindowDesign
         
 
 
-        private void dataCollectionThread()
+        private void DataCollectionThread()
         {
             // pressures2 = new List<float>();
             List<float> listofAllPressures = new List<float>();
             List<float> listofAllAirflows = new List<float>();
             bool canRecordingBeContinued = true;
             bool checksIfweCanProceedRecordingWithAudio = true;
-
+            VPTokenCheck = true;
             while (true)
             {
                 float pcomp = 0;
@@ -1902,7 +1902,7 @@ namespace MainWindowDesign
                                     airflows.Add(af_in_cc);
                                 }
 
-                                if (rawValuePacket.ButtonData == 7 && checkButtonFlag1 == 0)
+                                if (rawValuePacket.ButtonData == 7 && checkButtonFlag1 == 0 && VPTokenCheck)
                                 {
                                    
                                     checkButtonFlag2 = 1;
