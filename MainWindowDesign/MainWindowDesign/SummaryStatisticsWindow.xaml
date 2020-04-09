@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MainWIndowDesign"
         mc:Ignorable="d"
-        Title="SummaryStatisticsWindow" Height="300" Width="400">
+        Title="SummaryStatisticsWindow" Height="300" Width="400" Closing="SummaryStatisticsWindow_OnClosing">
     <Grid Height="270" Width="380">
         <DataGrid Height="250" x:Name="SummaryStatisticsGrid" SelectionUnit="FullRow" AutoGenerateColumns="False">
             <DataGrid.Columns>

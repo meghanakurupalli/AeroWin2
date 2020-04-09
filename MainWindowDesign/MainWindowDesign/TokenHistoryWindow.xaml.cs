@@ -94,6 +94,7 @@ namespace MainWindowDesign
             catch (System.IO.FileNotFoundException e)
             {
                 MessageBox.Show("Token history file not found!", "File not found");
+               
             }
         }
 

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
-        Title="DeviceAndAIChannelsWindow" Height="350" Width="355">
+        Title="Device Channel" Height="280" Width="300">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20 40" Height="40" Orientation="Horizontal">
             <Label Name="DeviceandAIChannels" Content="COM Ports : " FontWeight="Bold" VerticalAlignment="Center"></Label>
-            <ComboBox Width="100" x:Name="listOfPorts" HorizontalContentAlignment="Center"></ComboBox>
+            <ComboBox Width="100" x:Name="listOfPorts" HorizontalContentAlignment="Center" SelectedIndex="0"></ComboBox>
             <Button Width="60" Content="OK" Background="LightGray" Foreground="Black" Margin="15 0" BorderBrush="Gray" x:Name="COMPorts_OK_Button" Click="COMPorts_OK_Button_Click"></Button>
         </StackPanel>
     </Grid>

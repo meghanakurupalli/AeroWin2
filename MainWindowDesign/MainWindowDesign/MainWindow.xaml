@@ -14,7 +14,12 @@
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        Title="AeroWin RT" Height="1000" Width="1200" WindowState="Maximized" Closing="MainWindow_OnClosing">
+        Title="AeroWin RT" 
+        Height="1000" 
+        Width="1200" 
+        WindowState="Maximized" 
+        Loaded="MainWindow_OnLoaded"
+        Closing="MainWindow_OnClosing">
     <Window.Resources>
         <Storyboard x:Key="moveLine" Name="forMovingtheLine">
             <DoubleAnimation Storyboard.TargetName="audioLine" Storyboard.TargetProperty="X1" From="5.0" To="780" Duration="0:0:5">
@@ -57,8 +62,8 @@
 
                 <MenuItem Header="Settings">
                     <!--Settings are here-->
-                    <MenuItem Header="Subtraction Token"/>
-                    <MenuItem Header="Device and AI Channels" Name ="DeviceChannels" Click="DeviceChannels_Click"/>
+                    <MenuItem Header="Subtraction Token" IsEnabled="False" Name="subtractionTokenButton" Click="SubtractionTokenButton_OnClick"/>
+                    <MenuItem Header="Device Channel" Name ="DeviceChannels" Click="DeviceChannels_Click"/>
                     <MenuItem Header="Peak Detection"/>
                     <MenuItem Header="Set Channel Ranges" Name ="ChannelRanges" Click="ChannelRanges_OnClick"></MenuItem>
                 </MenuItem>

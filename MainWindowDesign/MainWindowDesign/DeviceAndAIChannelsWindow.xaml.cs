@@ -22,6 +22,7 @@ namespace MainWindowDesign
     {
         List<string> ports;
         public string COM_Port;
+        public string defaultPort { get; set; }
         public DeviceAndAIChannelsWindow()
         {
             ports = new List<string>();
@@ -30,13 +31,19 @@ namespace MainWindowDesign
             {
                 ports.Add(s);
             }
-            listOfPorts.ItemsSource = ports;
+
+            if (ports.Count > 0)
+            {
+                defaultPort = ports[0];
+                listOfPorts.ItemsSource = ports;
+            }
+
         }
 
         private void COMPorts_OK_Button_Click(object sender, RoutedEventArgs e)
         {
             COM_Port = listOfPorts.SelectedItem.ToString();
-           
+            Close();
         }
     }
 }

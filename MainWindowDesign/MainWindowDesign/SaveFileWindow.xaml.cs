@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -63,29 +64,7 @@ namespace MainWindowDesign
 
         private void ProtocolFileBrowse_Click(object sender, RoutedEventArgs e)
         {
-            //save.FileName = "Protocol.csv";
-
-            //save.Filter = filter;
-            //StreamWriter writer = null;
-            //if (save.ShowDialog() == true)
-
-            //{
-
-            //    //filter = save.FileName;
-            //    //writer = new StreamWriter(filter);
-            //    //const string header = "Token_Type,Utterance,Rate,Intensity,Repetition_Count";
-            //    //writer.WriteLine(header);
-            //    ////var csv = new StringBuilder();
-
-            //    //writer.Close();
-            //    string DataFileName_ext;
-            //    DataFileName_ext = save.ToString();
-            //    DataFileName = System.IO.Path.GetFileNameWithoutExtension(DataFileName_ext);
-            //    Debug.Print("File name : " + DataFileName);
-            //    ProtocolFileName.Text = DataFileName;
-            //    mwin.FileNameFromSFW = DataFileName;
-
-            //}
+            
 
             if (openFileDialog.ShowDialog()==true)
             {
@@ -101,10 +80,37 @@ namespace MainWindowDesign
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            if(OkButtonClicked != null)
+            string invalid = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            if (OkButtonClicked != null)
             {
                 _dataFileName = FileName.Text;
+                for (int i = 0; i < invalid.Length; i++)
+                {
+                    if (_dataFileName.Contains(invalid[i]))
+                    {
+                        MessageBox.Show("Invalid characters detected in file name. Please rename the file",
+                            "Invalid file name", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+                
                 _protocolFileName = ProtocolFileName.Text;
+                if (_dataFileName == null)
+                {
+                    MessageBox.Show("Field cannot be empty!", "Enter a data file name", MessageBoxButton.OK);
+                    return;
+                    
+                }
+                else if (_protocolFileName == null)
+                {
+                    MessageBox.Show("Protocol file not selected", "Please select a protocol file.", MessageBoxButton.OK);
+                    return;
+                }
+                else if (_protocolFileName == null && _dataFileName == null)
+                {
+                    MessageBox.Show("Fields cannot be empty", "Please enter a file name and select a protocol file to proceed.", MessageBoxButton.OK);
+                    return;
+                }
                 OkButtonClicked(this, new EventArgs());
             }
 

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
-        Title="Cursor Values" Height="208" Width="442.4" ResizeMode="NoResize" WindowStartupLocation="Manual" Top="0" Left="0">
+        Title="Cursor Values" Height="208" Width="442.4" ResizeMode="NoResize" WindowStartupLocation="Manual" Top="0" Left="0" Closing="CursorWindow_OnClosing">
     <Border Padding="5 5 5 5" Margin="0,0,0,-19">
         <StackPanel Margin="0,2,0,-2">
             <Grid Height="30">
