@@ -2086,7 +2086,7 @@ namespace MainWindowDesign
 
         private void ProcessQueue()
         {
-            while (receivedData.Count > 0)
+            while (port.IsOpen && receivedData.Count > 0)
             {
                 byte nextByte = receivedData.Dequeue();
 
