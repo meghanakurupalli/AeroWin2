@@ -85,6 +85,8 @@
                     <MenuItem Header="VP ASCII File"></MenuItem>
                     <MenuItem Header="NC Subtraction File"></MenuItem>
                     <MenuItem Header="Horizontal Marker"></MenuItem>
+                    <MenuItem Header="Summary report" Name="SummaryReport" Click="SummaryReport_Click" IsEnabled="False"></MenuItem>
+                   
                 </MenuItem>
                 <MenuItem Header="Tools">
                     <MenuItem Name="ProtocolBuilder" Header="Protocol Builder" Click="ProtocolBuilder_Click"/>
@@ -163,7 +165,7 @@
                 
                 
                 <Grid Grid.Column="2" Grid.Row="0">
-                    <lvc:CartesianChart Name="AudioChart" Height="150" DisableAnimations="True" Hoverable="False">
+                    <lvc:CartesianChart Name="AudioChart" Height="150" DisableAnimations="True" Hoverable="False" >
                         <lvc:CartesianChart.Series>
                             <!--<geared:GLineSeries Values ="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>-->
                             <lvc:LineSeries Values="{Binding AudioPoints}" 

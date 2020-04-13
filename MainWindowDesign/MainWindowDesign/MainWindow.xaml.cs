@@ -23,7 +23,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using FormsMessageBox = System.Windows.Forms.MessageBox;
 using MessageBox = System.Windows.MessageBox;
-
+using officeWord = Microsoft.Office.Interop.Word;
 
 namespace MainWindowDesign
 {
@@ -68,6 +68,13 @@ namespace MainWindowDesign
             }
         }
 
+        private const int pressurePreset = 10; // When Calibrating the pressure sensor, please use the high as 10 cm H2O. If you want to use a different value as high, please change it here. 
+
+        private const int flowPreset = 500; // Airflow sensor is calibrated in cc/sec. A preset of 500 cc/sec (or) 30 L/min is used here.
+
+        private const int x_axisMaxWhileRecordingToken = 210;
+        private const int x_axisMaxWhileDisplayingToken = 1200;
+
         private bool _isAudioTokenRecorded;
         private RecordedProtocolHistory SelectedNCTokenForVPCalculation { get; set; }
 
@@ -78,7 +85,8 @@ namespace MainWindowDesign
         //public ChartValues<double> ResistanceLineSeriesValues { get; set; } = new ChartValues<double>();
         public ChartValues<ScatterPoint> ResistanceLineSeriesValues { get; set; } = new ChartValues<ScatterPoint>();
         public SeriesCollection ScatterLineSeriesValues { get; set; } = new SeriesCollection();
-        
+
+        public List<ReportGeneration> ListOfDataforReport { get; set; }
 
         public double? _PressureXAxisMax;
         public double? _AirflowXAxisMax;
@@ -94,6 +102,7 @@ namespace MainWindowDesign
 
         public double? _ResistanceYAxisMin;
         public double? _ResistanceYAxisMax;
+
 
         public double? PressureYAxisMin
         {
@@ -286,6 +295,8 @@ namespace MainWindowDesign
                 airflowCalibrationCoefficient_slope = Coefficients[0];
                 airflowCalibrationCoefficient_intercept = Coefficients[1];
             }
+
+            ListOfDataforReport = new List<ReportGeneration>();
         }
 
         private void SaveFileWindow_SaveClicked(object sender, EventArgs e)
@@ -351,7 +362,80 @@ namespace MainWindowDesign
                 SaveTokenHistoryToAFile(TokenHistory, SaveFileLocationOfTokenHistoryFile);
             }
             port.Close();
+            SummaryReport.IsEnabled = true;
+            SaveSummaryReport();
         }
+        officeWord.Application oWord = new officeWord.Application();
+        officeWord.Document oDoc = new officeWord.Document();
+
+        private void SaveSummaryReport()
+        {
+            object oTemplate = @"C:\Users\megha\Scripts\AeroWin2\GeneratedFiles\Templates\AeroWinReport.dotx";
+            //oDoc = oWord.Documents.Add(ref oTemplate, ref oMissing,
+            //    ref oMissing, ref oMissing);
+            Object oMissing = System.Reflection.Missing.Value;
+            oDoc = oWord.Documents.Add(ref oTemplate, ref oMissing,
+                ref oMissing, ref oMissing);
+            //oDoc.Tables[1].Cell(1, 2).Range.Text = "Changed text";
+            object oBookMark = "DataFileName";
+            oDoc.Bookmarks.get_Item(ref oBookMark).Range.Text = DataFileName;
+            object oBookMark1 = "DateOfCreation";
+            oDoc.Bookmarks.get_Item(ref oBookMark1).Range.Text = DateTime.Today.ToString();
+            object oBookMark2 = "Filepath";
+            oDoc.Bookmarks.get_Item(ref oBookMark2).Range.Text = "SomeText";//Yet to write the file path here.
+
+            //oDoc.Tables[1].Rows.Add(oDoc.Tables[1].Rows[3]);
+            oDoc.Tables[1].Cell(1, 4).Split(2, 1);
+            //oDoc.Tables[1].Cell(1, 3).Split(1, 2);
+            //oDoc.Tables[1].Cell(1, 5).Split(1, 2);
+            for (int i = 0; i < ListOfDataforReport.Count; i++)
+            {
+                
+                //oDoc.Tables[1].Rows.Add(oDoc.Tables[1].Rows[i+2]);
+                var item = ListOfDataforReport[i];
+                if(item.TokenType == "VP")
+                {
+                    oDoc.Tables[1].Rows.Add();
+                    oDoc.Tables[1].Cell(i + 3, 1).Range.Text = item.PressureMean;
+                    oDoc.Tables[1].Cell(i + 3, 2).Range.Text = item.PressureSD;
+                    oDoc.Tables[1].Cell(i + 3, 3).Range.Text = item.FlowMean;
+                    oDoc.Tables[1].Cell(i + 3, 4).Range.Text = item.FlowSD;
+                    oDoc.Tables[1].Cell(i + 3, 5).Range.Text = item.ResistanceMean;
+                    oDoc.Tables[1].Cell(i + 3, 6).Range.Text = item.ResistanceSD;
+                    oDoc.Tables[1].Cell(i + 3, 7).Range.Text = item.JoinedProtocol;
+                }
+                else if(item.TokenType == "LR")
+                {
+                    oDoc.Tables[2].Rows.Add();
+                    oDoc.Tables[2].Cell(i + 3, 1).Range.Text = item.PressureMean;
+                    oDoc.Tables[2].Cell(i + 3, 2).Range.Text = item.PressureSD;
+                    oDoc.Tables[2].Cell(i + 3, 3).Range.Text = item.FlowMean;
+                    oDoc.Tables[2].Cell(i + 3, 4).Range.Text = item.FlowSD;
+                    oDoc.Tables[2].Cell(i + 3, 5).Range.Text = item.ResistanceMean;
+                    oDoc.Tables[2].Cell(i + 3, 6).Range.Text = item.ResistanceSD;
+                    oDoc.Tables[2].Cell(i + 3, 7).Range.Text = item.JoinedProtocol;
+                }
+                
+            }
+            object fileName = System.IO.Path.Combine(pathForwavFiles, DataFileName + " Summary"+".docx") ;
+            
+            oDoc.SaveAs(ref fileName,
+                ref oMissing, ref oMissing, ref oMissing, ref oMissing, ref oMissing,
+                ref oMissing, ref oMissing, ref oMissing, ref oMissing, ref oMissing,
+                ref oMissing, ref oMissing, ref oMissing, ref oMissing, ref oMissing);
+        }
+        private void SummaryReport_Click(object sender, RoutedEventArgs e)
+        {
+           
+            oWord.Visible = true;
+           
+            //ADDING A NEW DOCUMENT TO THE APPLICATION  
+            //oWordDoc = oWord.Documents.Add(ref oMissing, ref oMissing, ref oMissing, ref oMissing);
+            
+            
+
+        }
+
 
         private void HandleTokenSelectionChangeEvent(object sender, SelectedTokenArguments e)
         {
@@ -1004,7 +1088,7 @@ namespace MainWindowDesign
 
                 for (int i = initialPressurePeaks.Count - 1; i > 0; i--)
                 {
-                    if (initialPressurePeakIndices[i] - initialPressurePeakIndices[i - 1] < 50)
+                    if (initialPressurePeakIndices[i] - initialPressurePeakIndices[i - 1] < 30)
                     {
                         initialPressurePeakIndices.RemoveAt(i - 1);
                         initialPressurePeaks.RemoveAt(i - 1);
@@ -1643,17 +1727,22 @@ namespace MainWindowDesign
         {
             ResistancesforCursors.Clear();
             ResistanceIndicesforCursors.Clear();
+            ReportGeneration reportObject = new ReportGeneration();
             Debug.Print("All pressures count at the start of closing method : " + allPressures.Count);
             int TWinSelectedIndex = 0;
             int TWinCurrentRepCount = 0;
             string selectedTokenType = null;
             StringBuilder stringBuilder = new StringBuilder();
+            string joinedProtocol = null ;
             Dispatcher?.Invoke(() =>
             {
                 TWinSelectedIndex = _tokenListWindow.TokenListGrid.SelectedIndex;
                 TWinCurrentRepCount = _tokenListWindow.CurrentRepetitionCount;
                 selectedTokenType = _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType;
+                joinedProtocol = _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TokenType + ", " + _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Utterance + ", " + _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Rate + ", " + _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].Intensity + ", " + _tokenListWindow.Protocols[_tokenListWindow.TokenListGrid.SelectedIndex].TotalRepetitionCount;
             });
+
+            
             List<double> resistances = new List<double>();
             List<int> resistanceIndices = new List<int>();
             List<string> summaryStats = new List<string>();
@@ -1707,28 +1796,15 @@ namespace MainWindowDesign
             float pressureAt10 = 0;
             float pressureAt0 = 0;
 
-            float airflowAt10 = 0;
-            float AirflowAt0 = 0;
+            float airflowAt500 = 0;
+            float airflowAt0 = 0;
 
-            //PressureXAxisMax = 1200;
-            //AirflowXAxisMax = 1200;
-            //Dispatcher.Invoke(() =>
-            //{
-            //    foreach (var item in filteredPressures)
-            //    {
-            //        PressureLineSeriesValues.Add(item);
-            //    }
-            //});
-
-            //Dispatcher.Invoke(() =>
-            //{
-            //    foreach (var VARIABLE in filteredAirflows)
-            //    {
-            //        AirFlowLineSeriesValues.Add(VARIABLE);
-            //    }
-            //});
+          
 
             FilePathForPrandAf = System.IO.Path.Combine(pathForwavFiles, DataFileName + "pr_af" + "_" + TWinSelectedIndex + "_" + TWinCurrentRepCount + ".csv");
+
+            reportObject.DataFileName = FilePathForPrandAf;
+
             if (File.Exists(FilePathForPrandAf))
             {
                 File.Delete(FilePathForPrandAf);
@@ -1761,19 +1837,19 @@ namespace MainWindowDesign
             {
                 for (int i = 50; i < 150; i++)
                 {
-                    airflowAt10 =airflowAt10 + filteredAirflows[i];
+                    airflowAt500 = airflowAt500 + filteredAirflows[i];
                 }
 
                 for (int i = 900; i < 1000; i++)
                 {
-                    AirflowAt0 = AirflowAt0 + filteredAirflows[i];
+                    airflowAt0 = airflowAt0 + filteredAirflows[i];
                 }
 
-                airflowAt10 = airflowAt10 / 100;
-                AirflowAt0 = AirflowAt0 / 100;
+                airflowAt500 = airflowAt500 / 100;
+                airflowAt0 = airflowAt0 / 100;
 
-                airflowCalibrationCoefficient_slope= 20 / (airflowAt10- AirflowAt0);
-                airflowCalibrationCoefficient_intercept = 20 * AirflowAt0/ (airflowAt10 - AirflowAt0);
+                airflowCalibrationCoefficient_slope= 500 / (airflowAt500- airflowAt0);
+                airflowCalibrationCoefficient_intercept = 500 * airflowAt0/ (airflowAt500 - airflowAt0);
                 coefficientBuilder.AppendLine(string.Format("{0},{1}", airflowCalibrationCoefficient_slope,
                     airflowCalibrationCoefficient_intercept));
                 var path = System.IO.Path.Combine(generatedProtocolFilesPath, "pressureAndAirflowCalibrationCoefficients.csv");
@@ -1798,13 +1874,13 @@ namespace MainWindowDesign
 
                 try
                 {
-                    //*********************************** Uncomment ******************************************************************************** 
+                    
                     var selectedSubtractionToken = SelectedNCTokenForVPCalculation;
                     var splits = selectedSubtractionToken.TotalRepetitionCount.Split(' ');
                     var filename = DataFileName + "pr_af_" + selectedSubtractionToken.SelectedIndex + "_" + splits[0] +
                                    ".csv";
                     string filepath = System.IO.Path.Combine(pathForwavFiles, filename);
-                    //*********************************** Uncomment ********************************************************************************
+                    
                     using (var rd = new StreamReader(filepath))
                     {
                         while (!rd.EndOfStream)
@@ -1868,6 +1944,26 @@ namespace MainWindowDesign
 
                     File.WriteAllText(FilePathForPrandAf, stringBuilder.ToString());
                     stringBuilder.Clear();
+                    if (summaryStats.Count == 6) // For VP token
+                    {
+                        reportObject.FlowMean = summaryStats[0];
+                        reportObject.FlowSD = summaryStats[1];
+                        reportObject.PressureMean = summaryStats[2];
+                        reportObject.PressureSD= summaryStats[3];
+                        reportObject.ResistanceMean = summaryStats[4]; 
+                        reportObject.ResistanceSD= summaryStats[5];
+                        
+                    }
+                    else if (summaryStats.Count == 8) //For LR token
+                    {
+                        reportObject.FlowMean = summaryStats[0];
+                        reportObject.FlowSD = summaryStats[1];
+                        reportObject.PressureMean = summaryStats[4];
+                        reportObject.PressureSD = summaryStats[5];
+                        reportObject.ResistanceMean = summaryStats[6];
+                        reportObject.ResistanceSD = summaryStats[7];
+                    }
+
                 }
                 else
                 {
@@ -1876,10 +1972,21 @@ namespace MainWindowDesign
                         var line = $"{filteredPressures[i]},{filteredAirflows[i]}";
                         stringBuilder.AppendLine(line);
                     }
+                    reportObject.FlowMean = "-";
+                    reportObject.FlowSD = "-";
+                    reportObject.PressureMean = "-";
+                    reportObject.PressureSD = "-";
+                    reportObject.ResistanceMean = "-";
+                    reportObject.ResistanceSD = "-";
                     File.WriteAllText(FilePathForPrandAf, stringBuilder.ToString());
                     stringBuilder.Clear();
                 }
             }
+
+            reportObject.FilepathForCheckingDuplicates = FilePathForPrandAf;
+            reportObject.JoinedProtocol = joinedProtocol;
+            reportObject.TokenType = selectedTokenType;
+            GenerateReport(reportObject);
 
             ResistancesforCursors = resistances;
             ResistanceIndicesforCursors = resistanceIndices;
@@ -1939,7 +2046,7 @@ namespace MainWindowDesign
                                 foreach (var item in rawValuePacket.PresB)
                                 {
                                    // pcomp = (float)((item - 30584.2) / 1251.79);
-                                   pcomp = (float) (item * pressureCalibrationCoefficent_slope - pressureCalibrationCoefficent_intercept); 
+                                   pcomp = (float) (item * pressureCalibrationCoefficent_slope + pressureCalibrationCoefficent_intercept); 
                                    pressures2.Add(pcomp);
 
                                 }
@@ -1947,7 +2054,7 @@ namespace MainWindowDesign
                                 //Channel for airflow
                                 {
                                     //af_in_cc = (float)(((item - 291273.1) / 234.06) * 16.667);
-                                    af_in_cc = (float)((item * airflowCalibrationCoefficient_slope - airflowCalibrationCoefficient_intercept) *16.667);
+                                    af_in_cc = (float)(item * airflowCalibrationCoefficient_slope + airflowCalibrationCoefficient_intercept);
                                     airflows.Add(af_in_cc);
                                 }
 
@@ -3006,9 +3113,12 @@ namespace MainWindowDesign
 
             if (ResistanceIndices.Contains(expectedIndexOfPointInInteger))
             {
-                double pointValue = Resistances[expectedIndexOfPointInInteger];
-                cursorValue = Math.Round(pointValue, 3);
-                Debug.Print("Cursor Value : "+cursorValue);
+                {
+                    int index = ResistanceIndices.FindIndex(a => a == expectedIndexOfPointInInteger);
+                    double pointValue = Resistances[index];
+                    cursorValue = Math.Round(pointValue, 3);
+                    Debug.Print("Cursor Value : " + cursorValue);
+                }
             }
             else
             {
@@ -3183,6 +3293,38 @@ namespace MainWindowDesign
             {
                 MessageBox.Show("Please Connect the Equipment and try again.");
                 Close();
+            }
+        }
+
+        public class ReportGeneration
+        {
+            public string DataFileName;
+            public string TokenType;
+            public string JoinedProtocol;
+            public string PressureMean;
+            public string PressureSD;
+            public string FlowMean;
+            public string FlowSD;
+            public string ResistanceMean;
+            public string ResistanceSD;
+            public string FilepathForCheckingDuplicates;
+        }
+
+        
+        public void GenerateReport(ReportGeneration report)
+        {
+            if (report != null && !string.IsNullOrEmpty(report.FilepathForCheckingDuplicates) && ListOfDataforReport != null)
+            {
+                var filePath = report.FilepathForCheckingDuplicates;
+                var index = ListOfDataforReport.FindIndex(x => x.FilepathForCheckingDuplicates == filePath);
+                if (index >= 0)
+                {
+                    ListOfDataforReport[index] = report;
+                }
+                else
+                {
+                    ListOfDataforReport.Add(report);
+                }
             }
         }
     }
