@@ -4,7 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="TokenHistoryWindow" Height="300" Width="500">
+        Name="TokenHistory"
+        Title="Token History" 
+        Height="300" 
+        Width="500">
     <StackPanel Height="250" VerticalAlignment="Top">
         <DataGrid Height="200" x:Name="TokenHistoryGrid" SelectionUnit="FullRow">
 

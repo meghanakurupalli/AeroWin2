@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 
-namespace MainWIndowDesign
+namespace MainWindowDesign
 {
     /// <summary>
     /// Interaction logic for ShowSubtractionToken.xaml

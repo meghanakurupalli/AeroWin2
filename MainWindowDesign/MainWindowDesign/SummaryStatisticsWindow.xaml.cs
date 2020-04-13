@@ -14,7 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace MainWIndowDesign
+namespace MainWindowDesign
 {
     /// <summary>
     /// Interaction logic for SummartStatisticsWindow.xaml

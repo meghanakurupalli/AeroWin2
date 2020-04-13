@@ -120,6 +120,7 @@
     <Compile Include="ChannelRangesWindow.xaml.cs">
       <DependentUpon>ChannelRangesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helper.cs" />
     <Compile Include="ProtocolFileBuilderWindow.xaml.cs">
       <DependentUpon>ProtocolFileBuilderWindow.xaml</DependentUpon>
     </Compile>
@@ -140,9 +141,6 @@
     </Compile>
     <Compile Include="TokenListWindow.xaml.cs">
       <DependentUpon>TokenListWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="VPSummaryStatisticsWindow.xaml.cs">
-      <DependentUpon>VPSummaryStatisticsWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="ChannelRangesWindow.xaml">
       <SubType>Designer</SubType>
@@ -206,10 +204,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="TokenListWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="VPSummaryStatisticsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

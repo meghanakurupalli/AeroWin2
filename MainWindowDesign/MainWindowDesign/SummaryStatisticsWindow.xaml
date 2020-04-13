@@ -1,11 +1,14 @@
-﻿<Window x:Class="MainWIndowDesign.SummaryStatisticsWindow"
+﻿<Window x:Class="MainWindowDesign.SummaryStatisticsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MainWIndowDesign"
+        xmlns:local="clr-namespace:MainWindowDesign"
         mc:Ignorable="d"
-        Title="SummaryStatisticsWindow" Height="300" Width="400" Closing="SummaryStatisticsWindow_OnClosing">
+        Title="Summary Statistics" 
+        Name="SummaryStatistics"
+        Height="300" Width="400" 
+        Closing="SummaryStatisticsWindow_OnClosing">
     <Grid Height="270" Width="380">
         <DataGrid Height="250" x:Name="SummaryStatisticsGrid" SelectionUnit="FullRow" AutoGenerateColumns="False">
             <DataGrid.Columns>

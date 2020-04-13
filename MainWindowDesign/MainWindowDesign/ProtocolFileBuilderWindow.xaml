@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MainWindowDesign"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="ProtocolFileBuilderWindow" Height="500" Width="450" Background="LightGray">
+        Title="Protocol File Builder" Height="500" Width="450" Background="LightGray">
     <Window.Resources>
         <Style x:Key="_ListBoxItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
             <Setter Property="Template">

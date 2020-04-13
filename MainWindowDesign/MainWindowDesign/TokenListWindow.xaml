@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="TokenListWindow" 
+        Title="Token List" 
         Height="300" 
         Width="500"
         Closed="TokenListWindowClosed_Event" ResizeMode="NoResize">
