@@ -1632,32 +1632,33 @@ namespace MainWindowDesign
             //ShowTokenHistoryForVPRecording(ncTokenHistory);
 
             // Building Savitzky Golay filter here because we are showing filtered values only after the token is recorded. 
-            double[] arr = new double[allPressures.Count];
+            double[] arr = new double[allPressures.Count];            
 
             MovingWindowFilter filter =
                 new MovingWindowFilter(filterWidthLeft,filterWidthRight, peterSavitzkyCoefficients);
 
-            for (int i = 0; i < demeanedPressures.Count; i++)
-            {
-                arr[i] = Convert.ToDouble(demeanedPressures[i]);
-            }
+            //for (int i = 0; i < demeanedPressures.Count; i++)
+            //{
+            //    arr[i] = Convert.ToDouble(demeanedPressures[i]);
+            //}
+
+            arr = demeanedPressures.Select(Convert.ToDouble).ToArray();
 
             var v = new DoubleVector(arr);
             DoubleVector filteredPressureVector = filter.Filter(v);
             var prs = filteredPressureVector.ToList();
             filteredPressures = prs.Select(i => (float)i).ToList();
+            //for (int i = 0; i < demeanedAirflows.Count; i++)
+            //{
+            //    arr[i] = Convert.ToDouble(demeanedAirflows[i]);
+            //}
+            arr = demeanedAirflows.Select(Convert.ToDouble).ToArray();
 
-
-            for (int i = 0; i < demeanedAirflows.Count; i++)
-            {
-                arr[i] = Convert.ToDouble(demeanedAirflows[i]);
-            }
-            
             v = new DoubleVector(arr);
             DoubleVector filteredAirflowVector = filter.Filter(v);
             var airfs = filteredAirflowVector.ToList();
             filteredAirflows = airfs.Select(i => (float)i).ToList();
-
+            
 
             //PressureLineSeriesValues.Clear();
             //AirFlowLineSeriesValues.Clear();
