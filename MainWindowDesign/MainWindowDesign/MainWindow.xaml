@@ -155,7 +155,7 @@
                                             ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX >
-                            <lvc:Axis ShowLabels="False" MaxValue="835"/>
+                            <lvc:Axis ShowLabels="False" MaxValue="816"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop" MinValue="{Binding AudioYAxisMin}" MaxValue="{Binding AudioYAxisMax}"></lvc:Axis>
@@ -178,7 +178,9 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX >
-                            <lvc:Axis ShowLabels="False" MaxValue="{Binding AirflowXAxisMax}"/>
+                            <!--<lvc:Axis ShowLabels="False" MaxValue="{Binding AirflowXAxisMax}"/>-->
+                            <lvc:Axis ShowLabels="False" MaxValue="1200"/>
+                            <lvc:Axis ShowLabels="False"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop" MinValue="{Binding AirflowYAxisMin}" MaxValue="{Binding AirflowYAxisMax}"></lvc:Axis>
@@ -198,7 +200,9 @@
                                 ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}" />
                         </lvc:CartesianChart.Series>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis ShowLabels="False" MaxValue="{Binding PressureXAxisMax}"/>
+                            <!--<lvc:Axis ShowLabels="False" MaxValue="{Binding PressureXAxisMax}"/>-->
+                            <lvc:Axis ShowLabels="False" MaxValue="1200"/>
+                            <lvc:Axis ShowLabels="False"/>
                         </lvc:CartesianChart.AxisX>
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Position="RightTop" MinValue="{Binding PressureYAxisMin}" MaxValue="{Binding PressureYAxisMax}" ></lvc:Axis>

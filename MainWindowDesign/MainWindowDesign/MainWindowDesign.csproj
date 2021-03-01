@@ -56,17 +56,11 @@
       <HintPath>..\packages\Microsoft.Office.Interop.Word.15.0.4797.1003\lib\net20\Microsoft.Office.Interop.Word.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Microsoft.Solver.Foundation, Version=3.0.2.10889, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Solver.Foundation.3.1.0\lib\Microsoft.Solver.Foundation.dll</HintPath>
-    </Reference>
     <Reference Include="NAudio, Version=1.10.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="Nito.KitchenSink.CRC, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Nito.KitchenSink.CRC.1.1.0\lib\net40-Client\Nito.KitchenSink.CRC.dll</HintPath>
-    </Reference>
-    <Reference Include="NMath, Version=6.2.0.58, Culture=neutral, PublicKeyToken=873235918a322639, processorArchitecture=MSIL">
-      <HintPath>..\packages\CenterSpace.NMath.6.2.0.58\lib\net40\NMath.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -244,9 +238,7 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\CenterSpace.NMath.6.2.0.58\build\CenterSpace.NMath.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CenterSpace.NMath.6.2.0.58\build\CenterSpace.NMath.targets'))" />
     <Error Condition="!Exists('..\packages\MaterialDesignThemes.3.1.0\build\MaterialDesignThemes.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MaterialDesignThemes.3.1.0\build\MaterialDesignThemes.targets'))" />
   </Target>
-  <Import Project="..\packages\CenterSpace.NMath.6.2.0.58\build\CenterSpace.NMath.targets" Condition="Exists('..\packages\CenterSpace.NMath.6.2.0.58\build\CenterSpace.NMath.targets')" />
   <Import Project="..\packages\MaterialDesignThemes.3.1.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.3.1.0\build\MaterialDesignThemes.targets')" />
 </Project>
