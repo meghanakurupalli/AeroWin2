@@ -16,21 +16,35 @@ namespace AudioWithLVC
         public ChartValues<Polyline> PolylineCollection;
        // string generatedWaveFilesPath = System.Configuration.ConfigurationManager.AppSettings["GeneratedWaveFilesPath"];
         double time = 0;
+
+        
+
         public MainWindow()
         {
             InitializeComponent();
-            time = 5.0;
-            StartRecording(time);
-            btnDownloadFile.IsEnabled = false;
+            time = 6.0;
+            
+            //AudioPoints.Add(1f);
+            //AudioPoints.Add(2f);
+            //AudioPoints.Add(3f);
+            //AudioPoints.Add(4f);
+            //AudioPoints.Add(5f);
+
+            //StartRecording(time);
+            //btnDownloadFile.IsEnabled = false;
+            
         }
         WaveIn wi;
         static WaveFileWriter wfw;
         Polyline pl;
+        List<byte> AudioData = new List<byte>() { 0x00 };
+        public ChartValues<float> AudioPoints { get; set; } = new ChartValues<float>();
+
 
         double seconds = 0;
 
 
-        Queue<Point> displaypts;
+        //Queue<Point> displaypts;
         Queue<float> displaypoint;
 
         long count = 0;
@@ -38,7 +52,7 @@ namespace AudioWithLVC
 
         public float[] getCoefficients()
         {
-            string[] lines = System.IO.File.ReadAllLines(@"D:\GIT\AeroWin2\AudioUse\coefficients.txt");
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\megha\Scripts\AudioUse\coefficients.txt");
 
             string[] coefficients = new string[10];
             float[] coefficients1 = new float[10];
@@ -51,19 +65,27 @@ namespace AudioWithLVC
             for (int i = 0; i < coefficients.Length; i++)
             {
                 coefficients1[i] = float.Parse(coefficients[i]);
+                
             }
 
             return (coefficients1);
         }
 
-        void StartRecording(double time)
+        bool StartRecording(double time)
         {
+
+            //Console.WriteLine("Came hereeesd");
             wi = new WaveIn();
-            wi.DataAvailable += new EventHandler<WaveInEventArgs>(wi_DataAvailable);
-            wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
+            wi.DataAvailable -= wi_DataAvailable;
+            wi.DataAvailable += wi_DataAvailable;
+
+            
+            //wi.RecordingStopped += new EventHandler<StoppedEventArgs>(wi_RecordingStopped);
             wi.WaveFormat = new WaveFormat(4000, 32, 1); //Downsampled audio from 44KHz to 4kHz 
 
-            wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
+
+            //wfw = new WaveFileWriter(generatedWaveFilesPath + @"\record4.wav", wi.WaveFormat);
+            wfw = new WaveFileWriter(@"C:\Users\megha\Scripts\AeroWin2\AudioWithLVC\record3.wav", wi.WaveFormat);
 
 
 
@@ -78,106 +100,211 @@ namespace AudioWithLVC
             plH = pl.MaxHeight;
             plW = pl.MaxWidth; */
 
-            displaypts = new Queue<Point>();
+            //displaypts = new Queue<Point>();
             displaypoint = new Queue<float>();
 
             wi.StartRecording();
 
             this.time = time;
-
+            return true;
         }
 
-        void wi_RecordingStopped(object sender, StoppedEventArgs e)
-        {
+        //void wi_RecordingStopped(object sender, StoppedEventArgs e)
+        //{
 
-            wi.Dispose();
-            wi = null;
-            wfw.Close();
-            wfw.Dispose();
-            wfw = null;
+        //    wi.Dispose();
+        //    wi = null;
+        //    wfw.Close();
+        //    wfw.Dispose();
+        //    wfw = null;
 
 
-            // btnDownloadFile.IsEnabled = true;
-        }
-
+        //    // btnDownloadFile.IsEnabled = true;
+        //}
 
         void wi_DataAvailable(object sender, WaveInEventArgs e)
         {
             float[] coefficients = new float[10];
             float[] a = new float[5];
             float[] b = new float[5];
-            seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
-
-
-            wfw.Write(e.Buffer, 0, e.BytesRecorded);
-
-            //Debug.Print("Writing to file : " + e.BytesRecorded);
-            //wfw.Flush();
-
-            Debug.Print("Seconds : " + seconds);
-            if (seconds - time > 0)
-            {
-                wi.StopRecording();
-                wfw.Flush();
-                Debug.Print("stop recording");
-            }
-            //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
-
-            byte[] points = new byte[4];
-
-
-            for (int i = 0; i < e.BytesRecorded - 1; i += 100)
-            //Check how things work when I take a sample for every 20 samples. 
-            //Check why the canvas is not getting filled up properly
-            //Instead of assuming arbitrary values with trail and error, see what aspects actally matter.
-            {
-                points[0] = e.Buffer[i];
-                points[1] = e.Buffer[i + 1];
-                points[2] = e.Buffer[i + 2];
-                points[3] = e.Buffer[i + 3];
-                if (count < numtodisplay)
+            seconds += 1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0;
+            //Console.WriteLine("Seconds : {0}", seconds);
+            
+                try
                 {
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
-                    ++count;
+
+                    //for (int i = 0; i < e.BytesRecorded; i++)
+                    //{
+                    //    AudioData.Add(e.Buffer[i]);
+                    //}
+
+                    //wfw.Write(e.Buffer,0, e.BytesRecorded);
+                    //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
+
+                    byte[] points = new byte[4];
+
+
+                    for (int i = 0; i < e.BytesRecorded - 4; i += 100)
+
+                    {
+                        points[0] = e.Buffer[i];
+                        points[1] = e.Buffer[i + 1];
+                        points[2] = e.Buffer[i + 2];
+                        points[3] = e.Buffer[i + 3];
+                        displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+                    }
+
+
+                    AudioPoints.Clear();
+                    float[] points2 = displaypoint.ToArray();
+                    float[] points3 = displaypoint.ToArray();
+
+                //    coefficients = getCoefficients();
+                //    for (int i = 0; i < 5; i++)
+                //    {
+                //        a[i] = coefficients[i];
+
+                //    }
+                //    for (int i = 5; i < coefficients.Length; i++)
+                //    {
+                //        b[i - 5] = coefficients[i];
+
+                //    }
+
+                //    for (var x = 4; x < points2.Length; x++)
+                //    {
+                //    //coefficients from file generated by MATLAB
+                //    //points3[x] = (b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * points2[x - 1]) + (a[2] * points2[x - 2]) + (a[3] * points2[x - 3]) + (a[4] * points2[x - 4]);
+                //    points3[x] = (float)((0.94998 * x) + (-3.7999 * (x - 1)) + (5.6999 * (x - 2)) + (-3.7999 * (x - 3)) + (0.94998 * (x - 4)) + (-3.8974 * points2[x - 1]) + (5.6974 * points2[x - 2]) + (-3.7025 * points2[x - 3]) + (0.90247 * points2[x - 4]));
+                //}
+
+                    for (int x = 0; x < points3.Length; ++x)
+                    {
+                    //pl.Points.Add(Normalize(x, points3[x]));
+                    //Point p = Normalize(x, points3[x]);
+                    // Debug.Print("p.Y : " + p.Y);
+                    //AudioPoints.Add((float)p.Y);
+                    AudioPoints.Add(points3[x]);
+                    // Console.WriteLine(p.Y);
                 }
-                else
+                //Console.WriteLine("{0}", AudioPoints.Count);
+                    if (seconds - time > 0)
+                    {
+                    //Debug.Print("inside if : " + time + ", Seconds : " + seconds);                
+                    //wi.StopRecording();
+                    //wi_RecordingStopped();
+                    //_wi.GetPosition();
+                    Console.WriteLine("stop recording {0}, {1}", seconds, AudioPoints.Count);
+                    //Console.WriteLine("No of audio points added : " + AudioPoints.Count());
+
+
+                    wi.StopRecording();
+                    //wi.Dispose();
+                    // May try flushing here
+                    //wfw.Flush();
+                    // audioTimer.Stop();
+                    //TWin.Close();
+                    
+                    }
+                DataContext = this;
+            }
+                catch (Exception exception)
                 {
-                    displaypoint.Dequeue();
-                    displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+                    Console.WriteLine(exception);
+                    throw;
                 }
-            }
-            //this.waveCanvas.Children.Clear();
-            //pl.Points.Clear();
-            float[] points2 = displaypoint.ToArray();
-            float[] points3 = displaypoint.ToArray();
 
-            coefficients = getCoefficients();
-            for (int i = 0; i < 5; i++)
-            {
-                a[i] = coefficients[i];
 
-            }
-            for (int i = 5; i < coefficients.Length; i++)
-            {
-                b[i - 5] = coefficients[i];
-
-            }
-
-            for (Int32 x = 4; x < points2.Length; x++)
-            {
-                //coefficients from file generated by MATLAB
-                points3[x] = ((b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * points2[x - 1]) + (a[2] * points2[x - 2]) + (a[3] * points2[x - 3]) + (a[4] * points2[x - 4]));
-
-            }
-
-            for (Int32 x = 0; x < points3.Length; ++x)
-            {
-                pl.Points.Add(Normalize(x, points3[x]));
-
-            }
-
-            //this.waveCanvas.Children.Add(pl);
         }
+
+        void StopAudioRecording()
+        {
+            wi.StopRecording();
+            wi.Dispose();
+            //using (var wfw2 = new WaveFileWriter(FilePath, _wi.WaveFormat))
+            //{
+            //    wfw2.Write(AudioData.ToArray(), 0, AudioData.Count);
+            //    wfw2.Flush();
+            //}
+        }
+
+        //void wi_DataAvailable(object sender, WaveInEventArgs e)
+        //{
+        //    float[] coefficients = new float[10];
+        //    float[] a = new float[5];
+        //    float[] b = new float[5];
+        //    seconds += (double)(1.0 * e.BytesRecorded / wi.WaveFormat.AverageBytesPerSecond * 1.0);
+
+
+        //    wfw.Write(e.Buffer, 0, e.BytesRecorded);
+
+        //    //Debug.Print("Writing to file : " + e.BytesRecorded);
+        //    //wfw.Flush();
+
+        //    Debug.Print("Seconds : " + seconds);
+        //    if (seconds - time > 0)
+        //    {
+        //        wi.StopRecording();
+        //        wfw.Flush();
+        //        Debug.Print("stop recording");
+        //    }
+        //    //double secondsRecorded = (double)(1.0 * wfw.Length / wfw.WaveFormat.AverageBytesPerSecond * 1.0);
+
+        //    byte[] points = new byte[4];
+
+
+        //    for (int i = 0; i < e.BytesRecorded - 1; i += 100)
+        //    //Check how things work when I take a sample for every 20 samples. 
+        //    //Check why the canvas is not getting filled up properly
+        //    //Instead of assuming arbitrary values with trail and error, see what aspects actally matter.
+        //    {
+        //        points[0] = e.Buffer[i];
+        //        points[1] = e.Buffer[i + 1];
+        //        points[2] = e.Buffer[i + 2];
+        //        points[3] = e.Buffer[i + 3];
+        //        if (count < numtodisplay)
+        //        {
+        //            displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+        //            ++count;
+        //        }
+        //        else
+        //        {
+        //            displaypoint.Dequeue();
+        //            displaypoint.Enqueue(BitConverter.ToInt32(points, 0));
+        //        }
+        //    }
+        //    //this.waveCanvas.Children.Clear();
+        //    //pl.Points.Clear();
+        //    float[] points2 = displaypoint.ToArray();
+        //    float[] points3 = displaypoint.ToArray();
+
+        //    coefficients = getCoefficients();
+        //    for (int i = 0; i < 5; i++)
+        //    {
+        //        a[i] = coefficients[i];
+
+        //    }
+        //    for (int i = 5; i < coefficients.Length; i++)
+        //    {
+        //        b[i - 5] = coefficients[i];
+
+        //    }
+
+        //    for (Int32 x = 4; x < points2.Length; x++)
+        //    {
+        //        //coefficients from file generated by MATLAB
+        //        points3[x] = ((b[0] * x) + (b[1] * (x - 1)) + (b[2] * (x - 2)) + (b[3] * (x - 3)) + (b[4] * (x - 4)) + (a[1] * points2[x - 1]) + (a[2] * points2[x - 2]) + (a[3] * points2[x - 3]) + (a[4] * points2[x - 4]));
+
+        //    }
+
+        //    for (Int32 x = 0; x < points3.Length; ++x)
+        //    {
+        //    //    pl.Points.Add(Normalize(x, points3[x]));
+
+        //    }
+
+        //    //this.waveCanvas.Children.Add(pl);
+        //}
 
         Point Normalize(Int32 x, float y)
         {
@@ -186,8 +313,10 @@ namespace AudioWithLVC
             {
 
                 // X = 1.99 * x / 1800 * plW,
-                X = 1.99 * x / 1670 * plW,
-                Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
+                //X = 1.99 * x / 1670 * plW,
+                //Y = plH / 2.0 - y / (Math.Pow(2, 28) * 1.0) * (plH)
+                X = x,
+                Y = y
 
             };
 
@@ -195,6 +324,11 @@ namespace AudioWithLVC
             double h = p.X;
             //File.AppendAllText(@"D:\GIT\aerowinrt\audio_use\textfile1.txt", "(" + h.ToString("#.###") + "," + k.ToString(" #.##### ") + "),");
             return p;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            StartRecording(time);
         }
     }
 }

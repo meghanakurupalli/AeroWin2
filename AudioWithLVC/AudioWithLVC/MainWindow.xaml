@@ -6,46 +6,31 @@
         xmlns:local="clr-namespace:AudioWithLVC"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" >
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="60"/>
-        </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
 
-        <Button Grid.Column="0"
+        <Button 
                 Name="button1"
-                Grid.Row="1"
                 Height="30"
                 Width="60"
                 Content="Button!!!"
-                Click="Button_Click" 
+                Click="Button_Click" Margin="167,286,535,190" 
                 />
 
-        <lvc:CartesianChart Grid.Column="1"
-                            Margin="0,5,5,157">
+        <lvc:CartesianChart Name="AudioChart" DisableAnimations="True" Hoverable="False" Margin="81,92,89,288" >
             <lvc:CartesianChart.Series>
-                <lvc:LineSeries Values="{Binding PressureLineSeriesValues}"
-                                ScalesXAt="0"/>
-                <lvc:LineSeries Values="{Binding TemperatureLineSeriesValues}"
-                                ScalesYAt="1"/>
+                <!--<geared:GLineSeries Values ="{Binding audioPoints}" StrokeThickness="1" PointGeometry="{x:Null}"/>-->
+                <lvc:LineSeries Values="{Binding AudioPoints}" 
+                                            ScalesXAt="0" StrokeThickness="1" PointGeometry="{x:Null}"/>
             </lvc:CartesianChart.Series>
-
-            <lvc:CartesianChart.AxisX>
-                <lvc:Axis Title="Time (s)"/>
+            <lvc:CartesianChart.AxisX >
+                <lvc:Axis ShowLabels="False" MaxValue="816"/>
             </lvc:CartesianChart.AxisX>
             <lvc:CartesianChart.AxisY>
-                <lvc:Axis Title="Pressure (inH2O)"
-                          Position="LeftBottom"/>
-                <lvc:Axis Title="Temperature (degC)"
-                          Position="RightTop"/>
+                <lvc:Axis Position="RightTop"></lvc:Axis>
             </lvc:CartesianChart.AxisY>
+
         </lvc:CartesianChart>
-        <Canvas Name="waveCanvas" HorizontalAlignment="Left" Background="Aquamarine" Width="653" Margin="10,222,0,35" Grid.Column="1" Grid.RowSpan="2"/>
     </Grid>
 </Window>
